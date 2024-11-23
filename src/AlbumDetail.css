@@ -1,0 +1,93 @@
+.album-detail-page {
+    padding: 2rem;
+    color: #fff;
+    background: linear-gradient(135deg, #000, #1a1a1a);
+    min-height: 100vh;
+  }
+  
+  .back-button {
+    color: #e6c06c;
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-bottom: 2rem;
+  }
+  
+  .album-detail-header {
+    margin-bottom: 1rem;
+  }
+  
+  .album-info-section {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .album-cover-large {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+  
+  .album-text-info h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #e6c06c;
+  }
+  
+  .album-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    color: #888;
+  }
+  
+  .album-description {
+    font-size: 1.2rem;
+    line-height: 1.8;
+  }
+  
+  .tracklist-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+  }
+  
+  .tracklist-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #e6c06c;
+  }
+  
+  .tracklist {
+    display: grid;
+    gap: 0.5rem;
+  }
+  
+  .track-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .track-item:hover {
+    background: rgba(230, 192, 108, 0.1);
+  }
+  
+  .track-number {
+    font-weight: bold;
+    color: #e6c06c;
+    width: 40px;
+  }
+  
+  .track-name {
+    font-size: 1.1rem;
+    color: #fff;
+  }
+  

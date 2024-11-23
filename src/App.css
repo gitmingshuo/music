@@ -1,38 +1,462 @@
-.App {
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #000;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* 容器 */
+.luxury-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* 英雄部分 */
+.hero {
+  height: 100vh;
+  background: url('./jaybg.jpg') center/cover no-repeat, 
+              linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)); /* 减弱遮罩透明度 */
+  background-blend-mode: overlay; /* 混合背景图与渐变 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+  filter: brightness(1.2); /* 增加背景图片亮度 */
+}
+
+.hero-content h1 {
+  font-size: 5rem;
+  color: #e3c77b; /* 金色文字 */
+  text-shadow: 0 0 30px rgba(227, 199, 123, 0.7);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.hero-content p {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.explore-btn {
+  padding: 15px 40px;
+  background: #e3c77b;
+  color: #000;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(227, 199, 123, 0.5);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.explore-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.explore-btn:hover::before {
+  left: 100%;
+}
+
+.explore-btn:hover {
+  background: #fff;
+  color: #000;
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 15px 30px rgba(255, 255, 255, 0.6);
+}
+
+
+/* 关于部分 */
+.about {
+  padding: 100px 5%;
+  background: #111;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.about-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 50px;
 }
 
-.App-link {
-  color: #61dafb;
+.jay-photo {
+  width: 400px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
 }
 
-@keyframes App-logo-spin {
+.jay-photo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 50px rgba(227, 199, 123, 0.6);
+}
+
+.about-text h2 {
+  font-size: 3rem;
+  color: #e3c77b;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.about-text h2::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #e3c77b;
+  margin: 20px auto 0;
+}
+
+.about-text p {
+  font-size: 1.2rem;
+  color: #ccc;
+  line-height: 1.8;
+}
+
+/* 专辑部分 */
+.albums {
+  padding: 60px 5%;
+  background: linear-gradient(to bottom, #000, #111);
+}
+
+.albums h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #e3c77b;
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.albums h2::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: #e3c77b;
+  margin: 20px auto 0;
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.album-card {
+  aspect-ratio: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  background: #222;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.album-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.album-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px rgba(227, 199, 123, 0.5);
+}
+
+.album-card:hover img {
+  transform: scale(1.1);
+}
+
+
+
+.album-info h3 {
+  font-size: 1.5rem;
+  color: #e3c77b;
+  margin: 0;
+}
+
+/* 页脚 */
+.footer {
+  background: #111;
+  text-align: center;
+  padding: 40px;
+}
+
+.social-icons {
+  margin-bottom: 20px;
+}
+
+.social-icons a {
+  color: #e3c77b;
+  font-size: 2rem;
+  margin: 0 15px;
+  transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: #fff;
+  transform: translateY(-5px);
+}
+
+.footer p {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(30px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .album-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .album-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .albums {
+    padding: 40px 5%;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.hero-content, .about-content, .album-card {
+  animation: fadeIn 1s ease-out;
+}
+
+/* 添加更多动画关键帧 */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 专辑详情页样式 */
+.album-detail-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000000, #1a1a1a);
+  color: #fff;
+  padding: 2rem;
+}
+
+.album-detail-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.back-button {
+  background: transparent;
+  border: none;
+  color: #e6c06c;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(230, 192, 108, 0.1);
+}
+
+.album-detail-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.album-info-section {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+.album-cover-large {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.album-text-info {
+  flex: 1;
+}
+
+.album-text-info h1 {
+  font-size: 3.5rem;
+  color: #e6c06c;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.album-meta {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  color: #888;
+}
+
+.release-year, .track-count {
+  font-size: 1.1rem;
+}
+
+.album-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #ccc;
+  max-width: 600px;
+}
+
+.tracklist-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.tracklist-section h2 {
+  color: #e6c06c;
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.tracklist {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.track-item:hover {
+  background: rgba(230, 192, 108, 0.1);
+}
+
+.track-number {
+  color: #e6c06c;
+  font-weight: 600;
+  width: 40px;
+}
+
+.track-name {
+  flex: 1;
+  font-size: 1.1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .album-info-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2rem;
+  }
+
+  .album-text-info h1 {
+    font-size: 2.5rem;
+  }
+
+  .album-meta {
+    justify-content: center;
+  }
+
+  .album-description {
+    margin: 0 auto;
+  }
+
+  .album-cover-large {
+    width: 250px;
+    height: 250px;
+  }
+
+  .tracklist-section {
+    padding: 1.5rem;
+  }
+}
+
+/* 动画效果 */
+.album-detail-page {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
