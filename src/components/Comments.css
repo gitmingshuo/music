@@ -1,0 +1,93 @@
+.comments-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .comments-section h2 {
+    color: #e6c06c;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    font-weight: 600;
+  }
+  
+  .comments-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .comment-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  
+  .comment-avatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e6c06c;
+  }
+  
+  .comment-content {
+    flex: 1;
+  }
+  
+  .comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .username {
+    color: #e6c06c;
+    font-weight: 500;
+  }
+  
+  .time {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .comment-text {
+    color: #fff;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  
+  .like-button {
+    background: transparent;
+    border: none;
+    color: #e6c06c;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  
+  .like-button:hover {
+    background: rgba(230, 192, 108, 0.1);
+  }
+  
+  .like-count {
+    color: #888;
+  }
+  
+  @media (max-width: 768px) {
+    .comments-section {
+      padding: 1rem;
+    }
+    
+    .comment-avatar img {
+      width: 40px;
+      height: 40px;
+    }
+  }

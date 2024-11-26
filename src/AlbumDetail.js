@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './AlbumDetail.css';
+import Comments from './components/Comments';
 
 function AlbumDetail() {
   const location = useLocation();
@@ -43,7 +44,7 @@ function AlbumDetail() {
         state: {
           song: song,
           lyrics: lyrics.lyrics,
-          audio: `/music/${encodeURIComponent(song)}.mp3`,
+          audio: album.name === "最伟大的作品" ? `/music/${encodeURIComponent(song)}.mp3` : "/music/最伟大的作品.mp3",
           albumName: album.name,
           albumCover: album.cover,
           songList: album.songs,
@@ -95,6 +96,7 @@ function AlbumDetail() {
             ))}
           </div>
         </div>
+        <Comments songName={album.name} />
       </div>
     </div>
   );

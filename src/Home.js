@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 
-const albums = [
+export const albums = [
     {
       name: 'Jay',
       year: '2000',
@@ -125,7 +125,7 @@ function Home() {
         <div className="hero-content">
           <h1>周杰伦</h1>
           <p>音乐与艺术的代名词</p>
-          <button className="explore-btn">探索音乐</button>
+          <button className="explore-btn" onClick={() => navigate('/search')}>探索音乐</button>
         </div>
       </header>
 
