@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './AlbumDetail.css';
-import Comments from './components/Comments';
+
 
 function AlbumDetail() {
   const location = useLocation();
@@ -96,7 +96,7 @@ function AlbumDetail() {
             ))}
           </div>
         </div>
-        <Comments songName={album.name} />
+      
       </div>
     </div>
   );
