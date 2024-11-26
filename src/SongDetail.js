@@ -1,8 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './SongDetail.css';
+import './SongDetail.mobile.css';
+
+// 添加设备识别函数
+const isMobile = () => {
+  const ua = navigator.userAgent;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|HarmonyOS|HMSCore/i.test(ua) 
+    || window.innerWidth <= 768;
+};
 
 function SongDetail() {
+  const [isMobileDevice, setIsMobileDevice] = useState(isMobile());
+
+  // 添加窗口大小变化监听
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileDevice(isMobile());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const location = useLocation();
   const navigate = useNavigate();
   const { song, lyrics, audio, albumCover, albumName, songList, currentIndex } = location.state || {};
@@ -144,9 +164,9 @@ function SongDetail() {
   }
 
   return (
-    <div className="song-detail-page">
+    <div className={`song-detail-page ${isMobileDevice ? 'mobile-view' : ''}`}>
       <div className="background-blur" style={{ backgroundImage: `url(${albumCover})` }}></div>
-      <div className="content-wrapper">
+      <div className={`content-wrapper ${isMobileDevice ? 'mobile-content' : ''}`}>
         <button onClick={() => navigate(-1)} className="back-button">返回</button>
         
         <div className="player-container">
