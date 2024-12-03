@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import './SongDetail.css';
 import './SongDetail.mobile.css';
 import Comments from './components/Comments';
+import { useFavorites } from './context/FavoriteContext';
+import { FaHeart } from 'react-icons/fa';
+import { useRecentPlays } from './context/RecentPlayContext';
 
 // 添加设备识别函数
 const isMobile = () => {
@@ -29,6 +32,9 @@ function SongDetail() {
   const location = useLocation();
   const navigate = useNavigate();
   const { song, lyrics, audio, albumCover, albumName, songList, currentIndex } = location.state || {};
+
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { addToRecent } = useRecentPlays();
 
   // 4. 统一管理所有的副作用
   useEffect(() => {
@@ -205,6 +211,17 @@ function SongDetail() {
     }, 1500);
   };
 
+  // 添加到最近播放列表
+  useEffect(() => {
+    if (song && albumName && albumCover) {
+      addToRecent({
+        name: song,
+        album: albumName,
+        cover: albumCover
+      });
+    }
+  }, [song, albumName, albumCover, addToRecent]);
+
   // 提前渲染页面，即使数据为空也不会中断
   if (!song) {
     return (
@@ -267,6 +284,13 @@ function SongDetail() {
             </button>
             <button className="control-btn" onClick={() => switchSong('next')}>下一首</button>
           </div>
+
+          <button 
+            className={`favorite-btn ${isFavorite(song) ? 'active' : ''}`}
+            onClick={() => toggleFavorite({ name: song, album: albumName, cover: albumCover })}
+          >
+            <FaHeart />
+          </button>
         </div>
       </div>
 

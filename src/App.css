@@ -5,6 +5,7 @@ body {
   margin: 0;
   padding: 0;
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 /* 容器 */
@@ -308,21 +309,24 @@ html {
 }
 
 .back-button {
-  background: transparent;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: #e6c06c;
-  font-size: 1rem;
+  border-radius: 20px;
+  color: #fff;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
+  gap: 8px;
   transition: all 0.3s ease;
 }
 
 .back-button:hover {
-  background: rgba(230, 192, 108, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.back-button span {
+  font-size: 1.2rem;
 }
 
 .album-detail-content {
@@ -401,8 +405,24 @@ html {
   cursor: pointer;
 }
 
-.track-item:hover {
-  background: rgba(230, 192, 108, 0.1);
+.track-item .favorite-btn {
+  opacity: 0;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.track-item:hover .favorite-btn {
+  opacity: 1;
+}
+
+.track-item .favorite-btn:hover,
+.track-item .favorite-btn.active {
+  color: #ec4141;
+  transform: scale(1.1);
 }
 
 .track-number {

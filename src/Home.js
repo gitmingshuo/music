@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './App.css';
+import { FaHome, FaSearch, FaCompactDisc, FaHeart, FaChevronRight, FaClock, FaPodcast } from 'react-icons/fa';
+import './Home.css';
 
 export const albums = [
     {
@@ -110,57 +111,137 @@ export const albums = [
     },
   ];
   
+const playlists = [
+  {
+    name: 'Jay Chou',
+    cover: require('./image/jay.jpg')
+  },
+  {
+    name: 'Jay',
+    cover: require('./image/范特西.jpg')
+  }
+];
+  
 
 function Home() {
-  const [hoveredAlbum, setHoveredAlbum] = useState(null);
   const navigate = useNavigate();
-
-  const handleAlbumClick = (album) => {
-    navigate(`/album/${album.name}`, { state: { album } });
-  };
-
+  
   return (
-    <div className="luxury-container">
-      <header className="hero">
-        <div className="hero-content">
-          <h1>周杰伦</h1>
-          <p>音乐与艺术的代名词</p>
-          <button className="explore-btn" onClick={() => navigate('/search')}>探索音乐</button>
+    <div className="app-container">
+      {/* 左侧导航栏 */}
+      <nav className="side-nav">
+        <div className="logo">
+          <h1>周杰伦音乐</h1>
         </div>
-      </header>
-
-      <section className="albums">
-        <h2>音乐专辑</h2>
-        <div className="album-grid">
-          {albums.map((album, index) => (
-            <div
-              key={index}
-              className={`album-card ${hoveredAlbum === index ? 'hovered' : ''}`}
-              onMouseEnter={() => setHoveredAlbum(index)}
-              onMouseLeave={() => setHoveredAlbum(null)}
-              onClick={() => handleAlbumClick(album)}
-            >
-              <img src={album.cover} alt={album.name} />
-              <div className="album-info">
-                <h3>{album.name}</h3>
-                {hoveredAlbum === index && (
-                  <div className="album-details">
-                    <p>{album.description}</p>
-                    <div className="song-list">
-                      <h4>收录歌曲：</h4>
-                      <ul>
-                        {album.songs.map((song, idx) => (
-                          <li key={idx}>{song}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
+        
+        <div className="nav-section">
+          <div className="nav-group">
+            <div className="nav-item active">
+              <FaHome className="nav-icon" />
+              <span>推荐</span>
             </div>
-          ))}
+            <div className="nav-item" onClick={() => navigate('/search')}>
+              <FaSearch className="nav-icon" />
+              <span>搜索</span>
+            </div>
+            <div className="nav-item" onClick={() => navigate('/albums')}>
+              <FaCompactDisc className="nav-icon" />
+              <span>专辑</span>
+            </div>
+          </div>
         </div>
-      </section>
+
+        <div className="nav-section">
+          <h3 className="nav-title">我的</h3>
+          <div className="nav-group">
+            <div className="nav-item" onClick={() => navigate('/favorites')}>
+              <FaHeart className="nav-icon" />
+              <span>我喜欢的音乐</span>
+              <FaChevronRight className="nav-arrow" />
+            </div>
+            <div className="nav-item" onClick={() => navigate('/recent')}>
+              <FaClock className="nav-icon" />
+              <span>最近播放</span>
+            </div>
+            <div className="nav-item">
+              <FaPodcast className="nav-icon" />
+              <span>我的播客</span>
+              <div className="badge">●</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="nav-section">
+          <h3 className="nav-title">创建的歌</h3>
+          <div className="playlist-group">
+            {playlists.map((playlist, index) => (
+              <div key={index} className="playlist-item">
+                <img src={playlist.cover} alt={playlist.name} />
+                <span>{playlist.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* 主内容区 */}
+      <main className="main-content">
+        {/* 轮播图 */}
+        <div className="banner-section">
+          <div className="banner-container">
+            {/* 这里可以放轮播图组件 */}
+          </div>
+        </div>
+
+        {/* 推荐歌单 */}
+        <section className="recommend-section">
+          <h2>推荐歌单</h2>
+          <div className="playlist-grid">
+            {albums.slice(0, 6).map((album, index) => (
+              <div 
+                key={index}
+                className="playlist-card"
+                onClick={() => navigate(`/album/${album.name}`, { state: { album } })}
+              >
+                <div className="playlist-cover">
+                  <img src={album.cover} alt={album.name} />
+                  <div className="play-count">
+                    <span>▶️</span>
+                    {Math.floor(Math.random() * 1000000)}
+                  </div>
+                </div>
+                <h3>{album.name}</h3>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 榜单 */}
+        <section className="charts-section">
+          <h2>榜单推荐</h2>
+          <div className="charts-container">
+            {albums.slice(6, 9).map((album, index) => (
+              <div 
+                key={index}
+                className="chart-card"
+                onClick={() => navigate(`/album/${album.name}`, { state: { album } })}
+              >
+                <div className="chart-info">
+                  <h3>{album.name}</h3>
+                  <div className="chart-songs">
+                    {album.songs.slice(0, 3).map((song, idx) => (
+                      <p key={idx}>{idx + 1}. {song}</p>
+                    ))}
+                  </div>
+                </div>
+                <div className="chart-cover">
+                  <img src={album.cover} alt={album.name} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

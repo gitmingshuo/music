@@ -1,23 +1,33 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
-import AlbumDetail from './AlbumDetail';
+import { FavoriteProvider } from './context/FavoriteContext';
+import { RecentPlayProvider } from './context/RecentPlayContext';
 import Home from './Home';
-import SongDetail from './SongDetail';import Search from './Search';
-
-// 在路由配置中添加
-
+import SongDetail from './SongDetail';
+import AlbumDetail from './AlbumDetail';
+import Search from './Search';
+import Favorites from './components/Favorites';
+import RecentPlays from './components/RecentPlays';
+import Albums from './components/Albums';
+import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/album/:name" element={<AlbumDetail />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/song/:name" element={<SongDetail />} />
-      </Routes>
-    </Router>
+    <FavoriteProvider>
+      <RecentPlayProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/song/:id" element={<SongDetail />} />
+            <Route path="/albums" element={<Albums />} />
+            <Route path="/album/:id" element={<AlbumDetail />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/recent" element={<RecentPlays />} />
+          </Routes>
+        </Router>
+      </RecentPlayProvider>
+    </FavoriteProvider>
   );
 }
 
