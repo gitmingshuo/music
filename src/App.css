@@ -155,41 +155,6 @@ body {
   margin: 20px auto 0;
 }
 
-.album-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.album-card {
-  aspect-ratio: 1;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  border-radius: 20px;
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
-  background: #222;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-}
-
-.album-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.album-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 20px 40px rgba(227, 199, 123, 0.5);
-}
-
-.album-card:hover img {
-  transform: scale(1.1);
-}
-
 
 
 .album-info h3 {
@@ -224,74 +189,6 @@ body {
 .footer p {
   font-size: 1rem;
   color: #ccc;
-}
-
-/* 动画效果 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .album-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .album-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .album-grid {
-    grid-template-columns: repeat(1, 1fr);
-  }
-  
-  .albums {
-    padding: 40px 5%;
-  }
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-.hero-content, .about-content, .album-card {
-  animation: fadeIn 1s ease-out;
-}
-
-/* 添加更多动画关键帧 */
-@keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* 专辑详情页样式 */

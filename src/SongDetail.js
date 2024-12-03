@@ -6,6 +6,7 @@ import Comments from './components/Comments';
 import { useFavorites } from './context/FavoriteContext';
 import { FaHeart } from 'react-icons/fa';
 import { useRecentPlays } from './context/RecentPlayContext';
+import BackButton from './components/BackButton';
 
 // 添加设备识别函数
 const isMobile = () => {
@@ -236,7 +237,7 @@ function SongDetail() {
     <div className={`song-detail-page ${isMobileDevice ? 'mobile-view' : ''}`}>
       <div className="background-blur" style={{ backgroundImage: `url(${albumCover})` }}></div>
       <div className={`content-wrapper ${isMobileDevice ? 'mobile-content' : ''}`}>
-        <button onClick={() => navigate(-1)} className="back-button">返回</button>
+        <BackButton />
         
         <div className="player-container">
           <div className="left-section">

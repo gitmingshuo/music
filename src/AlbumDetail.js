@@ -4,6 +4,7 @@ import { useFavorites } from './context/FavoriteContext';
 import { FaHeart } from 'react-icons/fa';
 import { albums } from './Home';
 import './AlbumDetail.css';
+import BackButton from './components/BackButton';
 
 function AlbumDetail() {
   const navigate = useNavigate();
@@ -49,15 +50,7 @@ function AlbumDetail() {
 
   return (
     <div className="album-detail-page">
-      <div className="album-header">
-        <button 
-          className="back-button" 
-          onClick={() => navigate(-1)}
-        >
-          <span>←</span> 返回
-        </button>
-        <h1>专辑详情</h1>
-      </div>
+      <BackButton />
 
       <div className="favorites-list">
         {favorites.map((song, index) => (

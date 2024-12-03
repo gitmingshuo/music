@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { albums } from '../Home';
 import './Albums.css';
+import BackButton from './BackButton';
 
 function Albums() {
   const navigate = useNavigate();
@@ -9,9 +10,7 @@ function Albums() {
   return (
     <div className="albums-page">
       <div className="albums-header">
-        <button className="back-button" onClick={() => navigate('/')}>
-          <span>←</span> 返回
-        </button>
+        <BackButton />
         <h1>专辑</h1>
       </div>
 

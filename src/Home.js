@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaSearch, FaCompactDisc, FaHeart, FaChevronRight, FaClock, FaPodcast } from 'react-icons/fa';
 import './Home.css';
+import Banner from './components/Banner';
 
 export const albums = [
     {
@@ -188,9 +189,7 @@ function Home() {
       <main className="main-content">
         {/* 轮播图 */}
         <div className="banner-section">
-          <div className="banner-container">
-            {/* 这里可以放轮播图组件 */}
-          </div>
+          <Banner />
         </div>
 
         {/* 推荐歌单 */}
