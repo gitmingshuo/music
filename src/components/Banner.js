@@ -21,10 +21,11 @@ const Banner = () => {
     },
     {
       id: 3,
-      image: require('../image/八度空间.jpg'),
-      title: '八度空间',
-      album: '八度空间'
-    }
+      image: require('../image/最伟大的作品.jpg'),
+      title: 'Jay',
+      album: 'Jay'
+    },
+    
   ];
 
   useEffect(() => {
@@ -49,9 +50,6 @@ const Banner = () => {
             onClick={() => navigate(`/album/${item.album}`)}
           >
             <img src={item.image} alt={item.title} />
-            <div className="banner-info">
-              <h2>{item.title}</h2>
-            </div>
           </div>
         ))}
       </div>

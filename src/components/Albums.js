@@ -28,13 +28,6 @@ function Albums() {
             />
             <div className="album-info">
               <h3>{album.name}</h3>
-              <p>{album.year}</p>
-            </div>
-            <div className="play-count">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 5.14v14.72L19 12 8 5.14z"/>
-              </svg>
-              {album.playCount}
             </div>
           </div>
         ))}

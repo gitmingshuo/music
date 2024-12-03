@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaHome, FaSearch, FaCompactDisc, FaHeart, FaChevronRight, FaClock, FaPodcast } from 'react-icons/fa';
 import './Home.css';
 import Banner from './components/Banner';
+import RecommendedPlaylists from './components/RecommendedPlaylists';
 
 export const albums = [
     {
@@ -44,7 +45,7 @@ export const albums = [
       name: '十一月的萧邦',
       year: '2005',
       cover: require('./image/11月的萧邦.jpg'),
-      description: '《十一月的萧邦》融合古典与流行，展现了周杰伦对音乐的无限创造力。',
+      description: '《十一月的萧邦》融合古典与流行，展现了周杰伦对音乐的无限创作力。',
       songs: ['夜曲', '蓝色风暴', '发如雪', '黑色毛衣', '四面楚歌', '枫', '浪漫手机', '逆鳞', '麦芽糖', '珊瑚海', '飘移', '一路向北']
     },
     {
@@ -93,7 +94,7 @@ export const albums = [
       name: '哎呦，不错哦',
       year: '2014',
       cover: require('./image/哎呦不错哦.jpg'),
-      description: '《哎呦，不错哦》是周杰伦结婚后发行的专辑，展现了更成熟的情感。',
+      description: '《哎呦，不错哦》是周伦结婚后发行的专辑，展现了更成熟的情感。',
       songs: ['阳明山', '窃爱', '天涯过客', '怎么了', '手写的从前', '美人鱼', '听爸爸的话', '算什么男人', '我要夏天']
     },
     {
@@ -166,7 +167,7 @@ function Home() {
             </div>
             <div className="nav-item">
               <FaPodcast className="nav-icon" />
-              <span>我的播客</span>
+            
               <div className="badge">●</div>
             </div>
           </div>
@@ -192,28 +193,7 @@ function Home() {
           <Banner />
         </div>
 
-        {/* 推荐歌单 */}
-        <section className="recommend-section">
-          <h2>推荐歌单</h2>
-          <div className="playlist-grid">
-            {albums.slice(0, 6).map((album, index) => (
-              <div 
-                key={index}
-                className="playlist-card"
-                onClick={() => navigate(`/album/${album.name}`, { state: { album } })}
-              >
-                <div className="playlist-cover">
-                  <img src={album.cover} alt={album.name} />
-                  <div className="play-count">
-                    <span>▶️</span>
-                    {Math.floor(Math.random() * 1000000)}
-                  </div>
-                </div>
-                <h3>{album.name}</h3>
-              </div>
-            ))}
-          </div>
-        </section>
+        <RecommendedPlaylists />
 
         {/* 榜单 */}
         <section className="charts-section">
