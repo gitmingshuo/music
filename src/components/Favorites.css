@@ -1,0 +1,79 @@
+.favorites-page {
+    padding: 20px;
+    color: #fff;
+    min-height: 100vh;
+    background: #121212;
+  }
+  
+  .favorites-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .back-button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px 16px;
+    margin-right: 20px;
+  }
+  
+  .favorites-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .favorite-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .favorite-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .song-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    margin-right: 16px;
+  }
+  
+  .song-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .song-name {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .album-name {
+    font-size: 14px;
+    color: #999;
+  }
+  
+  .remove-btn {
+    background: none;
+    border: none;
+    color: #ec4141;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+  }
+  
+  .remove-btn:hover {
+    transform: scale(1.1);
+  }
