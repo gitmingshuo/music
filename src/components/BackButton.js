@@ -1,38 +1,44 @@
 //用来创建一个返回按钮
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './BackButton.css';
 
 const BackButton = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleBack = (e) => {
-    // 阻止事件冒泡
     e.stopPropagation();
     
+    // 添加调试日志
+    console.log('当前路径:', location.pathname);
+    console.log('路由状态:', location.state);
+    console.log('历史记录:', window.history);
+    
     try {
-      // 添加调试日志
-      console.log('返回按钮被点击');
-      
-      // 尝试返回上一页
       navigate(-1);
       
-      // 如果 navigate(-1) 失败，则返回首页
+      // 添加延时检查
       setTimeout(() => {
-        if (window.location.pathname !== '/') {
-          console.log('返回首页');
+        console.log('导航后的路径:', window.location.pathname);
+        // 如果导航失败，返回首页
+        if (window.location.pathname === location.pathname) {
+          console.log('返回失败，重定向到首页');
           navigate('/');
         }
       }, 100);
     } catch (error) {
       console.error('返回操作失败:', error);
-      // 发生错误时返回首页
       navigate('/');
     }
   };
 
   return (
-    <div className="back-button-wrapper" onClick={(e) => e.stopPropagation()}>
+    <div 
+      className="back-button-wrapper" 
+      onClick={(e) => e.stopPropagation()}
+      style={{ position: 'relative', zIndex: 9999 }}
+    >
       <button 
         className="back-button" 
         onClick={handleBack}
@@ -45,12 +51,10 @@ const BackButton = () => {
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: '5px',
-          zIndex: 9999,
-          position: 'relative'
+          gap: '5px'
         }}
       >
-        <span className="back-icon" style={{ marginRight: '5px' }}>←</span>
+        <span className="back-icon">←</span>
         <span className="back-text">返回</span>
       </button>
     </div>

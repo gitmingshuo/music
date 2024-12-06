@@ -32,6 +32,9 @@ function Search() {
   const handleSongClick = async (song) => {
     const albumInfo = albums.find(album => album.name === song.album);
     
+    console.log('点击歌曲:', song);
+    console.log('专辑信息:', albumInfo);
+    
     try {
       const defaultLyrics = {
         title: song.name,
@@ -49,6 +52,12 @@ function Search() {
       } catch (error) {
         console.warn('歌词加载失败，使用默认歌词');
       }
+
+      console.log('导航状态:', {
+        song: song.name,
+        albumName: song.album,
+        previousPath: '/search'
+      });
 
       navigate(`/song/${encodeURIComponent(song.name)}`, {
         state: {

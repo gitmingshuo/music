@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useReducer } from 'react';
+import React, { useEffect, useRef, useReducer, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './SongDetail.css';
 import './SongDetail.mobile.css';
@@ -66,6 +66,10 @@ function SongDetail() {
 
   // 4. 统一管理所有的副作用
   useEffect(() => {
+    console.log('SongDetail 组件加载');
+    console.log('路由状态:', location.state);
+    console.log('当前路径:', location.pathname);
+
     // 设备检测
     const handleResize = () => dispatch({ type: 'SET_MOBILE_DEVICE', payload: isMobile() });
     window.addEventListener('resize', handleResize);
@@ -147,22 +151,22 @@ function SongDetail() {
   };
 
   // 听时间更新
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      const time = audioRef.current.currentTime;
-      dispatch({ type: 'SET_CURRENT_TIME', payload: time });
-      
-      // 更新当前歌词
+  const handleTimeUpdate = useCallback((e) => {
+    const time = e.target.currentTime;
+    dispatch({ type: 'SET_CURRENT_TIME', payload: time });
+    
+    // 只在非用户滚动时更新歌词
+    if (!userScrolling) {
       const index = lyrics?.findIndex((lyric, i) => {
         const nextLyric = lyrics[i + 1];
-        return time >= lyric.time && (!nextLyric || time < nextLyric.time);
+        return lyric.time <= time && (!nextLyric || nextLyric.time > time);
       });
       
-      if (index !== -1) {
+      if (index !== -1 && index !== currentLyricIndex) {
         dispatch({ type: 'SET_CURRENT_LYRIC_INDEX', payload: index });
       }
     }
-  };
+  }, [lyrics, currentLyricIndex, userScrolling]);
 
   // 播放控制
   const togglePlay = () => {
@@ -206,25 +210,20 @@ function SongDetail() {
 
   // 添加到最近播放列表
   useEffect(() => {
-    if (song && albumName && albumCover) {
+    if (song) {
       addToRecent({
         name: song,
         album: albumName,
         cover: albumCover
       });
     }
-  }, [song, albumName, albumCover, addToRecent]);
+  }, [song, albumName, albumCover]);
 
-  const handleBack = (e) => {
+  // 使用 useCallback 优化返回按钮处理函数
+  const handleBack = useCallback((e) => {
     e.stopPropagation();
-    
-    // 如果有前一个路径信息，则返回到该路径
-    if (location.state?.previousPath) {
-      navigate(location.state.previousPath);
-    } else {
-      navigate(-1);
-    }
-  };
+    navigate(-1);
+  }, [navigate]);
 
   // 提前渲染页面，即使数据为空也不会中断
   if (!song) {
