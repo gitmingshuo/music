@@ -1,3 +1,4 @@
+//是一个 React 轮播图组件
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Banner.css';

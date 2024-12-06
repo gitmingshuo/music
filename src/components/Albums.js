@@ -1,3 +1,4 @@
+//用于展示音乐专辑列表页面。
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { albums } from '../Home';

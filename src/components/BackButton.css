@@ -1,37 +1,33 @@
+.back-button-wrapper {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 9999;
+  cursor: pointer;
+}
+
 .back-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border: none;
-    border-radius: 20px;
-    padding: 8px 16px;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    margin: 20px 0;
-    z-index: 100;
-  }
-  
-  .back-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(-5px);
-  }
-  
-  .back-icon {
-    font-size: 18px;
-  }
-  
-  .back-text {
-    font-weight: 500;
-  }
-  
-  @media (max-width: 768px) {
-    .back-button {
-      position: fixed;
-      top: 16px;
-      left: 16px;
-    }
-  }
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.back-icon {
+  font-size: 1.2em;
+  margin-right: 5px;
+}
+
+.back-text {
+  font-size: 1em;
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from './components/BackButton';
 import './Search.css';
 import { albums } from './Home';
 
@@ -57,8 +58,10 @@ function Search() {
           albumName: song.album,
           albumCover: song.cover,
           songList: albumInfo.songs,
-          currentIndex: albumInfo.songs.indexOf(song.name)
-        }
+          currentIndex: albumInfo.songs.indexOf(song.name),
+          previousPath: '/search'
+        },
+        replace: false
       });
     } catch (error) {
       console.error('页面跳转失败:', error);
@@ -76,7 +79,7 @@ function Search() {
   return (
     <div className="search-page">
       <div className="search-header">
-        <button className="back-button" onClick={() => navigate(-1)}>返回</button>
+        <BackButton />
         <div className="search-bar">
           <input
             type="text"

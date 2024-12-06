@@ -254,3 +254,26 @@
     transform: rotate(360deg);
   }
 }
+
+.back-button-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.back-button {
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.back-button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
