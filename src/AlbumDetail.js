@@ -1,90 +1,85 @@
+//
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useFavorites } from './context/FavoriteContext';
-import { FaHeart, FaPlay } from 'react-icons/fa';
-import { albums } from './Home';
-import { handleSongClick } from './utils/songHandler';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import BackButton from './components/BackButton';
 import './AlbumDetail.css';
 
 function AlbumDetail() {
-  const { albumName } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { favorites, toggleFavorite } = useFavorites();
+  const album = location.state?.album; // 直接从 location.state 获取专辑信息
   
-  // 获取专辑信息
-  const album = albums.find(a => a.name === decodeURIComponent(albumName));
-  
+  console.log('专辑信息:', album); // 调试用
+
+  const handleSongClick = async (song) => {
+    try {
+      const defaultLyrics = {
+        title: song,
+        artist: "周杰伦",
+        lyrics: [{ time: 0, text: "加载歌词中..." }]
+      };
+
+      let lyrics = defaultLyrics;
+      
+      try {
+        const response = await fetch(`/lyrics/${encodeURIComponent(song)}.json`);
+        if (response.ok) {
+          lyrics = await response.json();
+        }
+      } catch (error) {
+        console.warn('歌词加载失败，使用默认歌词');
+      }
+
+      navigate(`/song/${encodeURIComponent(song)}`, {
+        state: {
+          song: song,
+          lyrics: lyrics.lyrics,
+          audio: album.name === "最伟大的作品" ? `/music/${encodeURIComponent(song)}.mp3` : "/music/最伟大的作品.mp3",
+          albumName: album.name,
+          albumCover: album.cover,
+          songList: album.songs,
+          currentIndex: album.songs.indexOf(song)
+        }
+      });
+    } catch (error) {
+      console.error('页面跳转失败:', error);
+      alert('暂时无法播放该歌曲，请稍后再试');
+    }
+  };
+
   if (!album) {
     return (
-      <div className="album-detail-page">
+      <div className="error-page">
+        <h2>未找到专辑信息</h2>
         <BackButton />
-        <div className="error-message">专辑不存在</div>
       </div>
     );
   }
 
-  // 检查歌曲是否在收藏列表中
-  const isFavorite = (songName) => {
-    return favorites.some(fav => fav.name === songName && fav.album === album.name);
-  };
-
   return (
     <div className="album-detail-page">
-      <div className="album-header">
-        <BackButton />
-        <h1>专辑详情</h1>
+      <BackButton />
+      <div className="album-info">
+        <img src={album.cover} alt={album.name} className="album-cover" />
+        <div className="album-details">
+          <h1>{album.name}</h1>
+          <p className="album-year">{album.year}</p>
+          <p className="album-description">{album.description}</p>
+        </div>
       </div>
       
-      {/* 专辑信息区域 */}
-      <div className="album-info">
-        <div className="album-cover-container">
-          <img src={album.cover} alt={album.name} className="album-cover" />
-        </div>
-        <div className="album-details">
-          <h2>{album.name}</h2>
-          <p className="album-artist">周杰伦</p>
-          <p className="album-desc">发行日期：{album.releaseDate || '未知'}</p>
-        </div>
-      </div>
-
-      {/* 歌曲列表 */}
       <div className="song-list">
-        <h3>歌曲列表</h3>
-        {album.songs.map((songName, index) => {
-          const song = {
-            name: songName,
-            album: album.name,
-            cover: album.cover
-          };
-          
-          return (
-            <div 
-              key={index}
-              className="song-item"
-              onClick={() => handleSongClick(song, navigate)}
-            >
-              <div className="song-index">{(index + 1).toString().padStart(2, '0')}</div>
-              <div className="song-info">
-                <div className="song-name">{songName}</div>
-              </div>
-              <div className="song-actions">
-                <button 
-                  className={`favorite-btn ${isFavorite(songName) ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(song);
-                  }}
-                >
-                  <FaHeart />
-                </button>
-                <button className="play-btn">
-                  <FaPlay />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        <h2>专辑歌曲</h2>
+        {album.songs.map((song, index) => (
+          <div 
+            key={index}
+            className="song-item"
+            onClick={() => handleSongClick(song)}
+          >
+            <span className="song-number">{index + 1}</span>
+            <span className="song-name">{song}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

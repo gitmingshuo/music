@@ -8,6 +8,7 @@ import { FaHeart } from 'react-icons/fa';
 import { useRecentPlays } from './context/RecentPlayContext';
 import BackButton from './components/BackButton';
 import { switchSong } from './utils/songHandler';
+import { albums } from './Home';
 
 // 添加设备识别函数
 const isMobile = () => {
@@ -181,7 +182,7 @@ function SongDetail() {
     }
   };
 
-  // 添加切换歌曲函数
+  // 添加切换歌曲���数
   const switchSong = async (direction) => {
     if (!songList) return;
 
@@ -225,6 +226,21 @@ function SongDetail() {
     navigate(-1);
   }, [navigate]);
 
+  // 添加专辑封面点击处理函数
+  const handleAlbumClick = useCallback(() => {
+    // 从 albums 数组中找到对应的专辑信息
+    const albumInfo = albums.find(album => album.name === albumName);
+    
+    if (albumInfo) {
+      navigate(`/album/${encodeURIComponent(albumName)}`, {
+        state: {
+          album: albumInfo,
+          previousPath: location.pathname
+        }
+      });
+    }
+  }, [navigate, albumName, location.pathname]);
+
   // 提前渲染页面，即使数据为空也不会中断
   if (!song) {
     return (
@@ -247,8 +263,16 @@ function SongDetail() {
         
         <div className="player-container">
           <div className="left-section">
-            <div className="album-cover">
-              <img src={albumCover} alt={song} className={`cover-img ${isPlaying ? 'rotating' : ''}`} />
+            <div 
+              className="album-cover"
+              onClick={handleAlbumClick}  // 添加点击事件
+              style={{ cursor: 'pointer' }} // 添加鼠标样式
+            >
+              <img 
+                src={albumCover} 
+                alt={song} 
+                className={`cover-img ${isPlaying ? 'rotating' : ''}`} 
+              />
             </div>
             <div className="song-info">
               <h1>{song}</h1>
