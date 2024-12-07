@@ -69,10 +69,11 @@ function SongDetail() {
         album: albumName,
         cover: albumCover,
         audio: audioUrl,
-        autoPlay: location.state?.autoPlay || false,
-        songList,
-        currentIndex
+        songList: songList || [],
+        currentIndex: currentIndex || 0
       };
+      
+      console.log('添加到最近播放:', songData);
       
       // 使用 useRef 来追踪是否已经设置过
       if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {

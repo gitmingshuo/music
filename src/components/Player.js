@@ -59,6 +59,7 @@ function Player() {
       audioRef.current.currentTime = 0;
       setCurrentTime(0);
       setDuration(0);
+      setIsPlaying(false);
       
       try {
         const defaultAudioPath = '/music/最伟大的作品.mp3';
@@ -67,14 +68,17 @@ function Player() {
         const handleLoadedMetadata = () => {
           setDuration(audioRef.current.duration);
           if (currentSong.autoPlay) {
-            audioRef.current.play()
-              .then(() => {
-                setIsPlaying(true);
-              })
-              .catch(error => {
-                console.error('自动播放失败:', error);
-                setIsPlaying(false);
-              });
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  setIsPlaying(true);
+                })
+                .catch(error => {
+                  console.error('自动播放失败:', error);
+                  setIsPlaying(false);
+                });
+            }
           }
         };
 

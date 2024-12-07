@@ -1,33 +1,28 @@
 .back-button-wrapper {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 9999;
-  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  margin-right: 10px;
 }
 
 .back-button {
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.5);
+  background: transparent;
+  padding: 8px;
   border: none;
-  border-radius: 20px;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: rgba(0, 0, 0, 0.7);
+  transition: transform 0.2s ease;
 }
 
 .back-icon {
-  font-size: 1.2em;
-  margin-right: 5px;
+  font-size: 1.5em;
+}
+
+.back-button:hover {
+  transform: translateX(-3px);
 }
 
 .back-text {
-  font-size: 1em;
+  display: none;
 }

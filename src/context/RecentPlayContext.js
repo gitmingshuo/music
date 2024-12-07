@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const RecentPlayContext = createContext();
 
@@ -12,23 +12,21 @@ export function RecentPlayProvider({ children }) {
     localStorage.setItem('recentPlays', JSON.stringify(recentPlays));
   }, [recentPlays]);
 
-  const addToRecentPlays = useCallback((song) => {
-    if (!song) return;
-    
-    setRecentPlays(prev => {
-      const filtered = prev.filter(item => item.name !== song.name);
-      const newList = [
-        {
-          name: song.name,
-          album: song.album,
-          cover: song.cover,
-          audio: song.audio
-        },
-        ...filtered
-      ].slice(0, 20);
-      return newList;
+  const addToRecentPlays = (song) => {
+    if (!song || !song.name || !song.album || !song.cover) {
+      console.warn('无效的歌曲数据:', song);
+      return;
+    }
+
+    setRecentPlays(prevPlays => {
+      const filteredPlays = prevPlays.filter(p => p.name !== song.name);
+      const newPlays = [song, ...filteredPlays].slice(0, 20);
+      
+      localStorage.setItem('recentPlays', JSON.stringify(newPlays));
+      
+      return newPlays;
     });
-  }, []);
+  };
 
   return (
     <RecentPlayContext.Provider value={{ recentPlays, addToRecentPlays }}>
@@ -38,5 +36,9 @@ export function RecentPlayProvider({ children }) {
 }
 
 export function useRecentPlays() {
-  return useContext(RecentPlayContext);
+  const context = useContext(RecentPlayContext);
+  if (!context) {
+    throw new Error('useRecentPlays must be used within a RecentPlayProvider');
+  }
+  return context;
 }

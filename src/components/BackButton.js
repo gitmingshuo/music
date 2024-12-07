@@ -34,28 +34,9 @@ const BackButton = () => {
   };
 
   return (
-    <div 
-      className="back-button-wrapper" 
-      onClick={(e) => e.stopPropagation()}
-      style={{ position: 'relative', zIndex: 9999 }}
-    >
-      <button 
-        className="back-button" 
-        onClick={handleBack}
-        style={{
-          padding: '10px 20px',
-          background: 'rgba(0, 0, 0, 0.5)',
-          border: 'none',
-          borderRadius: '20px',
-          color: 'white',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px'
-        }}
-      >
+    <div className="back-button-wrapper">
+      <button className="back-button" onClick={handleBack}>
         <span className="back-icon">←</span>
-        <span className="back-text">返回</span>
       </button>
     </div>
   );

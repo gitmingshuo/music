@@ -9,6 +9,42 @@ function RecentPlays() {
   const navigate = useNavigate();
   const { recentPlays } = useRecentPlays();
 
+  const handleSongClick = async (song) => {
+    try {
+      const defaultLyrics = {
+        title: song.name,
+        artist: "周杰伦",
+        lyrics: [{ time: 0, text: "加载歌词中..." }]
+      };
+
+      let lyrics = defaultLyrics;
+      try {
+        const response = await fetch(`/lyrics/${encodeURIComponent(song.name)}.json`);
+        if (response.ok) {
+          lyrics = await response.json();
+        }
+      } catch (error) {
+        console.warn('歌词加载失败，使用默认歌词');
+      }
+
+      navigate(`/song/${encodeURIComponent(song.name)}`, {
+        state: {
+          song: song.name,
+          lyrics: lyrics.lyrics,
+          audio: '/music/最伟大的作品.mp3',
+          albumName: song.album,
+          albumCover: song.cover,
+          songList: [],
+          currentIndex: 0,
+          autoPlay: true
+        }
+      });
+    } catch (error) {
+      console.error('页面跳转失败:', error);
+      alert('暂时无法播放该歌曲，请稍后再试');
+    }
+  };
+
   return (
     <div className="recent-plays-container">
       <BackButton />
@@ -19,16 +55,7 @@ function RecentPlays() {
             <div 
               key={index}
               className="recent-play-item"
-              onClick={() => {
-                navigate(`/song/${encodeURIComponent(song.name)}`, {
-                  state: {
-                    song: song.name,
-                    albumName: song.album,
-                    albumCover: song.cover,
-                    audio: song.audio
-                  }
-                });
-              }}
+              onClick={() => handleSongClick(song)}
             >
               <img src={song.cover} alt={song.name} className="recent-play-cover" />
               <div className="recent-play-info">
