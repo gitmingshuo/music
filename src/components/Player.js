@@ -3,37 +3,63 @@ import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo } from 
 import { useFavorites } from '../context/FavoriteContext';
 import { usePlayer } from '../context/PlayerContext';
 import './Player.css';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { switchSong } from '../utils/songHandler';
 
 function Player() {
   const { 
     currentSong, 
     isPlaying,
-    playNext, 
-    playPrevious,
     setIsPlaying,
     setCurrentSong 
   } = usePlayer();
   
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { songList, currentIndex } = location.state || {};
+
+  const { 
+    name: song, 
+    album: currentAlbumName, 
+    cover: currentAlbumCover, 
+    audio: audioUrl 
+  } = currentSong || {};
+
+  const handlePrevious = () => {
+    if (songList && currentIndex !== undefined) {
+      setIsPlaying(false);
+      switchSong('prev', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+    }
+  };
+
+  const handleNext = () => {
+    if (songList && currentIndex !== undefined) {
+      setIsPlaying(false);
+      switchSong('next', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+    }
+  };
+
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
   
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  const { name: song, album: albumName, cover: albumCover, audio: audioUrl } = currentSong || {};
-
   useEffect(() => {
-    const shouldAutoPlay = currentSong?.autoPlay && audioRef.current;
-    if (shouldAutoPlay && !isPlaying) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch(error => {
-            console.error('自动播放失败:', error);
-          });
+    if (currentSong && audioRef.current) {
+      audioRef.current.src = currentSong.audio;
+      
+      if (currentSong.autoPlay) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch(error => {
+              console.error('自动播放失败:', error);
+            });
+        }
       }
     }
   }, [currentSong]);
@@ -125,7 +151,7 @@ function Player() {
     <div className="bottom-player">
       <div className="player-left">
         <div className="player-album-cover">
-          <img src={albumCover} alt={song} />
+          <img src={currentAlbumCover} alt={song} />
         </div>
         <div className="player-song-info">
           <div className="song-name">{song}</div>
@@ -135,23 +161,13 @@ function Player() {
 
       <div className="player-center">
         <div className="control-buttons">
-          <button 
-            onClick={playPrevious}
-            disabled={!currentSong}
-          >
+          <button onClick={handlePrevious}>
             <FaStepBackward />
           </button>
-          <button 
-            className="play-btn" 
-            onClick={handlePlayPause}
-            disabled={!currentSong}
-          >
+          <button className="play-btn" onClick={handlePlayPause}>
             {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
-          <button 
-            onClick={playNext}
-            disabled={!currentSong}
-          >
+          <button onClick={handleNext}>
             <FaStepForward />
           </button>
         </div>
@@ -161,10 +177,8 @@ function Player() {
         >
           <div 
             className="progress" 
-            style={{width: `${(currentTime / duration) * 100 || 0}%`}}
+            style={{width: `${(currentTime / duration) * 100}%`}} 
           />
-          <span className="time-current">{formatTime(currentTime)}</span>
-          <span className="time-total">{formatTime(duration)}</span>
         </div>
       </div>
 
@@ -189,7 +203,7 @@ function Player() {
           onLoadedMetadata={handleTimeUpdate}
           onEnded={() => {
             setIsPlaying(false);
-            playNext();
+            handleNext();
           }}
         />
       )}

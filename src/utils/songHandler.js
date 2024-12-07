@@ -26,7 +26,7 @@ export const handleSongClick = async (song, navigate) => {
       state: {
         song: song.name,
         lyrics: lyrics.lyrics,
-        audio: albumInfo.name === "最伟大的作品" ? `/music/${encodeURIComponent(song.name)}.mp3` : "/music/最伟大的作品.mp3",
+        audio: `/music/${encodeURIComponent(song.name)}.mp3`,
         albumName: song.album,
         albumCover: song.cover,
         songList: albumInfo.songs,
@@ -35,7 +35,7 @@ export const handleSongClick = async (song, navigate) => {
     });
   } catch (error) {
     console.error('页面跳转失败:', error);
-    alert('暂时无法播放该歌曲，请稍后再试');
+    alert('暂时无法播放该歌曲，请稍后再��');
   }
 };
 
@@ -76,11 +76,12 @@ export const switchSong = async (direction, currentIndex, songList, navigate, al
       song: newSong,
       lyrics: lyrics.lyrics,
       audio: `/music/${encodeURIComponent(newSong)}.mp3`,
-      albumName: albumName,
-      albumCover: albumCover,
-      songList: songList,
-      currentIndex: newIndex
+      albumName,
+      albumCover,
+      songList,
+      currentIndex: newIndex,
+      autoPlay: true
     },
-    replace: true // 替换当前历史记录
+    replace: true
   });
 };

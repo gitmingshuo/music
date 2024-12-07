@@ -8,7 +8,14 @@ function SongDetail() {
   const { setCurrentSong } = usePlayer();
   const { addToRecentPlays } = useRecentPlays();
   const location = useLocation();
-  const { song, albumName, albumCover, audio: audioUrl } = location.state || {};
+  const { 
+    song, 
+    albumName, 
+    albumCover, 
+    audio: audioUrl,
+    songList,
+    currentIndex 
+  } = location.state || {};
   const [lyrics, setLyrics] = useState([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
   const currentSongRef = useRef(null);
@@ -62,7 +69,9 @@ function SongDetail() {
         album: albumName,
         cover: albumCover,
         audio: audioUrl,
-        autoPlay: location.state?.autoPlay || false  // 只在需要时自动播放
+        autoPlay: location.state?.autoPlay || false,
+        songList,
+        currentIndex
       };
       
       // 使用 useRef 来追踪是否已经设置过
@@ -72,7 +81,7 @@ function SongDetail() {
         currentSongRef.current = songData;
       }
     }
-  }, []);  // 空依赖数组，只在组件挂载时执行一次
+  }, [song, albumName, albumCover, audioUrl, songList, currentIndex]);
 
   return (
     <div className="song-detail-container">
