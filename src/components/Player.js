@@ -5,16 +5,34 @@ import { usePlayer } from '../context/PlayerContext';
 import './Player.css';
 
 function Player() {
-  const { currentSong } = usePlayer();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { 
+    currentSong, 
+    isPlaying,
+    playNext, 
+    playPrevious,
+    setIsPlaying,
+    setCurrentSong 
+  } = usePlayer();
+  
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
   
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  // 从 currentSong 中解构需要的数据
   const { name: song, album: albumName, cover: albumCover, audio: audioUrl } = currentSong || {};
+
+  useEffect(() => {
+    if (currentSong?.autoPlay && audioRef.current) {
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(error => {
+          console.error('自动播放失败:', error);
+        });
+    }
+  }, [currentSong, setIsPlaying]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -23,14 +41,18 @@ function Player() {
     }
   };
 
-  const handlePlayPause = () => {
-    if (audioRef.current) {
+  const handlePlayPause = async () => {
+    if (!audioRef.current) return;
+    
+    try {
       if (isPlaying) {
-        audioRef.current.pause();
+        await audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        await audioRef.current.play();
       }
       setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('播放控制失败:', error);
     }
   };
 
@@ -80,18 +102,6 @@ function Player() {
     </div>
   );
 
-  useEffect(() => {
-    if (currentSong?.autoPlay && audioRef.current) {
-      audioRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(error => {
-          console.error('自动播放失败:', error);
-        });
-    }
-  }, [currentSong]);
-
   if (!song) {
     return renderDefaultPlayer();
   }
@@ -110,11 +120,25 @@ function Player() {
 
       <div className="player-center">
         <div className="control-buttons">
-          <button><FaStepBackward /></button>
-          <button className="play-btn" onClick={handlePlayPause}>
+          <button 
+            onClick={playPrevious}
+            disabled={!currentSong}
+          >
+            <FaStepBackward />
+          </button>
+          <button 
+            className="play-btn" 
+            onClick={handlePlayPause}
+            disabled={!currentSong}
+          >
             {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
-          <button><FaStepForward /></button>
+          <button 
+            onClick={playNext}
+            disabled={!currentSong}
+          >
+            <FaStepForward />
+          </button>
         </div>
         <div 
           className="progress-bar"
@@ -148,7 +172,10 @@ function Player() {
           src={audioUrl}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleTimeUpdate}
-          onEnded={() => setIsPlaying(false)}
+          onEnded={() => {
+            setIsPlaying(false);
+            playNext();
+          }}
         />
       )}
     </div>

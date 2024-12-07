@@ -1,153 +1,92 @@
-.album-detail-page {
-    min-height: 100vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #000000, #1a1a1a);
-    color: #fff;
-  }
-  
-  .album-info {
-    display: flex;
-    gap: 2rem;
-    margin-top: 2rem;
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-  }
-  
-  .album-info img.album-cover {
-    width: 300px;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease;
-  }
-  
-  .album-info img.album-cover:hover {
-    transform: scale(1.02);
-  }
-  
-  .album-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  
-  .album-details h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    color: #e6c06c;
-  }
-  
-  .album-details .album-year {
-    font-size: 1.1rem;
-    color: #888;
-    margin-bottom: 1rem;
-  }
-  
-  .album-details .album-description {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: #ccc;
-    max-width: 600px;
-  }
-  
-  .song-list {
-    margin-top: 3rem;
-    padding: 0 1rem;
-  }
-  
-  .song-list h2 {
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-    color: #e6c06c;
-  }
-  
-  .song-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .song-item:hover {
-    background: rgba(230, 192, 108, 0.1);
-    transform: translateX(10px);
-  }
-  
-  .song-number {
-    width: 40px;
-    font-size: 1.1rem;
-    color: #888;
-  }
-  
-  .song-name {
-    flex: 1;
-    font-size: 1.1rem;
-    color: #fff;
-  }
-  
-  .error-page {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #000000, #1a1a1a);
-    color: #fff;
-  }
-  
-  .error-page h2 {
-    margin-bottom: 2rem;
-    color: #e6c06c;
-  }
-  
-  @media (max-width: 768px) {
-    .album-info {
-      flex-direction: column;
-      align-items: center;
-      padding: 1rem;
-    }
-  
-    .album-info img.album-cover {
-      width: 200px;
-      height: 200px;
-    }
-  
-    .album-details {
-      text-align: center;
-    }
-  
-    .album-details h1 {
-      font-size: 2rem;
-    }
-  
-    .song-item {
-      padding: 0.8rem;
-    }
-  
-    .song-name {
-      font-size: 1rem;
-    }
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .album-info, .song-list {
-    animation: fadeIn 0.5s ease-out;
-  }
-  
+.album-detail-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  color: #fff;
+  overflow: hidden;
+}
+
+/* 背景图片 */
+.album-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 300px;  /* 控制背景图片高度 */
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+/* 返回按钮 */
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+}
+
+/* 专辑内容 */
+.album-content {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  margin-top: 200px;  /* 调整内容位置 */
+  background: linear-gradient(transparent, #121212 10%);
+}
+
+/* 专辑信息 */
+.album-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.album-detail-cover {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 60px rgba(0,0,0,.5);
+}
+
+.album-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.album-detail-title {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.album-meta {
+  font-size: 14px;
+  color: #b3b3b3;
+}
+
+/* 歌曲列表 */
+.song-list {
+  margin-top: 24px;
+}
+
+.song-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.song-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.song-number {
+  width: 40px;
+  color: #b3b3b3;
+}
+
+.song-name {
+  flex: 1;
+}

@@ -57,10 +57,10 @@ function AlbumDetail() {
   }
 
   return (
-    <div className="album-detail-page">
+    <div className="album-detail-container">
       <BackButton />
       <div className="album-info">
-        <img src={album.cover} alt={album.name} className="album-cover" />
+        <img src={album.cover} alt={album.name} className="album-detail-cover" />
         <div className="album-details">
           <h1>{album.name}</h1>
           <p className="album-year">{album.year}</p>

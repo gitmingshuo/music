@@ -9,26 +9,32 @@ function Albums() {
   const navigate = useNavigate();
 
   return (
-    <div className="albums-page">
+    <div className="albums-container">
       <div className="albums-header">
         <BackButton />
         <h1>专辑</h1>
       </div>
 
-      <div className="albums-grid">
+      <div className="albums-list">
         {albums.map((album, index) => (
           <div 
             key={index} 
-            className="album-card"
+            className="album-item"
             onClick={() => navigate(`/album/${album.name}`, { state: { album } })}
           >
-            <img 
-              src={album.cover} 
-              alt={album.name} 
-              className="album-cover"
-            />
-            <div className="album-info">
-              <h3>{album.name}</h3>
+            <div className="album-cover-wrapper">
+              <img 
+                src={album.cover} 
+                alt={album.name} 
+                className="album-cover"
+                loading="lazy"
+                onError={(e) => {
+                  e.target.src = '/default-album-cover.jpg';
+                }}
+              />
+            </div>
+            <div className="album-title">
+              {album.name}
             </div>
           </div>
         ))}
@@ -38,3 +44,4 @@ function Albums() {
 }
 
 export default Albums;
+

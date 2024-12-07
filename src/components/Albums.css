@@ -1,19 +1,91 @@
-.albums-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 30px;
+.albums-container {
   padding: 20px;
-  background: #000;
+  color: #fff;
 }
 
-.album-card {
+.albums-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.albums-header h1 {
+  margin: 0;
+  margin-left: 16px;
+  font-size: 24px;
+  font-weight: normal;
+}
+
+.albums-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.album-item {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  max-width: 200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.album-item:hover {
+  transform: translateY(-5px);
+}
+
+.album-cover-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  padding-bottom: 100%;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .album-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  loading: "lazy";
+  transition: transform 0.3s ease;
+}
+
+.album-item:hover .album-cover {
+  transform: scale(1.05);
+}
+
+.album-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  padding: 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.2;
+  height: 2.4em;
+}
+
+@media (max-width: 768px) {
+  .albums-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+    padding: 12px;
+  }
+  
+  .album-title {
+    font-size: 13px;
+  }
 }
