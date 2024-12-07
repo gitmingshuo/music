@@ -1,22 +1,73 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './SongDetail.css';
 import { usePlayer } from './context/PlayerContext';
+import { useRecentPlays } from './context/RecentPlayContext';
 
 function SongDetail() {
   const { setCurrentSong } = usePlayer();
+  const { addToRecentPlays } = useRecentPlays();
   const location = useLocation();
   const { song, albumName, albumCover, audio: audioUrl } = location.state || {};
+  const [lyrics, setLyrics] = useState([]);
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
 
+  // 加载歌词
   useEffect(() => {
-    // 更新全局播放状态
-    setCurrentSong({
-      name: song,
-      album: albumName,
-      cover: albumCover,
-      audio: audioUrl
-    });
-  }, [song, albumName, albumCover, audioUrl, setCurrentSong]);
+    // 直接加载默认歌词文件
+    fetch('/lyrics/default.json')
+      .then(response => response.json())
+      .then(data => {
+        console.log('成功加载默认歌词');
+        setLyrics(data.lyrics);
+      })
+      .catch(error => {
+        console.error('加载歌词失败:', error);
+        setLyrics([{ time: 0, text: "暂无歌词" }]);
+      });
+  }, []);  // 注意这里移除了 song 依赖
+
+  // 更新当前歌词
+  useEffect(() => {
+    if (!lyrics.length) return;
+    
+    const updateLyric = (currentTime) => {
+      const index = lyrics.findIndex((lyric, i) => {
+        const nextTime = lyrics[i + 1]?.time ?? Infinity;
+        return lyric.time <= currentTime && currentTime < nextTime;
+      });
+      
+      if (index !== -1) {
+        setCurrentLyricIndex(index);
+      }
+    };
+    
+    const audio = document.querySelector('audio');
+    if (audio) {
+      const handleTimeUpdate = (e) => updateLyric(e.target.currentTime);
+      audio.addEventListener('timeupdate', handleTimeUpdate);
+
+      return () => {
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+      };
+    }
+  }, [lyrics]);
+
+  // 设置当前歌曲
+  useEffect(() => {
+    if (song && albumName && albumCover) {
+      const songData = {
+        name: song,
+        album: albumName,
+        cover: albumCover,
+        audio: audioUrl,
+        autoPlay: true
+      };
+      
+      setCurrentSong(songData);
+      addToRecentPlays(songData);
+    }
+  }, [song, albumName, albumCover, audioUrl, setCurrentSong, addToRecentPlays]);
 
   return (
     <div className="song-detail-container">
@@ -28,11 +79,6 @@ function SongDetail() {
             <span>歌手：周杰伦</span>
             <span>来源：心拓-喜欢的音乐</span>
           </div>
-        </div>
-        <div className="song-tabs">
-          <span className="active">歌词</span>
-          <span>百科</span>
-          <span>相似推荐</span>
         </div>
       </div>
 
@@ -46,7 +92,14 @@ function SongDetail() {
 
         <div className="lyrics-container">
           <div className="lyrics-scroll">
-            <p>暂无歌词</p>
+            {lyrics.map((lyric, index) => (
+              <p 
+                key={index}
+                className={index === currentLyricIndex ? 'active' : ''}
+              >
+                {lyric.text}
+              </p>
+            ))}
           </div>
         </div>
       </div>

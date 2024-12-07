@@ -1,27 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo } from 'react-icons/fa';
 import { useFavorites } from '../context/FavoriteContext';
+import { usePlayer } from '../context/PlayerContext';
 import './Player.css';
 
-function Player({ song, albumName, albumCover, audioUrl }) {
+function Player() {
+  const { currentSong } = usePlayer();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [currentSong, setCurrentSong] = useState(null);
   const audioRef = useRef(null);
   
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  useEffect(() => {
-    if (song && albumName && albumCover) {
-      setCurrentSong({
-        name: song,
-        album: albumName,
-        cover: albumCover,
-        audio: audioUrl
-      });
-    }
-  }, [song, albumName, albumCover, audioUrl]);
+  // 从 currentSong 中解构需要的数据
+  const { name: song, album: albumName, cover: albumCover, audio: audioUrl } = currentSong || {};
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -86,6 +79,18 @@ function Player({ song, albumName, albumCover, audioUrl }) {
       </div>
     </div>
   );
+
+  useEffect(() => {
+    if (currentSong?.autoPlay && audioRef.current) {
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(error => {
+          console.error('自动播放失败:', error);
+        });
+    }
+  }, [currentSong]);
 
   if (!song) {
     return renderDefaultPlayer();

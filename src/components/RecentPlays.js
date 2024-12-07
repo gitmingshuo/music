@@ -2,8 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecentPlays } from '../context/RecentPlayContext';
-import BackButton from '../components/BackButton';
-import { handleSongClick } from '../utils/songHandler';
+import BackButton from './BackButton';
 import './RecentPlays.css';
 
 function RecentPlays() {
@@ -11,24 +10,30 @@ function RecentPlays() {
   const { recentPlays } = useRecentPlays();
 
   return (
-    <div className="recent-plays-page">
-      <div className="recent-plays-header">
-        <BackButton />
-        <h1>最近播放</h1>
-      </div>
-
+    <div className="recent-plays-container">
+      <BackButton />
+      <h2>最近播放</h2>
       <div className="recent-plays-list">
         {recentPlays.length > 0 ? (
           recentPlays.map((song, index) => (
             <div 
-              key={index} 
+              key={index}
               className="recent-play-item"
-              onClick={() => handleSongClick(song, navigate)}
+              onClick={() => {
+                navigate(`/song/${encodeURIComponent(song.name)}`, {
+                  state: {
+                    song: song.name,
+                    albumName: song.album,
+                    albumCover: song.cover,
+                    audio: song.audio
+                  }
+                });
+              }}
             >
-              <img src={song.cover} alt={song.name} className="song-cover" />
-              <div className="song-info">
-                <span className="song-name">{song.name}</span>
-                <span className="album-name">{song.album}</span>
+              <img src={song.cover} alt={song.name} className="recent-play-cover" />
+              <div className="recent-play-info">
+                <div className="recent-play-name">{song.name}</div>
+                <div className="recent-play-album">{song.album}</div>
               </div>
             </div>
           ))
@@ -41,3 +46,4 @@ function RecentPlays() {
 }
 
 export default RecentPlays;
+

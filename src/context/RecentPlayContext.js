@@ -13,9 +13,20 @@ export function RecentPlayProvider({ children }) {
   }, [recentPlays]);
 
   const addToRecentPlays = useCallback((song) => {
+    if (!song) return;
+    
     setRecentPlays(prev => {
       const filtered = prev.filter(item => item.name !== song.name);
-      return [song, ...filtered].slice(0, 20);
+      const newList = [
+        {
+          name: song.name,
+          album: song.album,
+          cover: song.cover,
+          audio: song.audio
+        },
+        ...filtered
+      ].slice(0, 20);
+      return newList;
     });
   }, []);
 
@@ -27,9 +38,5 @@ export function RecentPlayProvider({ children }) {
 }
 
 export function useRecentPlays() {
-  const context = useContext(RecentPlayContext);
-  if (!context) {
-    throw new Error('useRecentPlays must be used within a RecentPlayProvider');
-  }
-  return context;
+  return useContext(RecentPlayContext);
 }

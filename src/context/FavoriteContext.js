@@ -3,7 +3,15 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 const FavoriteContext = createContext();
 
 export function FavoriteProvider({ children }) {
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // 当 favorites 改变时保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const isFavorite = useCallback((song) => {
     if (!song) return false;

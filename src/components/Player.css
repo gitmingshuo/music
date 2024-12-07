@@ -151,3 +151,32 @@
   .like-btn.active {
     color: #ff3a3a;
   }
+  
+  .player-right button {
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 16px;
+    transition: color 0.2s ease;
+  }
+  
+  .player-right button:hover {
+    color: #999;
+  }
+  
+  .like-btn.active {
+    color: #c71414;
+  }
+  
+  .player-right button:disabled {
+    color: #444;
+    cursor: not-allowed;
+  }
+  
+  .like-btn, .loop-btn {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
