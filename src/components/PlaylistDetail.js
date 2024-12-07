@@ -31,7 +31,8 @@ function PlaylistDetail() {
   };
 
   const handleSongDoubleClick = (song, index) => {
-    const audioPath = `/music/${song}.mp3`;
+    // 默认使用"最伟大的作品"的音频
+    const audioPath = `/music/最伟大的作品.mp3`;
     console.log('正在播放:', audioPath);
 
     navigate(`/song/${encodeURIComponent(song)}`, {

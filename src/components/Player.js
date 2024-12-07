@@ -27,6 +27,10 @@ function Player() {
 
   const handlePrevious = () => {
     if (songList && currentIndex !== undefined) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       setIsPlaying(false);
       switchSong('prev', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
     }
@@ -34,6 +38,10 @@ function Player() {
 
   const handleNext = () => {
     if (songList && currentIndex !== undefined) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       setIsPlaying(false);
       switchSong('next', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
     }
@@ -47,19 +55,51 @@ function Player() {
 
   useEffect(() => {
     if (currentSong && audioRef.current) {
-      audioRef.current.src = currentSong.audio;
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setCurrentTime(0);
+      setDuration(0);
       
-      if (currentSong.autoPlay) {
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch(error => {
-              console.error('自动播放失败:', error);
-            });
-        }
+      try {
+        const defaultAudioPath = '/music/最伟大的作品.mp3';
+        audioRef.current.src = defaultAudioPath;
+        
+        const handleLoadedMetadata = () => {
+          setDuration(audioRef.current.duration);
+          if (currentSong.autoPlay) {
+            audioRef.current.play()
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch(error => {
+                console.error('自动播放失败:', error);
+                setIsPlaying(false);
+              });
+          }
+        };
+
+        const handleError = (error) => {
+          console.error('音频加载失败，使用默认音频:', error);
+          if (audioRef.current.src !== defaultAudioPath) {
+            audioRef.current.src = defaultAudioPath;
+          }
+          setIsPlaying(false);
+        };
+
+        audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+        audioRef.current.addEventListener('error', handleError);
+        audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
+        
+        return () => {
+          if (audioRef.current) {
+            audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            audioRef.current.removeEventListener('error', handleError);
+            audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+          }
+        };
+      } catch (error) {
+        console.error('设置音频源失败:', error);
+        setIsPlaying(false);
       }
     }
   }, [currentSong]);
@@ -84,26 +124,37 @@ function Player() {
         await audioRef.current.pause();
         setIsPlaying(false);
       } else {
+        if (!audioRef.current.src) {
+          audioRef.current.src = '/music/最伟大的作品.mp3';
+        }
+        
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
-          await playPromise;
-          setIsPlaying(true);
+          try {
+            await playPromise;
+            setIsPlaying(true);
+          } catch (error) {
+            console.error('播放失败:', error);
+            setIsPlaying(false);
+            audioRef.current.src = '/music/最伟大的作品.mp3';
+          }
         }
       }
     } catch (error) {
       console.error('播放控制失败:', error);
-      setIsPlaying(prev => !prev);
-      alert('播放控制失败，请重试');
+      setIsPlaying(false);
     }
   };
 
   const handleProgressClick = (e) => {
+    if (!audioRef.current || !duration || !isFinite(duration)) return;
+    
     const progressBar = e.currentTarget;
     const rect = progressBar.getBoundingClientRect();
     const clickPosition = (e.clientX - rect.left) / rect.width;
     const newTime = clickPosition * duration;
     
-    if (audioRef.current) {
+    if (isFinite(newTime)) {
       audioRef.current.currentTime = newTime;
       setCurrentTime(newTime);
     }
@@ -112,7 +163,7 @@ function Player() {
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const renderDefaultPlayer = () => (

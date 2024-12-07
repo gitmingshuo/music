@@ -26,7 +26,7 @@ export const handleSongClick = async (song, navigate) => {
       state: {
         song: song.name,
         lyrics: lyrics.lyrics,
-        audio: `/music/${encodeURIComponent(song.name)}.mp3`,
+        audio: `/music/最伟大的作品.mp3`,
         albumName: song.album,
         albumCover: song.cover,
         songList: albumInfo.songs,
@@ -35,7 +35,7 @@ export const handleSongClick = async (song, navigate) => {
     });
   } catch (error) {
     console.error('页面跳转失败:', error);
-    alert('暂时无法播放该歌曲，请稍后再��');
+    alert('暂时无法播放该歌曲，请稍后再试');
   }
 };
 
