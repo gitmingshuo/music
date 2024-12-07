@@ -1,0 +1,98 @@
+.jay-sidenav {
+    width: 250px;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    color: #fff;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.jay-sidenav__logo {
+    padding: 20px 0;
+}
+
+.jay-sidenav__logo-title {
+    color: #e6c06c;
+    font-size: 24px;
+    margin: 0;
+}
+
+.jay-sidenav__section {
+    margin-bottom: 30px;
+}
+
+.jay-sidenav__section-title {
+    color: #888;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+.jay-sidenav__nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.jay-sidenav__nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}
+
+.jay-sidenav__nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.jay-sidenav__nav-icon {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.jay-sidenav__nav-text {
+    font-size: 14px;
+}
+
+.jay-sidenav__nav-arrow {
+    margin-left: auto;
+    font-size: 12px;
+}
+
+.jay-sidenav__badge {
+    margin-left: auto;
+    color: #e6c06c;
+    font-size: 8px;
+}
+
+.jay-sidenav__playlist-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.jay-sidenav__playlist-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}
+
+.jay-sidenav__playlist-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.jay-sidenav__playlist-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    margin-right: 12px;
+}
+
+.jay-sidenav__playlist-name {
+    font-size: 14px;
+}

@@ -1,7 +1,5 @@
-//主页面
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaSearch, FaCompactDisc, FaHeart, FaChevronRight, FaClock, FaPodcast } from 'react-icons/fa';
 import './Home.css';
 import Banner from './components/Banner';
 import RecommendedPlaylists from './components/RecommendedPlaylists';
@@ -46,7 +44,7 @@ export const albums = [
       name: '十一月的萧邦',
       year: '2005',
       cover: require('./image/11月的萧邦.jpg'),
-      description: '《十一月的萧邦》融合古典与流行，展现了周杰伦对音乐的无限创作力���',
+      description: '《十一月的萧邦》融合古典与流行，展现了周杰伦对音乐的无限创作力',
       songs: ['夜曲', '蓝色风暴', '发如雪', '黑色毛衣', '四面楚歌', '枫', '浪漫手机', '逆鳞', '麦芽糖', '珊瑚海', '飘移', '一路向北']
     },
     {
@@ -95,7 +93,7 @@ export const albums = [
       name: '哎呦，不错哦',
       year: '2014',
       cover: require('./image/哎呦不错哦.jpg'),
-      description: '《哎呦，不错哦》是周伦结婚后发行的专���，展现了更成熟的情感。',
+      description: '《哎呦，不错哦》是周伦结婚后发行的专，展现了更成熟的情感。',
       songs: ['阳明山', '窃爱', '天涯过客', '怎么了', '手写的从前', '美人鱼', '听爸爸的话', '算什么男人', '我要夏天']
     },
     {
@@ -114,102 +112,11 @@ export const albums = [
     },
   ];
   
-const playlists = [
-  {
-    name: 'Jay Chou',
-    cover: require('./image/jay.jpg')
-  },
-  {
-    name: 'Jay',
-    cover: require('./image/范特西.jpg')
-  },
-  {
-    name: '最伟大的作品',
-    cover: require('./image/最伟大的作品.jpg'),
-    songs: ['最伟大的作品', '红颜如霜', '不爱我就拉倒', '等你下课', '我是如此相信', 
-            '说好不哭', 'mojito', '倒影', '粉色海洋', '错过的烟火','Intro', '还在流浪']
-  }
-];
-  
-
 function Home() {
   const navigate = useNavigate();
   
-  const handlePlaylistClick = (playlist) => {
-    if (playlist.songs) {
-      navigate(`/playlist/${encodeURIComponent(playlist.name)}`, {
-        state: {
-          name: playlist.name,
-          cover: playlist.cover,
-          songs: playlist.songs,
-          albumName: '最伟大的作品'
-        }
-      });
-    }
-  };
-  
   return (
-    <div className="app-container">
-      {/* 左侧导航栏 */}
-      <nav className="side-nav">
-        <div className="logo">
-          <h1>周杰伦音乐</h1>
-        </div>
-        
-        <div className="nav-section">
-          <div className="nav-group">
-            <div className="nav-item active">
-              <FaHome className="nav-icon" />
-              <span>推荐</span>
-            </div>
-            <div className="nav-item" onClick={() => navigate('/search')}>
-              <FaSearch className="nav-icon" />
-              <span>搜索</span>
-            </div>
-            <div className="nav-item" onClick={() => navigate('/albums')}>
-              <FaCompactDisc className="nav-icon" />
-              <span>专辑</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="nav-section">
-          <h3 className="nav-title">我的</h3>
-          <div className="nav-group">
-            <div className="nav-item" onClick={() => navigate('/favorites')}>
-              <FaHeart className="nav-icon" />
-              <span>我喜欢的音乐</span>
-              <FaChevronRight className="nav-arrow" />
-            </div>
-            <div className="nav-item" onClick={() => navigate('/recent')}>
-              <FaClock className="nav-icon" />
-              <span>最近播放</span>
-            </div>
-            <div className="nav-item">
-              <FaPodcast className="nav-icon" />
-            
-              <div className="badge">●</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="nav-section">
-          <h3 className="nav-title">创建的歌单</h3>
-          <div className="playlist-group">
-            {playlists.map((playlist, index) => (
-              <div 
-                key={index} 
-                className="playlist-item"
-                onClick={() => handlePlaylistClick(playlist)}
-              >
-                <img src={playlist.cover} alt={playlist.name} />
-                <span>{playlist.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </nav>
-
+    <div className="home-content">
       {/* 主内容区 */}
       <main className="main-content">
         {/* 轮播图 */}

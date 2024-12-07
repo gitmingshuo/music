@@ -1,11 +1,13 @@
 //主页面
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { FavoriteProvider } from './context/FavoriteContext';
 import { RecentPlayProvider } from './context/RecentPlayContext';
 import Home from './Home';
-import SongDetail from './SongDetail';
+import SideNav from './components/SideNav';
+import PlaylistDetail from './components/PlaylistDetail';
 import AlbumDetail from './AlbumDetail';
+import SongDetail from './SongDetail';
 import Search from './Search';
 import Favorites from './components/Favorites';
 import RecentPlays from './components/RecentPlays';
@@ -14,21 +16,25 @@ import './App.css';
 
 function App() {
   return (
-    <FavoriteProvider>
-      <RecentPlayProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/song/:id" element={<SongDetail />} />
-            <Route path="/albums" element={<Albums />} />
-            <Route path="/album/:id" element={<AlbumDetail />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/recent" element={<RecentPlays />} />
-          </Routes>
-        </Router>
-      </RecentPlayProvider>
-    </FavoriteProvider>
+    <RecentPlayProvider>
+      <FavoriteProvider>
+        <div className="app-container">
+          <SideNav />
+          <div className="main-content">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/albums" element={<Albums />} />
+              <Route path="/playlist/:name" element={<PlaylistDetail />} />
+              <Route path="/album/:name" element={<AlbumDetail />} />
+              <Route path="/song/:id" element={<SongDetail />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/recent-plays" element={<RecentPlays />} />
+            </Routes>
+          </div>
+        </div>
+      </FavoriteProvider>
+    </RecentPlayProvider>
   );
 }
 

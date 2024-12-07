@@ -83,13 +83,6 @@
     font-size: 8px;
   }
   
-  /* 主内容区 */
-  .main-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-  }
-  
   /* 轮播图区域 */
   .banner-section {
     margin-bottom: 40px;
@@ -110,7 +103,7 @@
     transition: opacity 0.5s ease;
   }
   
-  /* 推荐歌单 */
+  /* 推荐歌单区域 */
   .recommend-section {
     margin-bottom: 40px;
   }
@@ -149,17 +142,6 @@
     object-fit: cover;
   }
   
-  .play-count {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    font-size: 12px;
-    color: #fff;
-    padding: 2px 6px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.5);
-  }
-  
   .playlist-name {
     margin-top: 8px;
     font-size: 13px;
@@ -172,7 +154,7 @@
     -webkit-box-orient: vertical;
   }
   
-  /* 榜单 */
+  /* 榜单区域 */
   .charts-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -219,9 +201,6 @@
     object-fit: cover;
     border-radius: 4px;
   }
-  
-  
-  
   
   .playlist-group {
     margin-top: 8px;

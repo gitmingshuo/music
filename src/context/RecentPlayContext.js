@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const RecentPlayContext = createContext();
 
@@ -8,22 +8,28 @@ export function RecentPlayProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const addToRecent = (song) => {
+  useEffect(() => {
+    localStorage.setItem('recentPlays', JSON.stringify(recentPlays));
+  }, [recentPlays]);
+
+  const addToRecentPlays = useCallback((song) => {
     setRecentPlays(prev => {
       const filtered = prev.filter(item => item.name !== song.name);
-      const updated = [song, ...filtered].slice(0, 20);
-      localStorage.setItem('recentPlays', JSON.stringify(updated));
-      return updated;
+      return [song, ...filtered].slice(0, 20);
     });
-  };
+  }, []);
 
   return (
-    <RecentPlayContext.Provider value={{ recentPlays, addToRecent }}>
+    <RecentPlayContext.Provider value={{ recentPlays, addToRecentPlays }}>
       {children}
     </RecentPlayContext.Provider>
   );
 }
 
 export function useRecentPlays() {
-  return useContext(RecentPlayContext);
+  const context = useContext(RecentPlayContext);
+  if (!context) {
+    throw new Error('useRecentPlays must be used within a RecentPlayProvider');
+  }
+  return context;
 }
