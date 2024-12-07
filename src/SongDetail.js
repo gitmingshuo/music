@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import './SongDetail.css';
 import { usePlayer } from './context/PlayerContext';
@@ -11,6 +11,7 @@ function SongDetail() {
   const { song, albumName, albumCover, audio: audioUrl } = location.state || {};
   const [lyrics, setLyrics] = useState([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const currentSongRef = useRef(null);
 
   // 加载歌词
   useEffect(() => {
@@ -55,19 +56,23 @@ function SongDetail() {
 
   // 设置当前歌曲
   useEffect(() => {
-    if (song && albumName && albumCover) {
+    if (song && albumName && albumCover && audioUrl) {
       const songData = {
         name: song,
         album: albumName,
         cover: albumCover,
         audio: audioUrl,
-        autoPlay: true
+        autoPlay: location.state?.autoPlay || false  // 只在需要时自动播放
       };
       
-      setCurrentSong(songData);
-      addToRecentPlays(songData);
+      // 使用 useRef 来追踪是否已经设置过
+      if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
+        setCurrentSong(songData);
+        addToRecentPlays(songData);
+        currentSongRef.current = songData;
+      }
     }
-  }, [song, albumName, albumCover, audioUrl, setCurrentSong, addToRecentPlays]);
+  }, []);  // 空依赖数组，只在组件挂载时执行一次
 
   return (
     <div className="song-detail-container">

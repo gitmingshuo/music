@@ -23,16 +23,25 @@ function Player() {
   const { name: song, album: albumName, cover: albumCover, audio: audioUrl } = currentSong || {};
 
   useEffect(() => {
-    if (currentSong?.autoPlay && audioRef.current) {
-      audioRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(error => {
-          console.error('自动播放失败:', error);
-        });
+    const shouldAutoPlay = currentSong?.autoPlay && audioRef.current;
+    if (shouldAutoPlay && !isPlaying) {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch(error => {
+            console.error('自动播放失败:', error);
+          });
+      }
     }
-  }, [currentSong, setIsPlaying]);
+  }, [currentSong]);
+
+  useEffect(() => {
+    console.log('播放状态变化:', isPlaying);
+    console.log('当前音频元素:', audioRef.current);
+  }, [isPlaying]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -47,12 +56,18 @@ function Player() {
     try {
       if (isPlaying) {
         await audioRef.current.pause();
+        setIsPlaying(false);
       } else {
-        await audioRef.current.play();
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          setIsPlaying(true);
+        }
       }
-      setIsPlaying(!isPlaying);
     } catch (error) {
       console.error('播放控制失败:', error);
+      setIsPlaying(prev => !prev);
+      alert('播放控制失败，请重试');
     }
   };
 
