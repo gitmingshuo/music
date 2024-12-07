@@ -1,15 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-const FavoritesContext = createContext();
+const FavoriteContext = createContext();
 
-export function FavoritesProvider({ children }) {
-  const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('favorites');
-    return saved ? JSON.parse(saved) : [];
-  });
+export function FavoriteProvider({ children }) {
+  const [favorites, setFavorites] = useState([]);
 
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
+  const isFavorite = useCallback((song) => {
+    if (!song) return false;
+    return favorites.some(fav => fav.name === song.name);
   }, [favorites]);
 
   const toggleFavorite = (song) => {
@@ -23,17 +21,13 @@ export function FavoritesProvider({ children }) {
     });
   };
 
-  const isFavorite = (song) => {
-    return favorites.some(item => item.name === song.name);
-  };
-
   return (
-    <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
+    <FavoriteContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
       {children}
-    </FavoritesContext.Provider>
+    </FavoriteContext.Provider>
   );
 }
 
 export function useFavorites() {
-  return useContext(FavoritesContext);
+  return useContext(FavoriteContext);
 }

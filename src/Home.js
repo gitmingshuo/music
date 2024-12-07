@@ -23,7 +23,7 @@ export const albums = [
       name: '八度空间',
       year: '2002',
       cover: require('./image/八度空间.jpg'),
-      description: '《八度空间》延续了周杰伦的音乐个性，加入了更多实验性的曲风和编曲。',
+      description: '《���度空间》延续了周杰伦的音乐个性，加入了更多实验性的曲风和编曲。',
       songs: ['半兽人', '半岛铁盒', '暗号', '龙拳', '火车叨位去', '手写的从前', '忍者', '分裂', '爷爷泡的茶', '回到过去']
     },
     {
@@ -72,7 +72,7 @@ export const albums = [
       name: '跨时代',
       year: '2010',
       cover: require('./image/跨时代.jpg'),
-      description: '《跨时代》充满未来感，展示了周杰伦对音乐创新的追求。',
+      description: '《跨时代》充满���来感，展示了周杰伦对音乐创新的追求。',
       songs: ['跨时代', '说了再见', '烟花易冷', '免费教学录影带', '好久不见', '雨下一整晚', '嘻哈空姐', '我落泪情绪零碎', '爱的飞行日记', '自导自演']
     },
     {
@@ -112,7 +112,7 @@ export const albums = [
     },
   ];
   
-function Home() {
+function Home({ setCurrentSong }) {
   const navigate = useNavigate();
   
   return (

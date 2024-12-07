@@ -18,19 +18,23 @@ function RecentPlays() {
       </div>
 
       <div className="recent-plays-list">
-        {recentPlays.map((song, index) => (
-          <div 
-            key={index} 
-            className="recent-play-item"
-            onClick={() => handleSongClick(song, navigate)}
-          >
-            <img src={song.cover} alt={song.name} className="song-cover" />
-            <div className="song-info">
-              <span className="song-name">{song.name}</span>
-              <span className="album-name">{song.album}</span>
+        {recentPlays.length > 0 ? (
+          recentPlays.map((song, index) => (
+            <div 
+              key={index} 
+              className="recent-play-item"
+              onClick={() => handleSongClick(song, navigate)}
+            >
+              <img src={song.cover} alt={song.name} className="song-cover" />
+              <div className="song-info">
+                <span className="song-name">{song.name}</span>
+                <span className="album-name">{song.album}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div className="empty-message">暂无播放记录</div>
+        )}
       </div>
     </div>
   );

@@ -10,14 +10,16 @@ body {
 }
 
 /* 主应用布局 */
-.app-container {
+.app {
   display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #000000, #1a1a1a);
+  height: 100vh;
+  background: #121212;
 }
 
 .main-content {
   flex: 1;
-  padding: 2rem;
   overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 90px; /* 为底部播放器留出空间 */
+  height: 100vh;
 }
