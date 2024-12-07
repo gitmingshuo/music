@@ -1,0 +1,179 @@
+.song-detail-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #2c2c2c;
+  color: #fff;
+}
+
+/* 顶部标题区 */
+.song-header {
+  padding: 20px;
+}
+
+.song-title h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.song-meta span {
+  color: #999;
+  margin-right: 20px;
+  font-size: 14px;
+}
+
+.song-tabs {
+  margin-top: 20px;
+}
+
+.song-tabs span {
+  margin-right: 20px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.song-tabs span.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+}
+
+/* 主内容区 */
+.song-content {
+  display: flex;
+  flex: 1;
+  padding: 20px;
+}
+
+/* 唱片区域 */
+.vinyl-container {
+  position: relative;
+  width: 400px;
+}
+
+/* 修改唱片指针样式，不再使用图片 */
+.vinyl-arm {
+  position: absolute;
+  top: 0;
+  right: 20%;
+  width: 4px;
+  height: 100px;
+  background: #666;
+  transform-origin: top right;
+  transform: rotate(-30deg);
+  transition: transform 0.3s;
+  z-index: 2;
+}
+
+.vinyl-disc {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+  margin-top: 80px;
+}
+
+.vinyl-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* 歌词区域 */
+.lyrics-container {
+  flex: 1;
+  padding: 20px 40px;
+  overflow-y: auto;
+}
+
+.lyrics-scroll p {
+  margin: 20px 0;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.lyrics-scroll p.active {
+  color: #fff;
+  font-size: 16px;
+}
+
+/* 底部控制栏 */
+.player-controls {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.progress {
+  height: 100%;
+  background: #ff3a3a;
+  width: 0;
+}
+
+.time-current,
+.time-total {
+  position: absolute;
+  top: -20px;
+  font-size: 12px;
+  color: #999;
+}
+
+.time-current {
+  left: 0;
+}
+
+.time-total {
+  right: 0;
+}
+
+.control-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.control-buttons button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 10px;
+}
+
+.play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.like-btn,
+.loop-btn {
+  opacity: 0.7;
+}
+
+.like-btn:hover,
+.loop-btn:hover {
+  opacity: 1;
+}
+
+.like-btn.active {
+  color: #ff3a3a;
+}
+
+.like-btn.active:hover {
+  opacity: 1;
+}

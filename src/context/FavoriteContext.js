@@ -1,41 +1,39 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const FavoriteContext = createContext();
-const RecentPlayContext = createContext();
+const FavoritesContext = createContext();
 
-export function FavoriteProvider({ children }) {
+export function FavoritesProvider({ children }) {
   const [favorites, setFavorites] = useState(() => {
-    // 从 localStorage 读取初始数据
-    const savedFavorites = localStorage.getItem('favorites');
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
   });
 
-  // 当 favorites 改变时，保存到 localStorage
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  const isFavorite = (song) => {
-    return favorites.some(fav => fav.name === song.name && fav.album === song.album);
-  };
-
   const toggleFavorite = (song) => {
-    setFavorites(prevFavorites => {
-      if (isFavorite(song)) {
-        return prevFavorites.filter(fav => !(fav.name === song.name && fav.album === song.album));
+    setFavorites(prev => {
+      const exists = prev.some(item => item.name === song.name);
+      if (exists) {
+        return prev.filter(item => item.name !== song.name);
       } else {
-        return [...prevFavorites, song];
+        return [song, ...prev];
       }
     });
   };
 
+  const isFavorite = (song) => {
+    return favorites.some(item => item.name === song.name);
+  };
+
   return (
-    <FavoriteContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
+    <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
       {children}
-    </FavoriteContext.Provider>
+    </FavoritesContext.Provider>
   );
 }
 
 export function useFavorites() {
-  return useContext(FavoriteContext);
+  return useContext(FavoritesContext);
 }

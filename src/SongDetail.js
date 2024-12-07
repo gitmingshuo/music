@@ -1,165 +1,144 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import BackButton from './components/BackButton';
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo } from 'react-icons/fa';
+import { useFavorites } from '/Users/admin/my-website/src/context/FavoriteContext.js';
 import './SongDetail.css';
-import { useRecentPlays } from './context/RecentPlayContext';
 
 function SongDetail() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { song, audio: audioUrl, albumName, albumCover, songList, currentIndex } = location.state || {};
-  const { addToRecentPlays } = useRecentPlays();
-  
+  const { song, albumName, albumCover, audio: audioUrl } = location.state || {};
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioElement, setAudioElement] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
-  const [currentLyric, setCurrentLyric] = useState('');
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
+  
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const currentSong = {
+    name: song,
+    album: albumName,
+    cover: albumCover,
+    audio: audioUrl
+  };
 
+  // 添加自动播放效果
   useEffect(() => {
-    if (!audioUrl) {
-      console.error('未找到音频URL');
-      return;
-    }
-
-    console.log('加载音频:', audioUrl); // 调试信息
-    const audio = new Audio(audioUrl);
-    
-    // 设置音频加载完成后的处理
-    audio.oncanplaythrough = () => {
-      console.log('音频加载完成，准备播放');
-      audio.play()
-        .then(() => {
-          console.log('开始播放');
-          setIsPlaying(true);
-        })
-        .catch(error => {
-          console.error('播放失败:', error);
-        });
-    };
-
-    // 错误处理
-    audio.onerror = (e) => {
-      console.error('音频加载错误:', e);
-    };
-
-    setAudioElement(audio);
-
-    return () => {
-      audio.pause();
-      audio.src = '';
-    };
-  }, [audioUrl]);
-
-  // 播放/暂停切换
-  const togglePlay = useCallback(() => {
-    if (!audioElement) return;
-
-    if (isPlaying) {
-      audioElement.pause();
-    } else {
-      audioElement.play()
-        .then(() => {
-          console.log('播放成功');
-        })
-        .catch(err => {
-          console.error('播放失败:', err);
-        });
-    }
-    setIsPlaying(!isPlaying);
-  }, [audioElement, isPlaying]);
-
-  const playNext = useCallback(() => {
-    if (currentIndex < songList?.length - 1) {
-      const nextSong = songList[currentIndex + 1];
-      navigate(`/song/${encodeURIComponent(nextSong)}`, {
-        state: {
-          song: nextSong,
-          audio: `/music/${encodeURIComponent(nextSong)}.mp3`,
-          albumName,
-          albumCover,
-          songList,
-          currentIndex: currentIndex + 1
-        }
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(error => {
+        console.log('自动播放失败:', error);
       });
     }
-  }, [navigate, currentIndex, songList, albumName, albumCover]);
+  }, []);
 
-  const playPrevious = useCallback(() => {
-    if (currentIndex > 0) {
-      const prevSong = songList[currentIndex - 1];
-      navigate(`/song/${encodeURIComponent(prevSong)}`, {
-        state: {
-          song: prevSong,
-          audio: `/music/${encodeURIComponent(prevSong)}.mp3`,
-          albumName,
-          albumCover,
-          songList,
-          currentIndex: currentIndex - 1
-        }
-      });
+  // 格式化时间
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  // 更新进度条
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+      setDuration(audioRef.current.duration);
     }
-  }, [navigate, currentIndex, songList, albumName, albumCover]);
+  };
 
-  useEffect(() => {
-    console.log('组件状态:', {
-      song,
-      audioUrl,
-      albumName,
-      albumCover,
-      currentIndex,
-      location: location.state
-    });
-  }, [song, audioUrl, albumName, albumCover, currentIndex, location]);
-
-  // 在歌曲加载时添加到最近播放
-  useEffect(() => {
-    if (song && albumCover && albumName) {
-      addToRecentPlays({
-        name: song,
-        cover: albumCover,
-        album: albumName
-      });
+  // 播放/暂停控制
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
-  }, [song, albumCover, albumName, addToRecentPlays]);
+  };
 
-  if (!song) {
-    return (
-      <div className="error-message">
-        <h2>未找到歌曲信息</h2>
-        <BackButton />
-      </div>
-    );
-  }
+  // 处理收藏
+  const handleLike = () => {
+    toggleFavorite(currentSong);
+  };
 
   return (
     <div className="song-detail-container">
-      <div className="song-background" style={{ backgroundImage: `url(${albumCover})` }} />
+      <div className="song-header">
+        <div className="song-title">
+          <h1>{song}</h1>
+          <div className="song-meta">
+            <span>专辑：{albumName}</span>
+            <span>歌手：周杰伦</span>
+            <span>来源：心拓-喜欢的音乐</span>
+          </div>
+        </div>
+        <div className="song-tabs">
+          <span className="active">歌词</span>
+          <span>百科</span>
+          <span>相似推荐</span>
+        </div>
+      </div>
+
       <div className="song-content">
-        <div className="album-info">
-          <img 
-            src={albumCover} 
-            alt={albumName} 
-            className={isPlaying ? 'rotating playing' : 'rotating'} 
-          />
-          <div className="song-info">
-            <h1>{song}</h1>
-            <p className="album-name">{albumName}</p>
-            <p className="artist-name">周杰伦</p>
+        {/* 左侧唱片区 */}
+        <div className="vinyl-container">
+          <div className="vinyl-arm"></div>
+          <div className="vinyl-disc">
+            <img src={albumCover} alt={song} className="vinyl-cover" />
           </div>
         </div>
 
+        {/* 右侧歌词区 */}
         <div className="lyrics-container">
-          <p className="current-lyric">{currentLyric || '暂无歌词'}</p>
-        </div>
-
-        <div className="controls">
-          <button onClick={playPrevious} disabled={currentIndex === 0}>上一首</button>
-          <button onClick={togglePlay} className="play-button">
-            {isPlaying ? '暂停' : '播放'}
-          </button>
-          <button onClick={playNext} disabled={currentIndex === songList?.length - 1}>下一首</button>
+          <div className="lyrics-scroll">
+            <p>暂无歌词</p>
+          </div>
         </div>
       </div>
+
+      {/* 底部播放控制栏 */}
+      <div className="player-controls">
+        <div className="progress-bar">
+          <div 
+            className="progress" 
+            style={{width: `${(currentTime / duration) * 100 || 0}%`}}
+          ></div>
+          <span className="time-current">{formatTime(currentTime)}</span>
+          <span className="time-total">{formatTime(duration)}</span>
+        </div>
+        
+        <div className="control-buttons">
+          <button 
+            className={`like-btn ${isFavorite(currentSong) ? 'active' : ''}`} 
+            onClick={handleLike}
+          >
+            <FaHeart />
+          </button>
+          <button>
+            <FaStepBackward />
+          </button>
+          <button className="play-btn" onClick={handlePlayPause}>
+            {isPlaying ? <FaPause /> : <FaPlay />}
+          </button>
+          <button>
+            <FaStepForward />
+          </button>
+          <button className="loop-btn">
+            <FaRedo />
+          </button>
+        </div>
+      </div>
+
+      {/* 音频元素添加事件监听 */}
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleTimeUpdate}
+        onEnded={() => setIsPlaying(false)}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 //主页面
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { FavoriteProvider } from './context/FavoriteContext';
+import { FavoritesProvider } from './context/FavoriteContext';
 import { RecentPlayProvider } from './context/RecentPlayContext';
 import Home from './Home';
 import SideNav from './components/SideNav';
@@ -17,7 +17,7 @@ import './App.css';
 function App() {
   return (
     <RecentPlayProvider>
-      <FavoriteProvider>
+      <FavoritesProvider>
         <div className="app-container">
           <SideNav />
           <div className="main-content">
@@ -33,7 +33,7 @@ function App() {
             </Routes>
           </div>
         </div>
-      </FavoriteProvider>
+      </FavoritesProvider>
     </RecentPlayProvider>
   );
 }
