@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import './SongDetail.css';
 import { usePlayer } from './context/PlayerContext';
-import { useRecentPlays } from './context/RecentPlayContext';
+import './SongDetail.css';
+
 
 function SongDetail() {
   const { setCurrentSong } = usePlayer();
-  const { addToRecentPlays } = useRecentPlays();
   const location = useLocation();
   const { 
     song, 
@@ -73,12 +72,11 @@ function SongDetail() {
         currentIndex: currentIndex || 0
       };
       
-      console.log('添加到最近播放:', songData);
+    
       
       // 使用 useRef 来追踪是否已经设置过
       if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
         setCurrentSong(songData);
-        addToRecentPlays(songData);
         currentSongRef.current = songData;
       }
     }

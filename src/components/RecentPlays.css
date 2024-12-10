@@ -1,55 +1,17 @@
-.recent-plays-page {
-    padding: 20px;
-    background: #121212;
-    min-height: 100vh;
-    color: #fff;
-  }
-  
-  .recent-plays-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 30px;
-  }
-  
-  .recent-plays-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .recent-play-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .recent-play-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-  
-  .song-cover {
-    width: 60px;
-    height: 60px;
-    border-radius: 4px;
-    margin-right: 16px;
-  }
-  
-  .song-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  
-  .song-name {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  .album-name {
-    font-size: 14px;
-    color: #888;
-  }
+.recent-plays-list {
+  display: flex;
+  flex-direction: column;
+}
+.recent-play-item {
+  display: flex;
+  margin: 10px 0;
+}
+.song-cover {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+.song-info {
+  display: flex;
+  flex-direction: column;
+}

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo } from 'react-icons/fa';
 import { useFavorites } from '../context/FavoriteContext';
 import { usePlayer } from '../context/PlayerContext';
+import { useRecentPlays } from '../context/RecentPlaysContext'; // 引入最近播放上下文
 import './Player.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { switchSong } from '../utils/songHandler';
@@ -13,17 +14,37 @@ function Player() {
     setIsPlaying,
     setCurrentSong 
   } = usePlayer();
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const { songList, currentIndex } = location.state || {};
 
+  const { addToRecentPlays } = useRecentPlays(); // 引入 addToRecentPlays 方法
   const { 
     name: song, 
     album: currentAlbumName, 
     cover: currentAlbumCover, 
     audio: audioUrl 
   } = currentSong || {};
+
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
+  
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  // 当 currentSong 改变时，将其添加到最近播放
+  useEffect(() => {
+    if (currentSong && Object.keys(currentSong).length > 0) {
+      console.log('添加到最近播放:', currentSong);
+      addToRecentPlays({
+        name: currentSong.name,
+        album: currentSong.album,
+        cover: currentSong.cover,
+        audio: currentSong.audio
+      });
+    }
+  }, [currentSong?.name]); // 只在歌曲名称改变时触发
 
   const handlePrevious = () => {
     if (songList && currentIndex !== undefined) {
@@ -47,12 +68,6 @@ function Player() {
     }
   };
 
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const audioRef = useRef(null);
-  
-  const { isFavorite, toggleFavorite } = useFavorites();
-
   useEffect(() => {
     if (currentSong && audioRef.current) {
       audioRef.current.pause();
@@ -62,8 +77,7 @@ function Player() {
       setIsPlaying(false);
       
       try {
-        const defaultAudioPath = '/music/最伟大的作品.mp3';
-        audioRef.current.src = defaultAudioPath;
+        audioRef.current.src = currentSong.audio || '/music/最伟大的作品.mp3';
         
         const handleLoadedMetadata = () => {
           setDuration(audioRef.current.duration);
@@ -71,9 +85,7 @@ function Player() {
             const playPromise = audioRef.current.play();
             if (playPromise !== undefined) {
               playPromise
-                .then(() => {
-                  setIsPlaying(true);
-                })
+                .then(() => setIsPlaying(true))
                 .catch(error => {
                   console.error('自动播放失败:', error);
                   setIsPlaying(false);
@@ -84,8 +96,8 @@ function Player() {
 
         const handleError = (error) => {
           console.error('音频加载失败，使用默认音频:', error);
-          if (audioRef.current.src !== defaultAudioPath) {
-            audioRef.current.src = defaultAudioPath;
+          if (audioRef.current.src !== '/music/最伟大的作品.mp3') {
+            audioRef.current.src = '/music/最伟大的作品.mp3';
           }
           setIsPlaying(false);
         };
@@ -108,11 +120,6 @@ function Player() {
     }
   }, [currentSong]);
 
-  useEffect(() => {
-    console.log('播放状态变化:', isPlaying);
-    console.log('当前音频元素:', audioRef.current);
-  }, [isPlaying]);
-
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       setCurrentTime(audioRef.current.currentTime);
@@ -128,20 +135,10 @@ function Player() {
         await audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        if (!audioRef.current.src) {
-          audioRef.current.src = '/music/最伟大的作品.mp3';
-        }
-        
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
-          try {
-            await playPromise;
-            setIsPlaying(true);
-          } catch (error) {
-            console.error('播放失败:', error);
-            setIsPlaying(false);
-            audioRef.current.src = '/music/最伟大的作品.mp3';
-          }
+          await playPromise;
+          setIsPlaying(true);
         }
       }
     } catch (error) {
@@ -267,4 +264,3 @@ function Player() {
 }
 
 export default Player;
-
