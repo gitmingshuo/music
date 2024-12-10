@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo, FaRandom } from 'react-icons/fa';
 import { useFavorites } from '../context/FavoriteContext';
 import { usePlayer } from '../context/PlayerContext';
-import { useRecentPlays } from '../context/RecentPlaysContext'; // 引入最近播放上下文
+import { useRecentPlays } from '../context/RecentPlaysContext';
 import './Player.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { switchSong } from '../utils/songHandler';
@@ -18,8 +18,14 @@ function Player() {
   const navigate = useNavigate();
   const location = useLocation();
   const { songList, currentIndex } = location.state || {};
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { addToRecentPlays } = useRecentPlays();
+  
+  const [playMode, setPlayMode] = useState('sequence');
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
 
-  const { addToRecentPlays } = useRecentPlays(); // 引入 addToRecentPlays 方法
   const { 
     name: song, 
     album: currentAlbumName, 
@@ -27,230 +33,113 @@ function Player() {
     audio: audioUrl 
   } = currentSong || {};
 
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const audioRef = useRef(null);
-  
-  const { isFavorite, toggleFavorite } = useFavorites();
-
-  const [playMode, setPlayMode] = useState('sequence'); // 'sequence' 顺序播放, 'random' 随机播放
-
-  // 当 currentSong 改变时，将其添加到最近播放
-  useEffect(() => {
-    if (currentSong && Object.keys(currentSong).length > 0) {
-      console.log('添加到最近播放:', currentSong);
-      addToRecentPlays({
-        name: currentSong.name,
-        album: currentSong.album,
-        cover: currentSong.cover,
-        audio: currentSong.audio
-      });
-    }
-  }, [currentSong?.name]); // 只在歌曲名称改变时触发
-
   const handlePrevious = () => {
     if (songList && currentIndex !== undefined) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      setIsPlaying(false);
-      
-      if (playMode === 'random') {
-        const randomIndex = Math.floor(Math.random() * songList.length);
-        switchSong('prev', randomIndex, songList, navigate, currentAlbumName, currentAlbumCover);
-      } else {
-        switchSong('prev', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
-      }
+      const newIndex = playMode === 'random' 
+        ? Math.floor(Math.random() * songList.length)
+        : (currentIndex - 1 + songList.length) % songList.length;
+      switchSong('prev', newIndex, songList, navigate, currentAlbumName, currentAlbumCover);
     }
   };
 
   const handleNext = () => {
     if (songList && currentIndex !== undefined) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      setIsPlaying(false);
-      
-      if (playMode === 'random') {
-        const randomIndex = Math.floor(Math.random() * songList.length);
-        switchSong('next', randomIndex, songList, navigate, currentAlbumName, currentAlbumCover);
-      } else {
-        switchSong('next', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
-      }
+      const newIndex = playMode === 'random'
+        ? Math.floor(Math.random() * songList.length)
+        : (currentIndex + 1) % songList.length;
+      switchSong('next', newIndex, songList, navigate, currentAlbumName, currentAlbumCover);
     }
   };
 
-  useEffect(() => {
-    if (currentSong && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setCurrentTime(0);
-      setDuration(0);
-      setIsPlaying(false);
-      
-      try {
-        audioRef.current.src = currentSong.audio || '/music/最伟大的作品.mp3';
-        
-        const handleLoadedMetadata = () => {
-          setDuration(audioRef.current.duration);
-          if (currentSong.autoPlay) {
-            const playPromise = audioRef.current.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => setIsPlaying(true))
-                .catch(error => {
-                  console.error('自动播放失败:', error);
-                  setIsPlaying(false);
-                });
-            }
-          }
-        };
+  // 切换播放模式
+  const handlePlayModeChange = () => {
+    setPlayMode(prevMode => prevMode === 'sequence' ? 'random' : 'sequence');
+  };
 
-        const handleError = (error) => {
-          console.error('音频加载失败，使用默认音频:', error);
-          if (audioRef.current.src !== '/music/最伟大的作品.mp3') {
-            audioRef.current.src = '/music/最伟大的作品.mp3';
-          }
-          setIsPlaying(false);
-        };
+  // 添加音频状态
+  const [progress, setProgress] = useState(0);
 
-        audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-        audioRef.current.addEventListener('error', handleError);
-        audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
-        
-        return () => {
-          if (audioRef.current) {
-            audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            audioRef.current.removeEventListener('error', handleError);
-            audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
-          }
-        };
-      } catch (error) {
-        console.error('设置音频源失败:', error);
-        setIsPlaying(false);
-      }
-    }
-  }, [currentSong]);
+  // 处理时间更新
+  const handleTimeUpdate = (e) => {
+    setProgress(e.target.currentTime);
+  };
 
-  const handleTimeUpdate = () => {
+  // 处理音频加载
+  const handleLoadedMetadata = (e) => {
+    setDuration(e.target.duration);
+  };
+
+  // 处理播放/暂停
+  const togglePlay = () => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const handlePlayPause = async () => {
-    if (!audioRef.current) return;
-    
-    try {
       if (isPlaying) {
-        await audioRef.current.pause();
-        setIsPlaying(false);
+        audioRef.current.pause();
       } else {
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          await playPromise;
-          setIsPlaying(true);
-        }
+        audioRef.current.play();
       }
-    } catch (error) {
-      console.error('播放控制失败:', error);
-      setIsPlaying(false);
+      setIsPlaying(!isPlaying);
     }
   };
 
+  // 处理进度条点击
   const handleProgressClick = (e) => {
-    if (!audioRef.current || !duration || !isFinite(duration)) return;
-    
     const progressBar = e.currentTarget;
-    const rect = progressBar.getBoundingClientRect();
-    const clickPosition = (e.clientX - rect.left) / rect.width;
+    const clickPosition = (e.clientX - progressBar.getBoundingClientRect().left) / progressBar.offsetWidth;
     const newTime = clickPosition * duration;
-    
-    if (isFinite(newTime)) {
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
+    audioRef.current.currentTime = newTime;
+    setProgress(newTime);
   };
 
+  // 格式化时间
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  const renderDefaultPlayer = () => (
-    <div className="bottom-player">
-      <div className="player-left">
-        <div className="player-album-cover">
-          <div className="default-cover" />
-        </div>
-        <div className="player-song-info">
-          <div className="song-name">未播放</div>
-          <div className="artist-name">-</div>
-        </div>
-      </div>
-      <div className="player-center">
-        <div className="control-buttons">
-          <button disabled><FaStepBackward /></button>
-          <button className="play-btn" disabled><FaPlay /></button>
-          <button disabled><FaStepForward /></button>
-        </div>
-        <div className="progress-bar">
-          <div className="progress" style={{width: '0%'}} />
-        </div>
-      </div>
-      <div className="player-right">
-        <button className="like-btn" disabled><FaHeart /></button>
-        <button className="loop-btn" disabled><FaRedo /></button>
-      </div>
-    </div>
-  );
-
-  if (!song) {
-    return renderDefaultPlayer();
-  }
-
   return (
-    <div className="bottom-player">
+    <div className="player">
       <div className="player-left">
-        <div className="player-album-cover">
-          <img src={currentAlbumCover} alt={song} />
+        <div className="player-cover">
+          {currentAlbumCover ? (
+            <img src={currentAlbumCover} alt={song} />
+          ) : (
+            <div className="default-cover" />
+          )}
         </div>
         <div className="player-song-info">
-          <div className="song-name">{song}</div>
-          <div className="artist-name">周杰伦</div>
+          <div className="song-name">{song || '未播放'}</div>
+          <div className="artist-name">{currentAlbumName || '-'}</div>
         </div>
       </div>
-
+      
       <div className="player-center">
         <div className="control-buttons">
-          <button onClick={handlePrevious}>
+          <button 
+            onClick={handlePrevious}
+            disabled={!currentSong}
+          >
             <FaStepBackward />
           </button>
-          <button className="play-btn" onClick={handlePlayPause}>
+          <button 
+            className="play-btn"
+            onClick={togglePlay}
+            disabled={!currentSong}
+          >
             {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
-          <button onClick={handleNext}>
+          <button 
+            onClick={handleNext}
+            disabled={!currentSong}
+          >
             <FaStepForward />
           </button>
-        </div>
-        <div 
-          className="progress-bar"
-          onClick={handleProgressClick}
-        >
-          <div 
-            className="progress" 
-            style={{width: `${(currentTime / duration) * 100}%`}} 
-          />
         </div>
       </div>
 
       <div className="player-right">
         <button 
-          className={`like-btn ${currentSong && isFavorite(currentSong) ? 'active' : ''}`} 
+          className={`like-btn ${isFavorite(song) ? 'active' : ''}`}
           onClick={() => currentSong && toggleFavorite(currentSong)}
           disabled={!currentSong}
         >
@@ -258,24 +147,28 @@ function Player() {
         </button>
         <button 
           className={`mode-btn ${playMode === 'random' ? 'active' : ''}`}
-          onClick={() => setPlayMode(mode => mode === 'sequence' ? 'random' : 'sequence')}
+          onClick={handlePlayModeChange}
+          disabled={!currentSong}
         >
-          {playMode === 'sequence' ? <FaRedo /> : <FaRandom />}
+          {playMode === 'random' ? <FaRandom /> : <FaRedo />}
         </button>
       </div>
 
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleTimeUpdate}
-          onEnded={() => {
-            setIsPlaying(false);
-            handleNext();
-          }}
-        />
-      )}
+      {/* 添加进度条 */}
+      <div className="progress-bar" onClick={handleProgressClick}>
+        <div className="progress" style={{width: `${(progress / duration) * 100}%`}} />
+        <span className="time-current">{formatTime(progress)}</span>
+        <span className="time-total">{formatTime(duration)}</span>
+      </div>
+
+      {/* 添加音频元素 */}
+      <audio
+        ref={audioRef}
+        src={currentSong?.audio}
+        onTimeUpdate={(e) => setProgress(e.target.currentTime)}
+        onLoadedMetadata={(e) => setDuration(e.target.duration)}
+        onEnded={() => setIsPlaying(false)}
+      />
     </div>
   );
 }

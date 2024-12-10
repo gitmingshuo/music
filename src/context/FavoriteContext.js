@@ -1,45 +1,56 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 
 const FavoriteContext = createContext();
 
 export function FavoriteProvider({ children }) {
   const { currentUser } = useUser();
+  const userId = currentUser?.id;
+  
+  // 初始化时从 localStorage 加载所有用户的收藏数据
   const [favorites, setFavorites] = useState(() => {
-    if (!currentUser) return [];
-    const saved = localStorage.getItem(`favorites_${currentUser.id}`);
-    return saved ? JSON.parse(saved) : [];
+    const savedFavorites = localStorage.getItem('favorites');
+    return savedFavorites ? JSON.parse(savedFavorites) : {};
   });
 
+  // 当收藏列表发生变化时，保存到 localStorage
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem(`favorites_${currentUser.id}`, JSON.stringify(favorites));
-    }
-  }, [favorites, currentUser]);
-
-  const isFavorite = useCallback((song) => {
-    if (!song || !currentUser) return false;
-    return favorites.some(fav => fav.name === song.name);
-  }, [favorites, currentUser]);
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const toggleFavorite = (song) => {
-    if (!currentUser) return;
+    if (!userId) return;
     
     setFavorites(prev => {
-      const exists = prev.some(item => item.name === song.name);
-      if (exists) {
-        return prev.filter(item => item.name !== song.name);
-      } else {
-        return [song, ...prev];
-      }
+      const userFavorites = prev[userId] || [];
+      const songIndex = userFavorites.findIndex(fav => fav.name === song.name);
+      
+      const newFavorites = {
+        ...prev,
+        [userId]: songIndex === -1
+          ? [...userFavorites, song]
+          : userFavorites.filter((_, index) => index !== songIndex)
+      };
+      
+      return newFavorites;
     });
   };
 
+  const isFavorite = (songName) => {
+    if (!userId) return false;
+    const userFavorites = favorites[userId] || [];
+    return userFavorites.some(fav => fav.name === songName);
+  };
+
+  const getUserFavorites = () => {
+    return favorites[userId] || [];
+  };
+
   return (
-    <FavoriteContext.Provider value={{ 
-      favorites: currentUser ? favorites : [],
-      toggleFavorite: currentUser ? toggleFavorite : () => {},
-      isFavorite 
+    <FavoriteContext.Provider value={{
+      favorites: getUserFavorites(),
+      toggleFavorite,
+      isFavorite
     }}>
       {children}
     </FavoriteContext.Provider>
@@ -47,5 +58,9 @@ export function FavoriteProvider({ children }) {
 }
 
 export function useFavorites() {
-  return useContext(FavoriteContext);
+  const context = useContext(FavoriteContext);
+  if (!context) {
+    throw new Error('useFavorites must be used within a FavoriteProvider');
+  }
+  return context;
 }
