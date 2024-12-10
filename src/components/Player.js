@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRedo, FaRandom } from 'react-icons/fa';
 import { useFavorites } from '../context/FavoriteContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useRecentPlays } from '../context/RecentPlaysContext'; // 引入最近播放上下文
@@ -33,6 +33,8 @@ function Player() {
   
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  const [playMode, setPlayMode] = useState('sequence'); // 'sequence' 顺序播放, 'random' 随机播放
+
   // 当 currentSong 改变时，将其添加到最近播放
   useEffect(() => {
     if (currentSong && Object.keys(currentSong).length > 0) {
@@ -53,7 +55,13 @@ function Player() {
         audioRef.current.currentTime = 0;
       }
       setIsPlaying(false);
-      switchSong('prev', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+      
+      if (playMode === 'random') {
+        const randomIndex = Math.floor(Math.random() * songList.length);
+        switchSong('prev', randomIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+      } else {
+        switchSong('prev', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+      }
     }
   };
 
@@ -64,7 +72,13 @@ function Player() {
         audioRef.current.currentTime = 0;
       }
       setIsPlaying(false);
-      switchSong('next', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+      
+      if (playMode === 'random') {
+        const randomIndex = Math.floor(Math.random() * songList.length);
+        switchSong('next', randomIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+      } else {
+        switchSong('next', currentIndex, songList, navigate, currentAlbumName, currentAlbumCover);
+      }
     }
   };
 
@@ -242,8 +256,11 @@ function Player() {
         >
           <FaHeart />
         </button>
-        <button className="loop-btn">
-          <FaRedo />
+        <button 
+          className={`mode-btn ${playMode === 'random' ? 'active' : ''}`}
+          onClick={() => setPlayMode(mode => mode === 'sequence' ? 'random' : 'sequence')}
+        >
+          {playMode === 'sequence' ? <FaRedo /> : <FaRandom />}
         </button>
       </div>
 

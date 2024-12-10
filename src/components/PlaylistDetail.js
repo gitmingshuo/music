@@ -1,4 +1,4 @@
-//
+// 播放列表详情
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import BackButton from './BackButton';
