@@ -7,13 +7,16 @@ import './PlaylistDetail.css';
 function PlaylistDetail() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, cover, songs } = location.state || {};
+  const { playlist } = location.state || {};
+  const { name, cover, songs } = playlist || {};
   const [songDurations, setSongDurations] = useState({});
 
   // 获取歌曲时长
   useEffect(() => {
-    songs?.forEach(song => {
-      const audio = new Audio(`/music/${song}.mp3`);
+    if (!songs) return;
+    
+    songs.forEach(song => {
+      const audio = new Audio(`/music/最伟大的作品.mp3`);
       audio.addEventListener('loadedmetadata', () => {
         setSongDurations(prev => ({
           ...prev,
@@ -31,14 +34,10 @@ function PlaylistDetail() {
   };
 
   const handleSongDoubleClick = (song, index) => {
-    // 默认使用"最伟大的作品"的音频
-    const audioPath = `/music/最伟大的作品.mp3`;
-    console.log('正在播放:', audioPath);
-
     navigate(`/song/${encodeURIComponent(song)}`, {
       state: {
         song,
-        audio: audioPath,
+        audio: `/music/最伟大的作品.mp3`,
         albumName: name,
         albumCover: cover,
         songList: songs,
@@ -51,6 +50,7 @@ function PlaylistDetail() {
   return (
     <div className="playlist-detail-page">
       <div className="playlist-header">
+        <BackButton />
         <div className="playlist-cover-container">
           <img src={cover} alt={name} className="playlist-cover" />
         </div>

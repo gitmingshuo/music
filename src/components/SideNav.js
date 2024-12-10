@@ -1,80 +1,82 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaHome, FaSearch, FaCompactDisc, FaHeart, FaChevronRight, FaClock } from 'react-icons/fa';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import { FaHome, FaSearch, FaCompactDisc, FaHeart, FaClock, FaSignOutAlt } from 'react-icons/fa';
 import './SideNav.css';
-
-const playlists = [
-  {
-    name: '最伟大的作品',
-    cover: require('../image/最伟大的作品.jpg'),
-    songs: ['最伟大的作品', '红颜如霜', '不爱我就拉倒', '等你下课', '我是如此相信', 
-            '说好不哭', 'mojito', '倒影', '粉色海洋', '错过的烟火','Intro', '还在流浪']
-  }
-];
 
 function SideNav() {
   const navigate = useNavigate();
-  
-  const handleNavigation = (path) => {
-    navigate(path);
+  const location = useLocation();
+  const { currentUser, logout } = useUser();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
-  const handlePlaylistClick = (playlist) => {
-    navigate(`/playlist/${playlist.name}`, { 
-      state: { 
-        name: playlist.name,
-        cover: playlist.cover,
-        songs: playlist.songs 
-      } 
-    });
-  };
+  // 创建默认歌单
+  const playlists = [
+    {
+      name: '最伟大的作品',
+      cover: require('../image/最伟大的作品.jpg'),
+      songs: ['最伟大的作品', '红颜如霜', '不爱我就拉倒', '等你下课', '我是如此相信', '说好不哭', 'mojito', '倒影', '粉色海洋', '错过的烟火', 'Intro', '还在流浪']
+    }
+  ];
 
   return (
-    <nav className="jay-sidenav">
-      <div className="jay-sidenav__logo">
-        <h1 className="jay-sidenav__logo-title">周杰伦音乐</h1>
+    <div className="jay-sidenav">
+      <div className="jay-sidenav__header">
+        <h1>周杰伦音乐</h1>
+        <div className="jay-sidenav__user">
+          <span>{currentUser?.username}</span>
+          <button onClick={handleLogout} className="jay-sidenav__logout">
+            <FaSignOutAlt /> 退出
+          </button>
+        </div>
       </div>
       
       <div className="jay-sidenav__section">
-        <div className="jay-sidenav__nav-group">
-          <div className="jay-sidenav__nav-item" onClick={() => handleNavigation('/')}>
-            <FaHome className="jay-sidenav__nav-icon" />
-            <span className="jay-sidenav__nav-text">推荐</span>
-          </div>
-          <div className="jay-sidenav__nav-item" onClick={() => handleNavigation('/search')}>
-            <FaSearch className="jay-sidenav__nav-icon" />
-            <span className="jay-sidenav__nav-text">搜索</span>
-          </div>
-          <div className="jay-sidenav__nav-item" onClick={() => handleNavigation('/albums')}>
-            <FaCompactDisc className="jay-sidenav__nav-icon" />
-            <span className="jay-sidenav__nav-text">专辑</span>
-          </div>
+        <div className="jay-sidenav__group">
+          <Link to="/" className={`jay-sidenav__item ${location.pathname === '/' ? 'active' : ''}`}>
+            <FaHome className="jay-sidenav__icon" />
+            <span>推荐</span>
+          </Link>
+          
+          <Link to="/search" className={`jay-sidenav__item ${location.pathname === '/search' ? 'active' : ''}`}>
+            <FaSearch className="jay-sidenav__icon" />
+            <span>搜索</span>
+          </Link>
+          
+          <Link to="/albums" className={`jay-sidenav__item ${location.pathname === '/albums' ? 'active' : ''}`}>
+            <FaCompactDisc className="jay-sidenav__icon" />
+            <span>专辑</span>
+          </Link>
         </div>
       </div>
 
       <div className="jay-sidenav__section">
-        <h3 className="jay-sidenav__section-title">我的</h3>
-        <div className="jay-sidenav__nav-group">
-          <div className="jay-sidenav__nav-item" onClick={() => navigate('/favorites')}>
-            <FaHeart className="jay-sidenav__nav-icon" />
-            <span className="jay-sidenav__nav-text">我喜欢的音乐</span>
-            <FaChevronRight className="jay-sidenav__nav-arrow" />
-          </div>
-          <div className="jay-sidenav__nav-item" onClick={() => navigate('/recent-plays')}>
-            <FaClock className="jay-sidenav__nav-icon" />
-            <span className="jay-sidenav__nav-text">最近播放</span>
-          </div>
+        <div className="jay-sidenav__title">我的音乐</div>
+        <div className="jay-sidenav__group">
+          <Link to="/favorites" className={`jay-sidenav__item ${location.pathname === '/favorites' ? 'active' : ''}`}>
+            <FaHeart className="jay-sidenav__icon" />
+            <span>我喜欢的音乐</span>
+          </Link>
+          
+          <Link to="/recent-plays" className={`jay-sidenav__item ${location.pathname === '/recent-plays' ? 'active' : ''}`}>
+            <FaClock className="jay-sidenav__icon" />
+            <span>最近播放</span>
+          </Link>
         </div>
       </div>
 
       <div className="jay-sidenav__section">
-        <h3 className="jay-sidenav__section-title">创建的歌单</h3>
-        <div className="jay-sidenav__playlist-group">
+        <div className="jay-sidenav__title">创建的歌单</div>
+        <div className="jay-sidenav__playlists">
           {playlists.map((playlist, index) => (
             <div 
               key={index} 
               className="jay-sidenav__playlist-item"
-              onClick={() => handlePlaylistClick(playlist)}
+              onClick={() => navigate(`/playlist/${playlist.name}`, { state: { playlist } })}
             >
               <img 
                 src={playlist.cover} 
@@ -86,7 +88,7 @@ function SideNav() {
           ))}
         </div>
       </div>
-    </nav>
+    </div>
   );
 }
 
