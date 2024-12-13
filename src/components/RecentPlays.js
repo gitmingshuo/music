@@ -19,17 +19,16 @@ function RecentPlays() {
       };
 
       let lyrics = defaultLyrics;
-      
+
       try {
         const response = await fetch(`/lyrics/${encodeURIComponent(song.name)}.json`);
         if (response.ok) {
           lyrics = await response.json();
         }
       } catch (error) {
-        console.warn('歌词加载失败，使用默认歌词');
+        console.warn('歌词加载失败，使用默认歌词:', error);
       }
 
-      // 设置当前播放歌曲
       setCurrentSong({
         name: song.name,
         audio: `/music/最伟大的作品.mp3`,
@@ -39,7 +38,6 @@ function RecentPlays() {
       });
       setIsPlaying(true);
 
-      // 导航到歌曲详情页
       navigate(`/song/${encodeURIComponent(song.name)}`, {
         state: {
           song: song.name,
@@ -80,7 +78,11 @@ function RecentPlays() {
               className="recent-play-item"
               onClick={() => handleSongClick(song)}
             >
-              <img src={song.cover} alt={song.name} className="song-cover" />
+              <img 
+                src={song.cover || '/path/to/default-cover.jpg'} 
+                alt={song.name} 
+                className="song-cover" 
+              />
               <div className="song-info">
                 <span className="song-name">{song.name}</span>
                 <span className="album-name">{song.album}</span>

@@ -10,6 +10,8 @@ export function PlayerProvider({ children }) {
     isPlaying: false
   });
 
+  const [isShuffle, setIsShuffle] = useState(false);
+
   const setCurrentSong = (song) => {
     setState(prev => ({
       ...prev,
@@ -21,9 +23,16 @@ export function PlayerProvider({ children }) {
     setState(prev => {
       if (!prev.playlist.length) return prev;
       
-      const nextIndex = prev.currentIndex < prev.playlist.length - 1 
-        ? prev.currentIndex + 1 
-        : 0;
+      let nextIndex;
+      if (isShuffle) {
+        // 随机播放逻辑：从列表中随机选一个不等于当前的索引
+        const availableIndices = prev.playlist.map((_, i) => i).filter(i => i !== prev.currentIndex);
+        nextIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      } else {
+        nextIndex = prev.currentIndex < prev.playlist.length - 1 
+          ? prev.currentIndex + 1 
+          : 0;
+      }
 
       if (prev.currentIndex === nextIndex) return prev;
 
@@ -39,10 +48,17 @@ export function PlayerProvider({ children }) {
   const playPrevious = () => {
     setState(prev => {
       if (!prev.playlist.length) return prev;
-      
-      const prevIndex = prev.currentIndex > 0 
-        ? prev.currentIndex - 1 
-        : prev.playlist.length - 1;
+
+      let prevIndex;
+      if (isShuffle) {
+        // 随机播放逻辑：同上随机选择
+        const availableIndices = prev.playlist.map((_, i) => i).filter(i => i !== prev.currentIndex);
+        prevIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      } else {
+        prevIndex = prev.currentIndex > 0 
+          ? prev.currentIndex - 1 
+          : prev.playlist.length - 1;
+      }
 
       if (prev.currentIndex === prevIndex) return prev;
 
@@ -85,6 +101,10 @@ export function PlayerProvider({ children }) {
     });
   };
 
+  const toggleShuffle = () => {
+    setIsShuffle(prev => !prev);
+  };
+
   return (
     <PlayerContext.Provider value={{
       ...state,
@@ -92,7 +112,9 @@ export function PlayerProvider({ children }) {
       playNext,
       playPrevious,
       playSong,
-      setIsPlaying
+      setIsPlaying,
+      isShuffle,
+      toggleShuffle
     }}>
       {children}
     </PlayerContext.Provider>
