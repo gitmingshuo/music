@@ -18,6 +18,8 @@ import Favorites from './components/Favorites';
 import Player from './components/Player';
 import Albums from './components/Albums';
 import RecentPlays from './components/RecentPlays';
+import Header from './components/Header';
+import Profile from './components/Profile';
 
 import './App.css';
 
@@ -36,19 +38,23 @@ function App() {
                     <PrivateRoute>
                       <div className="main-layout">
                         <SideNav />
-                        <div className="main-content">
-                          <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/playlist/:id" element={<PlaylistDetail />} />
-                            <Route path="/album/:id" element={<AlbumDetail />} />
-                            <Route path="/song/:id" element={<SongDetail />} />
-                            <Route path="/search" element={<Search />} />
-                            <Route path="/favorites" element={<Favorites />} />
-                            <Route path="/albums" element={<Albums />} />
-                            <Route path="/recent-plays" element={<RecentPlays />} />
-                          </Routes>
+                        <div className="content-wrapper">
+                          <Header />
+                          <div className="main-content">
+                            <Routes>
+                              <Route path="/" element={<Home />} />
+                              <Route path="/playlist/:id" element={<PlaylistDetail />} />
+                              <Route path="/album/:id" element={<AlbumDetail />} />
+                              <Route path="/song/:id" element={<SongDetail />} />
+                              <Route path="/search" element={<Search />} />
+                              <Route path="/favorites" element={<Favorites />} />
+                              <Route path="/albums" element={<Albums />} />
+                              <Route path="/recent-plays" element={<RecentPlays />} />
+                              <Route path="/profile" element={<Profile />} />
+                            </Routes>
+                          </div>
+                          <Player />
                         </div>
-                        <Player />
                       </div>
                     </PrivateRoute>
                   }

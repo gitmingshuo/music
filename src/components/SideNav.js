@@ -27,12 +27,6 @@ function SideNav() {
     <div className="jay-sidenav">
       <div className="jay-sidenav__header">
         <h1>周杰伦音乐</h1>
-        <div className="jay-sidenav__user">
-          <span>{currentUser?.username}</span>
-          <button onClick={handleLogout} className="jay-sidenav__logout">
-            <FaSignOutAlt /> 退出
-          </button>
-        </div>
       </div>
       
       <div className="jay-sidenav__section">
