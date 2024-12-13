@@ -18,13 +18,18 @@ export function RecentPlaysProvider({ children }) {
 
   const addToRecentPlays = (song) => {
     const username = localStorage.getItem('username') || 'guest';
-    if (!song) return;
+    if (!song?.id) return;
 
     setRecentPlays((prev) => {
-      const filtered = prev.filter((item) => item.name !== song.name);
-      const updatedList = [song, ...filtered].slice(0, 50);
-      localStorage.setItem(`recentPlays_${username}`, JSON.stringify(updatedList));
-      return updatedList;
+      try {
+        const filtered = prev.filter((item) => item.id !== song.id);
+        const updatedList = [song, ...filtered].slice(0, 50);
+        localStorage.setItem(`recentPlays_${username}`, JSON.stringify(updatedList));
+        return updatedList;
+      } catch (error) {
+        console.error('保存最近播放失败:', error);
+        return prev;
+      }
     });
   };
 

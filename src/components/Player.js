@@ -1,38 +1,79 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaSyncAlt } from 'react-icons/fa';
 import { usePlayer } from '../context/PlayerContext';
-import { useRecentPlays } from '../context/RecentPlaysContext';
+import { useFavorites } from '../context/FavoriteContext';
 import './Player.css';
 
 function Player() {
-  const { currentSong, isPlaying, setIsPlaying, playNext, playPrevious, isShuffle, toggleShuffle } = usePlayer();
-  const { addToRecentPlays } = useRecentPlays();
   const audioRef = useRef(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  
+  const { 
+    currentSong, 
+    isPlaying, 
+    setIsPlaying,
+    playNext,
+    playPrevious,
+    playMode,
+    togglePlayMode 
+  } = usePlayer();
+  
+  const { favorites, toggleFavorite } = useFavorites();
   const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     if (currentSong) {
-      addToRecentPlays(currentSong);
+      const isFavorited = favorites.some(
+        fav => fav.name === currentSong.name
+      );
+      setIsLiked(isFavorited);
     }
-  }, [currentSong]);
+  }, [currentSong, favorites]);
 
-  const togglePlay = async () => {
-    if (!audioRef.current || !currentSong?.audio) return;
-    try {
+  const togglePlay = () => {
+    if (audioRef.current) {
       if (isPlaying) {
-        await audioRef.current.pause();
+        audioRef.current.pause();
       } else {
-        await audioRef.current.play();
+        audioRef.current.play();
       }
       setIsPlaying(!isPlaying);
-    } catch (error) {
-      console.error('播放出错:', error);
     }
   };
 
-  const toggleLike = () => {
-    setIsLiked(!isLiked);
+  const handleLike = () => {
+    if (currentSong) {
+      toggleFavorite({
+        name: currentSong.name,
+        album: currentSong.albumName,
+        cover: currentSong.albumCover,
+        audio: currentSong.audio
+      });
+    }
   };
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const updateTime = () => setCurrentTime(audio.currentTime);
+      const updateDuration = () => setDuration(audio.duration);
+      
+      audio.addEventListener('timeupdate', updateTime);
+      audio.addEventListener('loadedmetadata', updateDuration);
+      
+      return () => {
+        audio.removeEventListener('timeupdate', updateTime);
+        audio.removeEventListener('loadedmetadata', updateDuration);
+      };
+    }
+  }, []);
 
   return (
     <div className="player">
@@ -55,7 +96,11 @@ function Player() {
           <button onClick={playPrevious} disabled={!currentSong}>
             <FaStepBackward />
           </button>
-          <button onClick={togglePlay} disabled={!currentSong}>
+          <button 
+            className="play-pause"
+            onClick={togglePlay} 
+            disabled={!currentSong}
+          >
             {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
           <button onClick={playNext} disabled={!currentSong}>
@@ -63,30 +108,37 @@ function Player() {
           </button>
         </div>
         <div className="progress-bar">
-          {/* 这里需要根据实际进度更新 style.width 和显示当前时间与总时长 */}
-          <div className="progress" style={{ width: '0%' }}></div>
-          <span className="time-current">0:00</span>
-          <span className="time-total">0:00</span>
+          <div className="progress" 
+            style={{ width: `${(currentTime / duration) * 100}%` }}>
+          </div>
+          <span className="time-current">{formatTime(currentTime)}</span>
+          <span className="time-total">{formatTime(duration)}</span>
         </div>
       </div>
 
       <div className="player-right">
-        <button className="mode-btn" onClick={toggleShuffle} disabled={!currentSong}>
-          <FaRandom style={{ color: isShuffle ? '#ff3a3a' : 'inherit' }} />
-        </button>
         <button 
           className={`like-btn ${isLiked ? 'active' : ''}`} 
-          onClick={toggleLike} 
+          onClick={handleLike}
           disabled={!currentSong}
         >
           <FaHeart />
+        </button>
+        <button 
+          className="mode-btn" 
+          onClick={togglePlayMode}
+          disabled={!currentSong}
+        >
+          {playMode === 'shuffle' ? <FaRandom /> : 
+           playMode === 'loop' ? <FaSyncAlt /> : 
+           <FaList />}
         </button>
       </div>
 
       <audio
         ref={audioRef}
         src={currentSong?.audio}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={playNext}
       />
     </div>
   );

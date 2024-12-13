@@ -1,69 +1,61 @@
-//
 import React from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { usePlayer } from './context/PlayerContext';
 import BackButton from './components/BackButton';
 import './AlbumDetail.css';
 
 function AlbumDetail() {
   const location = useLocation();
   const navigate = useNavigate();
-  const album = location.state?.album; // 直接从 location.state 获取专辑信息
+  const { addToPlaylist } = usePlayer();
+  const album = location.state?.album;
   
-  console.log('专辑信息:', album); // 调试用
+  console.log('专辑信息:', album);
 
   const handleSongClick = async (song) => {
     try {
-      const defaultLyrics = {
-        title: song,
-        artist: "周杰伦",
-        lyrics: [{ time: 0, text: "加载歌词中..." }]
+      // 构建完整的歌曲信息
+      const songInfo = {
+        name: song,
+        albumName: album.name,
+        albumCover: album.cover,
+        audio: `/music/${encodeURIComponent(song)}.mp3`
       };
-
-      let lyrics = defaultLyrics;
       
-      try {
-        const response = await fetch(`/lyrics/${encodeURIComponent(song)}.json`);
-        if (response.ok) {
-          lyrics = await response.json();
-        }
-      } catch (error) {
-        console.warn('歌词加载失败，使用默认歌词');
-      }
-
-      navigate(`/song/${encodeURIComponent(song)}`, {
-        state: {
-          song: song,
-          lyrics: lyrics.lyrics,
-          audio: album.name === "最伟大的作品" ? `/music/${encodeURIComponent(song)}.mp3` : "/music/最伟大的作品.mp3",
-          albumName: album.name,
-          albumCover: album.cover,
-          songList: album.songs,
-          currentIndex: album.songs.indexOf(song)
-        }
-      });
+      // 构建当前专辑的播放列表
+      const playlist = album.songs.map(s => ({
+        name: s,
+        albumName: album.name,
+        albumCover: album.cover,
+        audio: `/music/${encodeURIComponent(s)}.mp3`
+      }));
+      
+      // 添加到播放列表并播放
+      addToPlaylist(songInfo, playlist);
+      
     } catch (error) {
-      console.error('页面跳转失败:', error);
-      alert('暂时无法播放该歌曲，请稍后再试');
+      console.error('播放歌曲时出错:', error);
     }
   };
 
   if (!album) {
-    return (
-      <div className="error-page">
-        <h2>未找到专辑信息</h2>
-        <BackButton />
-      </div>
-    );
+    return <div>未找到专辑信息</div>;
   }
 
   return (
     <div className="album-detail-container">
+      <img 
+        src={album.cover} 
+        alt={album.name} 
+        className="album-background"
+      />
       <BackButton />
+      
       <div className="album-info">
-        <img src={album.cover} alt={album.name} className="album-detail-cover" />
-        <div className="album-details">
+        <img src={album.cover} alt={album.name} className="album-cover" />
+        <div className="album-text">
           <h1>{album.name}</h1>
-          <p className="album-year">{album.year}</p>
+          <p className="album-year">发行年份: {album.year}</p>
           <p className="album-description">{album.description}</p>
         </div>
       </div>

@@ -50,24 +50,56 @@
 .control-buttons {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  justify-content: center;
 }
 
 .control-buttons button {
-  background: none;
+  width: 32px;
+  height: 32px;
   border: none;
+  background: transparent;
   color: #b3b3b3;
   cursor: pointer;
-  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 50%;
 }
 
-.control-buttons button:hover {
+.control-buttons button.play-pause {
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  color: #000;
+}
+
+.control-buttons button:hover:not(:disabled) {
   color: #fff;
+  transform: scale(1.1);
+}
+
+.control-buttons button.play-pause:hover:not(:disabled) {
+  background: #fff;
+  color: #000;
+  transform: scale(1.1);
 }
 
 .control-buttons button:disabled {
   color: #5e5e5e;
   cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.control-buttons button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.control-buttons button.play-pause svg {
+  width: 18px;
+  height: 18px;
 }
 
 .like-btn.active {

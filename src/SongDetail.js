@@ -3,9 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { usePlayer } from './context/PlayerContext';
 import './SongDetail.css';
 
-
 function SongDetail() {
-  const { setCurrentSong } = usePlayer();
+  const { addToPlaylist } = usePlayer();
   const location = useLocation();
   const { 
     song, 
@@ -32,7 +31,7 @@ function SongDetail() {
         console.error('加载歌词失败:', error);
         setLyrics([{ time: 0, text: "暂无歌词" }]);
       });
-  }, []);  // 注意这里移除了 song 依赖
+  }, []);
 
   // 更新当前歌词
   useEffect(() => {
@@ -67,20 +66,32 @@ function SongDetail() {
         name: song,
         album: albumName,
         cover: albumCover,
-        audio: audioUrl,
-        songList: songList || [],
-        currentIndex: currentIndex || 0
+        audio: audioUrl
       };
       
-    
-      
-      // 使用 useRef 来追踪是否已经设置过
-      if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
-        setCurrentSong(songData);
-        currentSongRef.current = songData;
+      // 如果有歌曲列表，使用完整列表
+      if (songList && songList.length > 0) {
+        const fullPlaylist = songList.map(s => ({
+          name: s,
+          album: albumName,
+          cover: albumCover,
+          audio: `/music/${encodeURIComponent(s)}.mp3`
+        }));
+        
+        // 使用 addToPlaylist 替代 setCurrentSong
+        if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
+          addToPlaylist(songData, fullPlaylist);
+          currentSongRef.current = songData;
+        }
+      } else {
+        // 如果没有列表，只添加当前歌曲
+        if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
+          addToPlaylist(songData, [songData]);
+          currentSongRef.current = songData;
+        }
       }
     }
-  }, [song, albumName, albumCover, audioUrl, songList, currentIndex]);
+  }, [song, albumName, albumCover, audioUrl, songList, addToPlaylist]);
 
   return (
     <div className="song-detail-container">

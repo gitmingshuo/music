@@ -10,111 +10,120 @@ export function PlayerProvider({ children }) {
     isPlaying: false
   });
 
-  const [isShuffle, setIsShuffle] = useState(false);
+  const [playMode, setPlayMode] = useState('sequence');
 
-  const setCurrentSong = (song) => {
+  // 添加歌曲到播放列表
+  const addToPlaylist = (song, playlist) => {
     setState(prev => ({
       ...prev,
-      currentSong: song
+      currentSong: song,
+      playlist: playlist || [song],
+      currentIndex: 0,
+      isPlaying: true
     }));
   };
 
+  // 播放下一首
   const playNext = () => {
     setState(prev => {
       if (!prev.playlist.length) return prev;
       
       let nextIndex;
-      if (isShuffle) {
-        // 随机播放逻辑：从列表中随机选一个不等于当前的索引
-        const availableIndices = prev.playlist.map((_, i) => i).filter(i => i !== prev.currentIndex);
-        nextIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      } else {
-        nextIndex = prev.currentIndex < prev.playlist.length - 1 
-          ? prev.currentIndex + 1 
-          : 0;
+      switch(playMode) {
+        case 'shuffle':
+          // 随机播放
+          nextIndex = Math.floor(Math.random() * prev.playlist.length);
+          while (nextIndex === prev.currentIndex && prev.playlist.length > 1) {
+            nextIndex = Math.floor(Math.random() * prev.playlist.length);
+          }
+          break;
+        case 'loop':
+          // 单曲循环
+          nextIndex = prev.currentIndex;
+          break;
+        default:
+          // 顺序播放
+          nextIndex = (prev.currentIndex + 1) % prev.playlist.length;
       }
 
-      if (prev.currentIndex === nextIndex) return prev;
-
+      const nextSong = prev.playlist[nextIndex];
+      
+      console.log('Playing next song:', nextSong, 'Index:', nextIndex); // 调试日志
+      
       return {
         ...prev,
         currentIndex: nextIndex,
-        currentSong: { ...prev.playlist[nextIndex], autoPlay: true },
+        currentSong: nextSong,
         isPlaying: true
       };
     });
   };
 
+  // 播放上一首
   const playPrevious = () => {
     setState(prev => {
       if (!prev.playlist.length) return prev;
 
       let prevIndex;
-      if (isShuffle) {
-        // 随机播放逻辑：同上随机选择
-        const availableIndices = prev.playlist.map((_, i) => i).filter(i => i !== prev.currentIndex);
-        prevIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      } else {
-        prevIndex = prev.currentIndex > 0 
-          ? prev.currentIndex - 1 
-          : prev.playlist.length - 1;
+      switch(playMode) {
+        case 'shuffle':
+          // 随机播放
+          prevIndex = Math.floor(Math.random() * prev.playlist.length);
+          while (prevIndex === prev.currentIndex && prev.playlist.length > 1) {
+            prevIndex = Math.floor(Math.random() * prev.playlist.length);
+          }
+          break;
+        case 'loop':
+          // 单曲循环
+          prevIndex = prev.currentIndex;
+          break;
+        default:
+          // 顺序播放
+          prevIndex = prev.currentIndex - 1;
+          if (prevIndex < 0) prevIndex = prev.playlist.length - 1;
       }
 
-      if (prev.currentIndex === prevIndex) return prev;
-
+      const prevSong = prev.playlist[prevIndex];
+      
+      console.log('Playing previous song:', prevSong, 'Index:', prevIndex); // 调试日志
+      
       return {
         ...prev,
         currentIndex: prevIndex,
-        currentSong: { ...prev.playlist[prevIndex], autoPlay: true },
+        currentSong: prevSong,
         isPlaying: true
       };
     });
   };
 
-  const playSong = (song, songList) => {
-    setState(prev => {
-      const newState = { ...prev };
-      
-      if (songList) {
-        newState.playlist = songList;
+  // 切换播放模式
+  const togglePlayMode = () => {
+    setPlayMode(prev => {
+      switch(prev) {
+        case 'sequence': return 'shuffle';
+        case 'shuffle': return 'loop';
+        case 'loop': return 'sequence';
+        default: return 'sequence';
       }
-      
-      const songIndex = songList 
-        ? songList.findIndex(item => item.id === song.id)
-        : prev.playlist.findIndex(item => item.id === song.id);
-
-      newState.currentIndex = songIndex;
-      newState.currentSong = { ...song, autoPlay: true };
-      newState.isPlaying = true;
-
-      return newState;
     });
   };
 
   const setIsPlaying = (playing) => {
-    setState(prev => {
-      if (prev.isPlaying === playing) return prev;
-      return {
-        ...prev,
-        isPlaying: playing
-      };
-    });
-  };
-
-  const toggleShuffle = () => {
-    setIsShuffle(prev => !prev);
+    setState(prev => ({
+      ...prev,
+      isPlaying: playing
+    }));
   };
 
   return (
     <PlayerContext.Provider value={{
       ...state,
-      setCurrentSong,
+      playMode,
+      addToPlaylist,
+      setIsPlaying,
       playNext,
       playPrevious,
-      playSong,
-      setIsPlaying,
-      isShuffle,
-      toggleShuffle
+      togglePlayMode
     }}>
       {children}
     </PlayerContext.Provider>
