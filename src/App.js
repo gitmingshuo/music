@@ -1,6 +1,6 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { UserProvider } from './context/UserContext';
+import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { UserProvider, useUser } from './context/UserContext';
 import { FavoriteProvider } from './context/FavoriteContext';
 import { RecentPlaysProvider } from './context/RecentPlaysContext';
 import { PlayerProvider } from './context/PlayerContext';
@@ -22,17 +22,41 @@ import Header from './components/Header';
 import Profile from './components/Profile';
 import Level from './components/Level';
 import Settings from './components/Settings';
+import Register from './components/Register';
 
 import './App.css';
 
 function App() {
+  const { currentUser } = useUser();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // 检查是否在登录或注册页面
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+    
+    // 如果没有登录且不在登录/注册页面，重定向到登录页
+    if (!currentUser && !isAuthPage) {
+      navigate('/login');
+    }
+    
+    // 如果已登录且在登录/注册页面，重定向到主页
+    if (currentUser && isAuthPage) {
+      navigate('/');
+    }
+  }, [currentUser, location.pathname, navigate]);
+
   return (
-    <PlayerProvider>
-      <UserProvider>
-        <RecentPlaysProvider>
-          <FavoriteProvider>
+    <UserProvider>
+      <PlayerProvider>
+        <FavoriteProvider>
+          <RecentPlaysProvider>
             <div className="app">
+              {currentUser && location.pathname !== '/login' && location.pathname !== '/register' && (
+                <Header />
+              )}
               <Routes>
+                <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
                 <Route
                   path="/*"
@@ -41,7 +65,6 @@ function App() {
                       <div className="main-layout">
                         <SideNav />
                         <div className="content-wrapper">
-                          <Header />
                           <div className="main-content">
                             <Routes>
                               <Route path="/" element={<Home />} />
@@ -57,18 +80,20 @@ function App() {
                               <Route path="/settings" element={<Settings />} />
                             </Routes>
                           </div>
-                          <Player />
                         </div>
                       </div>
                     </PrivateRoute>
                   }
                 />
               </Routes>
+              {currentUser && location.pathname !== '/login' && location.pathname !== '/register' && (
+                <Player />
+              )}
             </div>
-          </FavoriteProvider>
-        </RecentPlaysProvider>
-      </UserProvider>
-    </PlayerProvider>
+          </RecentPlaysProvider>
+        </FavoriteProvider>
+      </PlayerProvider>
+    </UserProvider>
   );
 }
 

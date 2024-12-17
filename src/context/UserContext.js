@@ -2,177 +2,130 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const UserContext = createContext();
 
-// 模拟用户数据库
-const USERS_DB = [
-  {
-    id: 1,
-    username: 'demo',
-    password: '123456',
-    avatar: null,
-    favorites: [], // 每个用户独立的收藏列表
-    recentPlays: [],
-    settings: {  // 添加用户设置
-      theme: 'dark',
-      notifications: true,
-      playHistory: true,
-      bio: 'hi',
-      level: 1,
-      exp: 0,
-      nextLevelExp: 1000,
-      completedTasks: []
-    }
-  }
-];
-
 export function UserProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
+    // 从 localStorage 获取当前用户
+    const savedUser = localStorage.getItem('currentUser');
+    return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [userSettings, setUserSettings] = useState(() => {
-    if (currentUser?.settings) {
-      return currentUser.settings;
-    }
-    return {
-      theme: 'dark',
-      notifications: true,
-      playHistory: true,
-      bio: '',
-      level: 1,
-      exp: 0,
-      nextLevelExp: 1000,
-      completedTasks: []
-    };
+  const [users, setUsers] = useState(() => {
+    // 从 localStorage 获取所有用户数据
+    const savedUsers = localStorage.getItem('users');
+    return savedUsers ? JSON.parse(savedUsers) : [];
   });
 
-  // 添加任务完成功能
-  const completeTask = (taskId) => {
-    if (!currentUser) return;
+  // 当用户列表改变时，保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('users', JSON.stringify(users));
+  }, [users]);
 
-    const updatedSettings = {
-      ...userSettings,
-      completedTasks: [...userSettings.completedTasks, taskId],
-      exp: userSettings.exp + 100, // 每完成一个任务加100经验
-      level: Math.floor((userSettings.exp + 100) / 1000) + 1 // 更新等级
-    };
-
-    setUserSettings(updatedSettings);
-    saveUserData({
-      ...currentUser,
-      settings: updatedSettings
-    });
-  };
-
-  // 保存用户数据到本地存储
-  const saveUserData = (userData) => {
-    const dataToSave = {
-      ...userData,
-      settings: userSettings // 确保保存用户设置
-    };
-    localStorage.setItem('currentUser', JSON.stringify(dataToSave));
-    setCurrentUser(dataToSave);
-    
-    const userIndex = USERS_DB.findIndex(u => u.id === userData.id);
-    if (userIndex !== -1) {
-      USERS_DB[userIndex] = { ...USERS_DB[userIndex], ...dataToSave };
-    }
-  };
-
-  const login = (username, password) => {
-    const user = USERS_DB.find(u => u.username === username);
-    
-    if (!user || user.password !== password) {
-      return false;
-    }
-
-    const userData = {
-      ...user,
-      password: undefined
-    };
-
-    setUserSettings(userData.settings || {
-      theme: 'dark',
-      notifications: true,
-      playHistory: true,
-      bio: '',
-      level: 1,
-      exp: 0,
-      nextLevelExp: 1000,
-      completedTasks: []
-    });
-
-    saveUserData(userData);
-    return true;
-  };
-
-  const updateUserAvatar = (avatarUrl) => {
-    if (!currentUser) return;
-
-    const updatedUser = {
-      ...currentUser,
-      avatar: avatarUrl
-    };
-
-    saveUserData(updatedUser);
-  };
-
-  const updateUserFavorites = (favorites) => {
-    if (!currentUser) return;
-
-    const updatedUser = {
-      ...currentUser,
-      favorites
-    };
-
-    saveUserData(updatedUser);
-  };
-
-  // 更新用户设置
-  const updateUserSettings = (newSettings) => {
-    const updatedSettings = {
-      ...userSettings,
-      ...newSettings
-    };
-    setUserSettings(updatedSettings);
-    
+  // 当当前用户改变时，保存到 localStorage
+  useEffect(() => {
     if (currentUser) {
-      saveUserData({
-        ...currentUser,
-        settings: updatedSettings
-      });
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('currentUser');
     }
+  }, [currentUser]);
+
+  // 注册新用户
+  const register = (username, password) => {
+    // 检查用户名是否已存在
+    if (users.some(user => user.username === username)) {
+      throw new Error('用户名已存在');
+    }
+
+    const newUser = {
+      id: Date.now(),
+      username,
+      password,
+      avatar: null,
+      favorites: [],
+      recentPlays: [],
+      settings: {
+        theme: 'dark',
+        notifications: true,
+        playHistory: true,
+        bio: '',
+        level: 1,
+        exp: 0,
+        nextLevelExp: 1000,
+        completedTasks: []
+      }
+    };
+
+    setUsers(prevUsers => [...prevUsers, newUser]);
+    return newUser;
   };
 
+  // 用户登录
+  const login = (username, password) => {
+    const user = users.find(u => u.username === username && u.password === password);
+    if (!user) {
+      throw new Error('用户名或密码错误');
+    }
+    setCurrentUser(user);
+    return user;
+  };
+
+  // 用户登出
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
   };
 
-  const value = {
-    currentUser,
-    userSettings,
-    login,
-    logout,
-    updateUserAvatar,
-    updateUserFavorites,
-    updateUserSettings,
-    completeTask
+  // 更新用户信息
+  const updateUser = (updatedUser) => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user)
+    );
+    if (currentUser?.id === updatedUser.id) {
+      setCurrentUser(updatedUser);
+    }
+  };
+
+  // 更新用户收藏列表
+  const updateUserFavorites = (favorites) => {
+    if (!currentUser) return;
+    const updatedUser = {
+      ...currentUser,
+      favorites
+    };
+    updateUser(updatedUser);
+  };
+
+  // 更新用户设置
+  const updateUserSettings = (settings) => {
+    if (!currentUser) return;
+    const updatedUser = {
+      ...currentUser,
+      settings: {
+        ...currentUser.settings,
+        ...settings
+      }
+    };
+    updateUser(updatedUser);
   };
 
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider value={{
+      currentUser,
+      users,
+      register,
+      login,
+      logout,
+      updateUser,
+      updateUserFavorites,
+      updateUserSettings
+    }}>
       {children}
     </UserContext.Provider>
   );
 }
 
 export function useUser() {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
+  return useContext(UserContext);
 }
 
 // 每日任务数据

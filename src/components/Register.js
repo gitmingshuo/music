@@ -1,36 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import './Login.css';
+import './Register.css';
 
-function Login() {
+function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const { login } = useUser();
+  const { register } = useUser();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
+    // 基本验证
     if (!username || !password) {
       setErrorMsg('请输入用户名和密码');
       return;
     }
 
+    if (password !== confirmPassword) {
+      setErrorMsg('两次输入的密码不一致');
+      return;
+    }
+
     try {
-      await login(username, password);
-      navigate('/');
+      await register(username, password);
+      navigate('/login');
     } catch (error) {
       setErrorMsg(error.message);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <h2>登录</h2>
+    <div className="register-container">
+      <div className="register-box">
+        <h2>注册</h2>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <input
@@ -50,13 +57,22 @@ function Login() {
               maxLength={20}
             />
           </div>
+          <div className="input-group">
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="确认密码"
+              maxLength={20}
+            />
+          </div>
           {errorMsg && <div className="error-message">{errorMsg}</div>}
-          <button type="submit" className="login-button">登录</button>
+          <button type="submit" className="register-button">注册</button>
         </form>
-        <div className="login-footer">
-          <span>还没有账号？</span>
-          <span className="register-link" onClick={() => navigate('/register')}>
-            立即注册
+        <div className="register-footer">
+          <span>已有账号？</span>
+          <span className="login-link" onClick={() => navigate('/login')}>
+            立即登录
           </span>
         </div>
       </div>
@@ -64,4 +80,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register; 
