@@ -19,16 +19,30 @@ export function FavoriteProvider({ children }) {
   const toggleFavorite = (song) => {
     if (!currentUser) return;
 
-    const newFavorites = favorites.some(f => f.name === song.name)
-      ? favorites.filter(f => f.name !== song.name)
-      : [...favorites, { ...song, cover: song.cover || song.albumCover }];
+    // 确保 song 是对象格式
+    const songObject = typeof song === 'string' 
+      ? { name: song } 
+      : song;
+
+    const newFavorites = favorites.some(f => f.name === songObject.name)
+      ? favorites.filter(f => f.name !== songObject.name)
+      : [...favorites, { 
+          name: songObject.name,
+          albumName: songObject.albumName,
+          albumCover: songObject.albumCover || songObject.cover,
+          audio: songObject.audio
+        }];
 
     setFavorites(newFavorites);
     updateUserFavorites(newFavorites);
   };
 
+  const isFavorite = (songName) => {
+    return favorites.some(f => f.name === songName);
+  };
+
   return (
-    <FavoriteContext.Provider value={{ favorites, toggleFavorite }}>
+    <FavoriteContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
       {children}
     </FavoriteContext.Provider>
   );

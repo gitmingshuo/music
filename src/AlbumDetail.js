@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from './context/PlayerContext';
 import BackButton from './components/BackButton';
 import './AlbumDetail.css';
@@ -9,38 +9,35 @@ function AlbumDetail() {
   const navigate = useNavigate();
   const { addToPlaylist } = usePlayer();
   const album = location.state?.album;
-  
-  console.log('专辑信息:', album);
 
-  const handleSongClick = async (song) => {
-    try {
-      // 构建完整的歌曲信息
-      const songInfo = {
-        name: song,
-        albumName: album.name,
-        albumCover: album.cover,
-        audio: `/music/${encodeURIComponent(song)}.mp3`
-      };
-      
-      // 构建当前专辑的播放列表
-      const playlist = album.songs.map(s => ({
-        name: s,
-        albumName: album.name,
-        albumCover: album.cover,
-        audio: `/music/${encodeURIComponent(s)}.mp3`
-      }));
-      
-      // 添加到播放列表并播放
-      addToPlaylist(songInfo, playlist);
-      
-    } catch (error) {
-      console.error('播放歌曲时出错:', error);
-    }
+  const handleSongClick = (song) => {
+    const defaultAudio = '/music/说好不哭.mp3';
+    
+    const songInfo = {
+      name: song,
+      albumName: album.name,
+      albumCover: album.cover,
+      audio: defaultAudio
+    };
+    
+    const playlist = album.songs.map(s => ({
+      name: s,
+      albumName: album.name,
+      albumCover: album.cover,
+      audio: defaultAudio
+    }));
+    
+    addToPlaylist(songInfo, playlist);
+    
+    navigate(`/song/${encodeURIComponent(song)}`, { 
+      state: { 
+        song: songInfo,
+        album: album
+      } 
+    });
   };
 
-  if (!album) {
-    return <div>未找到专辑信息</div>;
-  }
+  if (!album) return null;
 
   return (
     <div className="album-detail-container">
@@ -49,37 +46,47 @@ function AlbumDetail() {
         alt={album.name} 
         className="album-background"
       />
-      <BackButton />
       
       <div className="album-content">
-        <div className="album-info">
+        <BackButton />
+        
+        <div className="album-header">
           <img 
             src={album.cover} 
             alt={album.name} 
             className="album-detail-cover"
           />
-          <div className="album-details">
-            <h1 className="album-detail-title">{album.name}</h1>
-            <p className="album-meta">发行年份: {album.year}</p>
-            <p className="album-meta">{album.description}</p>
+          
+          <div className="album-info">
+            <span className="album-type">专辑</span>
+            <h1 className="album-title">{album.name}</h1>
+            <div className="album-meta">
+              <span>发行年份: {album.year}</span>
+              <span>•</span>
+              <span>{album.songs.length} 首歌</span>
+            </div>
+            <p className="album-description">{album.description}</p>
           </div>
         </div>
-        
-        <div className="song-list">
-          <h2>专辑歌曲</h2>
-          {album.songs.map((song, index) => (
-            <div 
-              key={index}
-              className="song-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSongClick(song);
-              }}
-            >
-              <span className="song-number">{index + 1}</span>
-              <span className="song-name">{song}</span>
-            </div>
-          ))}
+
+        <div className="songs-section">
+          <div className="songs-header">
+            <div>#</div>
+            <div>歌曲名</div>
+          </div>
+          
+          <div className="song-list">
+            {album.songs.map((song, index) => (
+              <div 
+                key={index}
+                className="song-item"
+                onClick={() => handleSongClick(song)}
+              >
+                <span className="song-number">{index + 1}</span>
+                <span className="song-name">{song}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

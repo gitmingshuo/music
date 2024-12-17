@@ -4,7 +4,7 @@ import { useFavorites } from '../context/FavoriteContext';
 import { usePlayer } from '../context/PlayerContext';
 import { FaHeart } from 'react-icons/fa';
 import BackButton from '../components/BackButton';
-import { albums } from '../Home'; // 导入专辑数据
+import { albums } from '../Home';
 import './Favorites.css';
 
 function Favorites() {
@@ -12,7 +12,6 @@ function Favorites() {
   const { favorites, toggleFavorite } = useFavorites();
   const { addToPlaylist } = usePlayer();
 
-  // 获取歌曲对应的专辑信息
   const getSongAlbumInfo = (songName) => {
     for (const album of albums) {
       if (album.songs.includes(songName)) {
@@ -25,21 +24,18 @@ function Favorites() {
     return null;
   };
 
-  const handleSongClick = (song) => {
-    const albumInfo = getSongAlbumInfo(song.name);
+  const handleSongClick = (songName) => {
+    const albumInfo = getSongAlbumInfo(songName);
     if (albumInfo) {
-      // 构建完整的歌曲信息
       const songInfo = {
-        name: song.name,
+        name: songName,
         albumName: albumInfo.albumName,
         albumCover: albumInfo.albumCover,
-        audio: `/music/${encodeURIComponent(song.name)}.mp3`
+        audio: `/music/${encodeURIComponent(songName)}.mp3`
       };
       
-      // 找到对应的专辑
       const album = albums.find(a => a.name === albumInfo.albumName);
       if (album) {
-        // 构建播放列表
         const playlist = album.songs.map(s => ({
           name: s,
           albumName: album.name,
@@ -47,7 +43,6 @@ function Favorites() {
           audio: `/music/${encodeURIComponent(s)}.mp3`
         }));
         
-        // 添加到播放列表并播放
         addToPlaylist(songInfo, playlist);
       }
     }
@@ -61,32 +56,34 @@ function Favorites() {
       </div>
 
       <div className="favorites-list">
-        {favorites.map((song, index) => {
-          const albumInfo = getSongAlbumInfo(song.name);
+        {favorites.map((favorite, index) => {
+          const songName = typeof favorite === 'string' ? favorite : favorite.name;
+          const albumInfo = getSongAlbumInfo(songName);
+          
           return (
             <div 
               key={index} 
               className="favorite-item"
-              onClick={() => handleSongClick(song)}
+              onClick={() => handleSongClick(songName)}
             >
               <div className="song-cover">
                 {albumInfo?.albumCover ? (
-                  <img src={albumInfo.albumCover} alt={song.name} />
+                  <img src={albumInfo.albumCover} alt={songName} />
                 ) : (
                   <div className="default-cover">
-                    {song.name[0]}
+                    {songName[0]}
                   </div>
                 )}
               </div>
               <div className="song-info">
-                <span className="song-name">{song.name}</span>
+                <span className="song-name">{songName}</span>
                 <span className="album-name">{albumInfo?.albumName || '未知专辑'}</span>
               </div>
               <button 
                 className="remove-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleFavorite(song);
+                  toggleFavorite(songName);
                 }}
               >
                 <FaHeart />
