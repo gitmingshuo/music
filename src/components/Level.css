@@ -1,0 +1,156 @@
+.level-container {
+  padding: 40px;
+  color: #fff;
+}
+
+.level-header {
+  margin-bottom: 30px;
+}
+
+.level-header h2 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.level-card {
+  background: linear-gradient(45deg, #2c2c2c, #1c1c1c);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 40px;
+}
+
+.level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.current-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.level-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ec4141;
+}
+
+.level-title {
+  font-size: 18px;
+  color: #b3b3b3;
+}
+
+.level-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: #ec4141;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #b3b3b3;
+}
+
+.level-benefits {
+  margin-top: 40px;
+}
+
+.level-benefits h3 {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.benefit-item {
+  background: #2c2c2c;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.benefit-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.benefit-title {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.benefit-desc {
+  font-size: 14px;
+  color: #b3b3b3;
+}
+
+.daily-tasks {
+  background: #2c2c2c;
+  border-radius: 8px;
+  padding: 24px;
+  margin-top: 30px;
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #363636;
+  border-radius: 8px;
+}
+
+.task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-title {
+  font-size: 16px;
+}
+
+.task-exp {
+  font-size: 14px;
+  color: #ec4141;
+}
+
+.task-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #ec4141;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.task-button.completed {
+  background: #666;
+  cursor: default;
+} 

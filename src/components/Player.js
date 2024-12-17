@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaSyncAlt } from 'react-icons/fa';
 import { usePlayer } from '../context/PlayerContext';
 import { useFavorites } from '../context/FavoriteContext';
+import { albums } from '../Home'; // 导入专辑数据
 import './Player.css';
 
 function Player() {
@@ -22,6 +23,19 @@ function Player() {
   const { favorites, toggleFavorite } = useFavorites();
   const [isLiked, setIsLiked] = useState(false);
 
+  // 获取歌曲对应的专辑信息
+  const getAlbumInfo = (songName) => {
+    for (const album of albums) {
+      if (album.songs.includes(songName)) {
+        return {
+          albumName: album.name,
+          albumCover: album.cover
+        };
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (currentSong) {
       const isFavorited = favorites.some(
@@ -31,26 +45,42 @@ function Player() {
     }
   }, [currentSong, favorites]);
 
-  const togglePlay = () => {
-    if (audioRef.current) {
+  const togglePlay = (e) => {
+    e.stopPropagation();
+    if (audioRef.current && currentSong) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(error => {
+          console.error('播放失败:', error);
+        });
       }
       setIsPlaying(!isPlaying);
     }
   };
 
-  const handleLike = () => {
+  const handlePrevious = (e) => {
+    e.stopPropagation();
+    playPrevious();
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    playNext();
+  };
+
+  const handleLike = (e) => {
+    e.stopPropagation();
     if (currentSong) {
       toggleFavorite({
         name: currentSong.name,
-        album: currentSong.albumName,
-        cover: currentSong.albumCover,
-        audio: currentSong.audio
       });
     }
+  };
+
+  const handlePlayMode = (e) => {
+    e.stopPropagation();
+    togglePlayMode();
   };
 
   const formatTime = (time) => {
@@ -60,10 +90,22 @@ function Player() {
   };
 
   useEffect(() => {
+    setCurrentTime(0);
+    setDuration(0);
+    
     const audio = audioRef.current;
     if (audio) {
+      audio.currentTime = 0;
+      
       const updateTime = () => setCurrentTime(audio.currentTime);
-      const updateDuration = () => setDuration(audio.duration);
+      const updateDuration = () => {
+        setDuration(audio.duration);
+        if (isPlaying) {
+          audio.play().catch(error => {
+            console.error('播放失败:', error);
+          });
+        }
+      };
       
       audio.addEventListener('timeupdate', updateTime);
       audio.addEventListener('loadedmetadata', updateDuration);
@@ -73,43 +115,68 @@ function Player() {
         audio.removeEventListener('loadedmetadata', updateDuration);
       };
     }
-  }, []);
+  }, [currentSong, isPlaying]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play().catch(error => {
+          console.error('播放失败:', error);
+          setIsPlaying(false);
+        });
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
 
   return (
-    <div className="player">
+    <div className="player" onClick={e => e.stopPropagation()}>
       <div className="player-left">
         <div className="player-cover">
-          {currentSong?.albumCover ? (
-            <img src={currentSong.albumCover} alt={currentSong.name} />
-          ) : (
-            <div className="default-cover" />
+          {currentSong?.name && (
+            <img 
+              src={getAlbumInfo(currentSong.name)?.albumCover} 
+              alt={currentSong.name} 
+            />
           )}
         </div>
         <div className="player-song-info">
           <div className="song-name">{currentSong?.name || '未播放'}</div>
-          <div className="artist-name">{currentSong?.albumName || '-'}</div>
+          <div className="artist-name">
+            {currentSong?.name ? getAlbumInfo(currentSong.name)?.albumName || '-' : '-'}
+          </div>
         </div>
       </div>
       
       <div className="player-center">
         <div className="control-buttons">
-          <button onClick={playPrevious} disabled={!currentSong}>
+          <button 
+            onClick={handlePrevious} 
+            className="control-btn"
+          >
             <FaStepBackward />
           </button>
           <button 
             className="play-pause"
-            onClick={togglePlay} 
-            disabled={!currentSong}
+            onClick={togglePlay}
           >
             {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
-          <button onClick={playNext} disabled={!currentSong}>
+          <button 
+            onClick={handleNext}
+            className="control-btn"
+          >
             <FaStepForward />
           </button>
         </div>
         <div className="progress-bar">
-          <div className="progress" 
-            style={{ width: `${(currentTime / duration) * 100}%` }}>
+          <div 
+            className="progress" 
+            style={{ 
+              width: duration ? `${(currentTime / duration) * 100}%` : '0%' 
+            }}
+          >
           </div>
           <span className="time-current">{formatTime(currentTime)}</span>
           <span className="time-total">{formatTime(duration)}</span>
@@ -120,14 +187,12 @@ function Player() {
         <button 
           className={`like-btn ${isLiked ? 'active' : ''}`} 
           onClick={handleLike}
-          disabled={!currentSong}
         >
           <FaHeart />
         </button>
         <button 
           className="mode-btn" 
-          onClick={togglePlayMode}
-          disabled={!currentSong}
+          onClick={handlePlayMode}
         >
           {playMode === 'shuffle' ? <FaRandom /> : 
            playMode === 'loop' ? <FaSyncAlt /> : 

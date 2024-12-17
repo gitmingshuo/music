@@ -51,27 +51,36 @@ function AlbumDetail() {
       />
       <BackButton />
       
-      <div className="album-info">
-        <img src={album.cover} alt={album.name} className="album-cover" />
-        <div className="album-text">
-          <h1>{album.name}</h1>
-          <p className="album-year">发行年份: {album.year}</p>
-          <p className="album-description">{album.description}</p>
-        </div>
-      </div>
-      
-      <div className="song-list">
-        <h2>专辑歌曲</h2>
-        {album.songs.map((song, index) => (
-          <div 
-            key={index}
-            className="song-item"
-            onClick={() => handleSongClick(song)}
-          >
-            <span className="song-number">{index + 1}</span>
-            <span className="song-name">{song}</span>
+      <div className="album-content">
+        <div className="album-info">
+          <img 
+            src={album.cover} 
+            alt={album.name} 
+            className="album-detail-cover"
+          />
+          <div className="album-details">
+            <h1 className="album-detail-title">{album.name}</h1>
+            <p className="album-meta">发行年份: {album.year}</p>
+            <p className="album-meta">{album.description}</p>
           </div>
-        ))}
+        </div>
+        
+        <div className="song-list">
+          <h2>专辑歌曲</h2>
+          {album.songs.map((song, index) => (
+            <div 
+              key={index}
+              className="song-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSongClick(song);
+              }}
+            >
+              <span className="song-number">{index + 1}</span>
+              <span className="song-name">{song}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

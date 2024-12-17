@@ -20,14 +20,16 @@ import Albums from './components/Albums';
 import RecentPlays from './components/RecentPlays';
 import Header from './components/Header';
 import Profile from './components/Profile';
+import Level from './components/Level';
+import Settings from './components/Settings';
 
 import './App.css';
 
 function App() {
   return (
-    <UserProvider>
-      <RecentPlaysProvider>
-        <PlayerProvider>
+    <PlayerProvider>
+      <UserProvider>
+        <RecentPlaysProvider>
           <FavoriteProvider>
             <div className="app">
               <Routes>
@@ -51,6 +53,8 @@ function App() {
                               <Route path="/albums" element={<Albums />} />
                               <Route path="/recent-plays" element={<RecentPlays />} />
                               <Route path="/profile" element={<Profile />} />
+                              <Route path="/level" element={<Level />} />
+                              <Route path="/settings" element={<Settings />} />
                             </Routes>
                           </div>
                           <Player />
@@ -62,9 +66,9 @@ function App() {
               </Routes>
             </div>
           </FavoriteProvider>
-        </PlayerProvider>
-      </RecentPlaysProvider>
-    </UserProvider>
+        </RecentPlaysProvider>
+      </UserProvider>
+    </PlayerProvider>
   );
 }
 

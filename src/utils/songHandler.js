@@ -1,41 +1,29 @@
+import { usePlayer } from '../context/PlayerContext';
+
 //处理歌曲点击播放的逻辑
 import { albums } from '../Home';
 
-export const handleSongClick = async (song, navigate) => {
-  const albumInfo = albums.find(album => album.name === song.album);
-  
-  try {
-    const defaultLyrics = {
-      title: song.name,
-      artist: "周杰伦",
-      lyrics: [{ time: 0, text: "加载歌词中..." }]
-    };
+export const handleSongClick = (song, navigate) => {
+  // 确保歌曲对象包含必要信息
+  const processedSong = {
+    ...song,
+    url: song.url || '/music/我是如此相信.mp3', // 使用默认音频
+    cover: song.cover || song.albumCover || '/default-cover.jpg', // 使用封面或默认封面
+  };
 
-    let lyrics = defaultLyrics;
-    
-    try {
-      const response = await fetch(`/lyrics/${encodeURIComponent(song.name)}.json`);
-      if (response.ok) {
-        lyrics = await response.json();
-      }
-    } catch (error) {
-      console.warn('歌词加载失败，使用默认歌词');
-    }
+  // 触发播放
+  if (window.audioPlayer) {
+    window.audioPlayer.playSong(processedSong);
+  }
 
-    navigate(`/song/${encodeURIComponent(song.name)}`, {
-      state: {
-        song: song.name,
-        lyrics: lyrics.lyrics,
-        audio: `/music/最伟大的作品.mp3`,
-        albumName: song.album,
-        albumCover: song.cover,
-        songList: albumInfo.songs,
-        currentIndex: albumInfo.songs.indexOf(song.name)
-      }
-    });
-  } catch (error) {
-    console.error('页面跳转失败:', error);
-    alert('暂时无法播放该歌曲，请稍后再试');
+  // 更新播放历史
+  const recentPlays = JSON.parse(localStorage.getItem('recentPlays') || '[]');
+  const updatedPlays = [processedSong, ...recentPlays.filter(p => p.name !== song.name)].slice(0, 50);
+  localStorage.setItem('recentPlays', JSON.stringify(updatedPlays));
+
+  // 如果需要，导航到歌曲详情页
+  if (navigate) {
+    navigate(`/song/${encodeURIComponent(song.name)}`);
   }
 };
 
