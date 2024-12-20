@@ -206,20 +206,6 @@ function Player() {
             <FaStepForward />
           </button>
         </div>
-        <div 
-          className="progress-bar" 
-          ref={progressRef}
-          onClick={handleProgressClick}
-        >
-          <div 
-            className="progress" 
-            style={{ 
-              width: duration ? `${(currentTime / duration) * 100}%` : '0%' 
-            }}
-          />
-          <span className="time-current">{formatTime(currentTime)}</span>
-          <span className="time-total">{formatTime(duration)}</span>
-        </div>
       </div>
 
       <div className="player-right">

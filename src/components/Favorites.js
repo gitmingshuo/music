@@ -51,8 +51,10 @@ function Favorites() {
   return (
     <div className="favorites-page">
       <div className="favorites-header">
-        <BackButton />
-        <h1>我喜欢的音乐</h1>
+        <h1>
+          <span className="back-arrow" onClick={() => navigate(-1)}>←</span>
+          我喜欢的音乐
+        </h1>
       </div>
 
       <div className="favorites-list">

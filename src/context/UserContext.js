@@ -8,18 +8,47 @@ export const UserProvider = ({ children }) => {
   const [state, setState] = useState({
     currentUser: undefined,
     isLoading: true,
-    error: null
+    error: null,
+    favorites: []
   });
   const navigate = useNavigate();
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
+    const savedFavorites = localStorage.getItem('favorites');
+    
     setState(prev => ({
       ...prev,
       currentUser: savedUser ? JSON.parse(savedUser) : null,
+      favorites: savedFavorites ? JSON.parse(savedFavorites) : [],
       isLoading: false
     }));
   }, []);
+
+  const updateUserFavorites = async (songId) => {
+    try {
+      const newFavorites = [...state.favorites];
+      const index = newFavorites.indexOf(songId);
+      
+      if (index === -1) {
+        newFavorites.push(songId);
+      } else {
+        newFavorites.splice(index, 1);
+      }
+      
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      
+      setState(prev => ({
+        ...prev,
+        favorites: newFavorites
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('更新收藏失败:', error);
+      return false;
+    }
+  };
 
   const handleLogin = async (credentials) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -90,7 +119,9 @@ export const UserProvider = ({ children }) => {
         ...state,
         login: handleLogin,
         logout: handleLogout,
-        register: handleRegister
+        register: handleRegister,
+        updateUserFavorites,
+        favorites: state.favorites
       }}
     >
       {children}

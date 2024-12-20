@@ -169,15 +169,6 @@
   opacity: 0.7;
 }
 
-.like-btn:hover,
-.loop-btn:hover {
-  opacity: 1;
-}
-
 .like-btn.active {
   color: #ff3a3a;
-}
-
-.like-btn.active:hover {
-  opacity: 1;
 }

@@ -1,8 +1,10 @@
 .favorites-page {
-    padding: 20px;
-    color: #fff;
-    min-height: 100vh;
     background: #121212;
+    min-height: calc(100vh - 80px);
+    padding: 20px 40px;
+    color: #fff;
+    max-width: 1000px;
+    margin: 0 auto;
   }
   
   .favorites-header {
@@ -11,20 +13,35 @@
     margin-bottom: 30px;
   }
   
+  .favorites-header h1 {
+    font-size: 28px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .favorites-header .back-arrow {
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
   .favorites-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
   }
   
   .favorite-item {
     display: flex;
     align-items: center;
-    padding: 12px;
+    padding: 8px 12px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s;
+    height: 60px;
   }
   
   .favorite-item:hover {
@@ -32,9 +49,9 @@
   }
   
   .song-cover {
-    width: 56px;
-    height: 56px;
-    margin-right: 16px;
+    width: 44px;
+    height: 44px;
+    margin-right: 12px;
     border-radius: 4px;
     overflow: hidden;
   }
@@ -60,16 +77,16 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
   
   .song-name {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
   }
   
   .album-name {
-    font-size: 14px;
+    font-size: 12px;
     color: #999;
   }
   
@@ -84,4 +101,10 @@
   
   .remove-btn:hover {
     transform: scale(1.1);
+  }
+  
+  @media (max-width: 768px) {
+    .favorites-page {
+      padding: 15px;
+    }
   }
