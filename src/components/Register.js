@@ -4,77 +4,94 @@ import { useUser } from '../context/UserContext';
 import './Register.css';
 
 function Register() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const { register } = useUser();
   const navigate = useNavigate();
+  const { register } = useUser();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
+    setError('');
 
-    // 基本验证
-    if (!username || !password) {
-      setErrorMsg('请输入用户名和密码');
+    // 表单验证
+    if (!formData.username || !formData.password) {
+      setError('请填写所有必填项');
       return;
     }
 
-    if (password !== confirmPassword) {
-      setErrorMsg('两次输入的密码不一致');
+    if (formData.password !== formData.confirmPassword) {
+      setError('两次输入的密码不一致');
       return;
     }
 
     try {
-      await register(username, password);
-      navigate('/login');
-    } catch (error) {
-      setErrorMsg(error.message);
+      setLoading(true);
+      await register({
+        username: formData.username,
+        password: formData.password
+      });
+      navigate('/'); // 注册成功后跳转到首页
+    } catch (err) {
+      setError(err.message || '注册失败，请重试');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
     <div className="register-container">
-      <div className="register-box">
-        <h2>注册</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="用户名"
-              maxLength={20}
-            />
-          </div>
-          <div className="input-group">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="密码"
-              maxLength={20}
-            />
-          </div>
-          <div className="input-group">
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="确认密码"
-              maxLength={20}
-            />
-          </div>
-          {errorMsg && <div className="error-message">{errorMsg}</div>}
-          <button type="submit" className="register-button">注册</button>
-        </form>
-        <div className="register-footer">
-          <span>已有账号？</span>
-          <span className="login-link" onClick={() => navigate('/login')}>
-            立即登录
-          </span>
+      <h1>注册</h1>
+      {error && <div className="error-message">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <input
+            type="text"
+            name="username"
+            placeholder="用户名"
+            value={formData.username}
+            onChange={handleChange}
+            disabled={loading}
+          />
         </div>
+        <div className="form-group">
+          <input
+            type="password"
+            name="password"
+            placeholder="密码"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="确认密码"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+        <button type="submit" disabled={loading}>
+          {loading ? '注册中...' : '注册'}
+        </button>
+      </form>
+      <div className="login-link">
+        已有账号？ <span onClick={() => navigate('/login')}>立即登录</span>
       </div>
     </div>
   );

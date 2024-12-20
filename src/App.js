@@ -35,16 +35,20 @@ function App() {
     // 检查是否在登录或注册页面
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
     
-    // 如果没有登录且不在登录/注册页面，重定向到登录页
-    if (!currentUser && !isAuthPage) {
-      navigate('/login');
-    }
-    
-    // 如果已登录且在登录/注册页面，重定向到主页
-    if (currentUser && isAuthPage) {
-      navigate('/');
+    // 只有当用户状态明确时才进行重定向
+    if (currentUser === null && !isAuthPage) {
+      // 用户未登录且不在登录页面
+      navigate('/login', { replace: true });
+    } else if (currentUser && isAuthPage) {
+      // 用户已登录但在登录页面
+      navigate('/', { replace: true });
     }
   }, [currentUser, location.pathname, navigate]);
+
+  // 如果用户状态正在加载，显示加载状态
+  if (currentUser === undefined) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <UserProvider>

@@ -1,134 +1,111 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { loginAPI, registerAPI } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
 
-const UserContext = createContext();
+const UserContext = createContext(null);
 
-export function UserProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(() => {
-    // 从 localStorage 获取当前用户
-    const savedUser = localStorage.getItem('currentUser');
-    return savedUser ? JSON.parse(savedUser) : null;
+export const UserProvider = ({ children }) => {
+  const [state, setState] = useState({
+    currentUser: undefined,
+    isLoading: true,
+    error: null
   });
+  const navigate = useNavigate();
 
-  const [users, setUsers] = useState(() => {
-    // 从 localStorage 获取所有用户数据
-    const savedUsers = localStorage.getItem('users');
-    return savedUsers ? JSON.parse(savedUsers) : [];
-  });
-
-  // 当用户列表改变时，保存到 localStorage
   useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(users));
-  }, [users]);
+    const savedUser = localStorage.getItem('user');
+    setState(prev => ({
+      ...prev,
+      currentUser: savedUser ? JSON.parse(savedUser) : null,
+      isLoading: false
+    }));
+  }, []);
 
-  // 当当前用户改变时，保存到 localStorage
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('currentUser');
-    }
-  }, [currentUser]);
+  const handleLogin = async (credentials) => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    try {
+      const { token, user } = await loginAPI(credentials);
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setState(prev => ({
+        ...prev,
+        currentUser: user,
+        isLoading: false
+      }));
 
-  // 注册新用户
-  const register = (username, password) => {
-    // 检查用户名是否已存在
-    if (users.some(user => user.username === username)) {
-      throw new Error('用户名已存在');
-    }
-
-    const newUser = {
-      id: Date.now(),
-      username,
-      password,
-      avatar: null,
-      favorites: [],
-      recentPlays: [],
-      settings: {
-        theme: 'dark',
-        notifications: true,
-        playHistory: true,
-        bio: '',
-        level: 1,
-        exp: 0,
-        nextLevelExp: 1000,
-        completedTasks: []
-      }
-    };
-
-    setUsers(prevUsers => [...prevUsers, newUser]);
-    return newUser;
-  };
-
-  // 用户登录
-  const login = (username, password) => {
-    const user = users.find(u => u.username === username && u.password === password);
-    if (!user) {
-      throw new Error('用户名或密码错误');
-    }
-    setCurrentUser(user);
-    return user;
-  };
-
-  // 用户登出
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
-  };
-
-  // 更新用户信息
-  const updateUser = (updatedUser) => {
-    setUsers(prevUsers => 
-      prevUsers.map(user => user.id === updatedUser.id ? updatedUser : user)
-    );
-    if (currentUser?.id === updatedUser.id) {
-      setCurrentUser(updatedUser);
+      navigate('/', { replace: true });
+      return { success: true };
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error,
+        isLoading: false
+      }));
+      throw error;
     }
   };
 
-  // 更新用户收藏列表
-  const updateUserFavorites = (favorites) => {
-    if (!currentUser) return;
-    const updatedUser = {
-      ...currentUser,
-      favorites
-    };
-    updateUser(updatedUser);
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setState(prev => ({
+      ...prev,
+      currentUser: null,
+      isLoading: false
+    }));
+    navigate('/login', { replace: true });
   };
 
-  // 更新用户设置
-  const updateUserSettings = (settings) => {
-    if (!currentUser) return;
-    const updatedUser = {
-      ...currentUser,
-      settings: {
-        ...currentUser.settings,
-        ...settings
-      }
-    };
-    updateUser(updatedUser);
+  const handleRegister = async (userData) => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      const { token, user } = await registerAPI(userData);
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setState(prev => ({
+        ...prev,
+        currentUser: user,
+        isLoading: false
+      }));
+
+      navigate('/', { replace: true });
+      return { success: true };
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error,
+        isLoading: false
+      }));
+      throw error;
+    }
   };
 
   return (
-    <UserContext.Provider value={{
-      currentUser,
-      users,
-      register,
-      login,
-      logout,
-      updateUser,
-      updateUserFavorites,
-      updateUserSettings
-    }}>
+    <UserContext.Provider 
+      value={{
+        ...state,
+        login: handleLogin,
+        logout: handleLogout,
+        register: handleRegister
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
-}
+};
 
-export function useUser() {
-  return useContext(UserContext);
-}
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
 
-// 每日任务数据
 export const dailyTasks = [
   { id: 1, title: '每日登录', exp: 10, description: '登录即可获得经验' },
   { id: 2, title: '收听音乐30分钟', exp: 20, description: '累计收听音乐30分钟' },

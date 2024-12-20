@@ -150,15 +150,13 @@
   height: 3px;
   background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
+  transform: translateY(-100%);
 }
 
 .progress {
-  position: absolute;
-  top: 0;
-  left: 0;
   height: 100%;
-  background: #ff3a3a;
-  transition: width 0.1s linear;
+  background: #ec4141;
+  position: relative;
 }
 
 .time-current,
@@ -187,4 +185,67 @@
 .progress-bar:hover .time-current,
 .progress-bar:hover .time-total {
   opacity: 1;
+}
+
+.progress-bar:hover .progress {
+  background: #ff5252;
+}
+
+/* 只添加定时器相关的新样式，不修改任何现有样式 */
+.timer-controls {
+  margin-left: 15px;
+  position: relative;
+}
+
+.timer-btn {
+  background: transparent;
+  border: none;
+  color: #b3b3b3;
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 16px;
+}
+
+.timer-btn.active {
+  color: #ec4141;
+}
+
+.timer-countdown {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.timer-modal {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: #2c2c2c;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.timer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.timer-options button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.timer-options button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }

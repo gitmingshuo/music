@@ -4,61 +4,73 @@ import { useUser } from '../context/UserContext';
 import './Login.css';
 
 function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const { login } = useUser();
   const navigate = useNavigate();
+  const { login } = useUser();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
+    setError('');
 
-    if (!username || !password) {
-      setErrorMsg('请输入用户名和密码');
+    if (!formData.username || !formData.password) {
+      setError('请输入用户名和密码');
       return;
     }
 
     try {
-      await login(username, password);
-      navigate('/');
-    } catch (error) {
-      setErrorMsg(error.message);
+      setLoading(true);
+      await login(formData);
+    } catch (err) {
+      setError(err.message || '登录失败，请重试');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
     <div className="login-container">
-      <div className="login-box">
-        <h2>登录</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="用户名"
-              maxLength={20}
-            />
-          </div>
-          <div className="input-group">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="密码"
-              maxLength={20}
-            />
-          </div>
-          {errorMsg && <div className="error-message">{errorMsg}</div>}
-          <button type="submit" className="login-button">登录</button>
-        </form>
-        <div className="login-footer">
-          <span>还没有账号？</span>
-          <span className="register-link" onClick={() => navigate('/register')}>
-            立即注册
-          </span>
+      <h1>登录</h1>
+      {error && <div className="error-message">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <input
+            type="text"
+            name="username"
+            placeholder="用户名"
+            value={formData.username}
+            onChange={handleChange}
+            disabled={loading}
+          />
         </div>
+        <div className="form-group">
+          <input
+            type="password"
+            name="password"
+            placeholder="密码"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+        <button type="submit" disabled={loading}>
+          {loading ? '登录中...' : '登录'}
+        </button>
+      </form>
+      <div className="register-link">
+        还没有账号？ <span onClick={() => navigate('/register')}>立即注册</span>
       </div>
     </div>
   );

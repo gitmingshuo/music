@@ -1,65 +1,46 @@
 import React from 'react';
+import BackButton from './BackButton';
 import { useUser } from '../context/UserContext';
-import { dailyTasks } from '../context/UserContext';
 import './Level.css';
 
 function Level() {
-  const { userSettings, completeTask } = useUser();
-  const progress = (userSettings.exp % 1000) / 10; // 转换为百分比
-
-  const handleTaskComplete = (taskId) => {
-    completeTask(taskId);
-  };
+  const { currentUser } = useUser();
+  
+  // 计算等级和经验值，添加默认值
+  const exp = currentUser?.exp || 0;
+  const level = Math.floor(exp / 100) + 1;
+  const currentLevelExp = exp % 100;
+  const nextLevelExp = 100 - currentLevelExp;
+  const progressPercentage = (currentLevelExp / 100) * 100;
 
   return (
     <div className="level-container">
       <div className="level-header">
-        <h2>我的等级</h2>
+        <BackButton />
+        <h1>我的等级</h1>
       </div>
       
       <div className="level-content">
-        <div className="level-card">
-          <div className="level-info">
-            <div className="current-level">
-              <span className="level-number">Lv.{userSettings.level}</span>
-              <span className="level-title">
-                {userSettings.level < 5 ? '音乐爱好者' : 
-                 userSettings.level < 10 ? '音乐达人' : '音乐大师'}
-              </span>
-            </div>
-            <div className="level-progress">
-              <div className="progress-bar">
-                <div className="progress" style={{ width: `${progress}%` }}></div>
-              </div>
-              <span className="progress-text">
-                距离下一等级还需要 {1000 - (userSettings.exp % 1000)} 经验
-              </span>
-            </div>
+        <div className="level-info">
+          <h2>当前等级: {level}</h2>
+          <div className="progress-bar">
+            <div 
+              className="progress" 
+              style={{width: `${progressPercentage}%`}}
+            ></div>
           </div>
+          <p>当前经验值: {exp}</p>
+          <p>距离下一等级还需要 {nextLevelExp} 经验</p>
         </div>
 
-        <div className="daily-tasks">
-          <h3>每日任务</h3>
-          <div className="tasks-list">
-            {dailyTasks.map((task) => (
-              <div key={task.id} 
-                className={`task-item ${userSettings.completedTasks.includes(task.id) ? 'completed' : ''}`}
-              >
-                <div className="task-info">
-                  <span className="task-title">{task.title}</span>
-                  <span className="task-exp">+{task.exp}经验</span>
-                  <span className="task-desc">{task.description}</span>
-                </div>
-                <button 
-                  className={`task-button ${userSettings.completedTasks.includes(task.id) ? 'completed' : ''}`}
-                  onClick={() => handleTaskComplete(task.id)}
-                  disabled={userSettings.completedTasks.includes(task.id)}
-                >
-                  {userSettings.completedTasks.includes(task.id) ? '已完成' : '去完成'}
-                </button>
-              </div>
-            ))}
-          </div>
+        <div className="level-rules">
+          <h3>如何获得经验</h3>
+          <ul>
+            <li>每日登录: +10经验</li>
+            <li>收听音乐: +1经验/首</li>
+            <li>收藏音乐: +5经验/首</li>
+            <li>创建歌单: +20经验</li>
+          </ul>
         </div>
       </div>
     </div>

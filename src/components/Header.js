@@ -46,13 +46,22 @@ function Header() {
           {showMenu && (
             <div className="user-menu">
               <div className="menu-items">
-                <div className="menu-item" onClick={() => navigate('/profile')}>
+                <div className="menu-item" onClick={() => {
+                  navigate('/profile');
+                  setShowMenu(false);
+                }}>
                   个人主页
                 </div>
-                <div className="menu-item" onClick={() => navigate('/level')}>
+                <div className="menu-item" onClick={() => {
+                  navigate('/level');
+                  setShowMenu(false);
+                }}>
                   我的等级
                 </div>
-                <div className="menu-item" onClick={() => navigate('/settings')}>
+                <div className="menu-item" onClick={() => {
+                  navigate('/settings');
+                  setShowMenu(false);
+                }}>
                   个人设置
                 </div>
                 <div className="menu-item" onClick={handleLogout}>
