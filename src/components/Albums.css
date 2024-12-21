@@ -33,10 +33,6 @@
   width: 100%;
 }
 
-.album-item:hover {
-  transform: translateY(-5px);
-}
-
 .album-cover-wrapper {
   position: relative;
   width: 100%;
@@ -56,10 +52,6 @@
   object-fit: cover;
   loading: "lazy";
   transition: transform 0.3s ease;
-}
-
-.album-item:hover .album-cover {
-  transform: scale(1.05);
 }
 
 .album-title {

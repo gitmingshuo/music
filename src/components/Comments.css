@@ -73,10 +73,6 @@
     transition: all 0.3s ease;
   }
   
-  .like-button:hover {
-    background: rgba(230, 192, 108, 0.1);
-  }
-  
   .like-count {
     color: #888;
   }

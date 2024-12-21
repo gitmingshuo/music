@@ -1,76 +1,34 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { loginAPI, registerAPI } from '../services/authService';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useState, useContext } from 'react';
+import axios from 'axios';
 
-const UserContext = createContext(null);
+const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [state, setState] = useState({
-    currentUser: undefined,
-    isLoading: true,
-    error: null,
-    favorites: []
+    user: null,
+    loading: false,
+    error: null
   });
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const savedFavorites = localStorage.getItem('favorites');
-    
-    setState(prev => ({
-      ...prev,
-      currentUser: savedUser ? JSON.parse(savedUser) : null,
-      favorites: savedFavorites ? JSON.parse(savedFavorites) : [],
-      isLoading: false
-    }));
-  }, []);
-
-  const updateUserFavorites = async (songId) => {
-    try {
-      const newFavorites = [...state.favorites];
-      const index = newFavorites.indexOf(songId);
-      
-      if (index === -1) {
-        newFavorites.push(songId);
-      } else {
-        newFavorites.splice(index, 1);
-      }
-      
-      localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      
-      setState(prev => ({
-        ...prev,
-        favorites: newFavorites
-      }));
-
-      return true;
-    } catch (error) {
-      console.error('更新收藏失败:', error);
-      return false;
-    }
-  };
 
   const handleLogin = async (credentials) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      const { token, user } = await loginAPI(credentials);
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      const response = await axios.post('/api/auth/login', credentials);
+      const { token, user } = response.data;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setState(prev => ({
         ...prev,
-        currentUser: user,
-        isLoading: false
+        user,
+        loading: false
       }));
-
-      navigate('/', { replace: true });
-      return { success: true };
     } catch (error) {
       setState(prev => ({
         ...prev,
-        error,
-        isLoading: false
+        error: error.response?.data?.message || '登录失败',
+        loading: false
       }));
       throw error;
     }
@@ -78,36 +36,32 @@ export const UserProvider = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
     setState(prev => ({
       ...prev,
-      currentUser: null,
-      isLoading: false
+      user: null
     }));
-    navigate('/login', { replace: true });
   };
 
   const handleRegister = async (userData) => {
-    setState(prev => ({ ...prev, isLoading: true }));
     try {
-      const { token, user } = await registerAPI(userData);
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      const response = await axios.post('/api/auth/register', userData);
+      const { token, user } = response.data;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setState(prev => ({
         ...prev,
-        currentUser: user,
-        isLoading: false
+        user,
+        loading: false
       }));
-
-      navigate('/', { replace: true });
-      return { success: true };
     } catch (error) {
       setState(prev => ({
         ...prev,
-        error,
-        isLoading: false
+        error: error.response?.data?.message || '注册失败',
+        loading: false
       }));
       throw error;
     }
@@ -116,12 +70,12 @@ export const UserProvider = ({ children }) => {
   return (
     <UserContext.Provider 
       value={{
-        ...state,
+        user: state.user,
+        loading: state.loading,
+        error: state.error,
         login: handleLogin,
         logout: handleLogout,
-        register: handleRegister,
-        updateUserFavorites,
-        favorites: state.favorites
+        register: handleRegister
       }}
     >
       {children}
@@ -137,9 +91,4 @@ export const useUser = () => {
   return context;
 };
 
-export const dailyTasks = [
-  { id: 1, title: '每日登录', exp: 10, description: '登录即可获得经验' },
-  { id: 2, title: '收听音乐30分钟', exp: 20, description: '累计收听音乐30分钟' },
-  { id: 3, title: '分享一首歌曲', exp: 15, description: '分享任意一首歌曲' },
-  { id: 4, title: '收藏一首歌曲', exp: 15, description: '收藏任意一首歌曲' }
-];
+export default UserContext;

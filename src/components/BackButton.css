@@ -12,15 +12,10 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: transform 0.2s ease;
 }
 
 .back-icon {
   font-size: 1.5em;
-}
-
-.back-button:hover {
-  transform: translateX(-3px);
 }
 
 .back-text {
