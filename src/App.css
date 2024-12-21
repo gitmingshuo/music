@@ -12,8 +12,9 @@ body {
 /* 主应用布局 */
 .app {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: #121212;
-  color: #fff;
 }
 
 .main-layout {
@@ -21,11 +22,14 @@ body {
   height: 100vh;
 }
 
+/* 内容区域布局 */
 .content-wrapper {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  padding-top: 60px; /* Header 的高度 */
+  height: calc(100vh - 60px);
+  margin-top: 60px;
+  position: relative;
+  width: 100%;
+  z-index: 1;
 }
 
 .main-content {
@@ -56,15 +60,7 @@ body {
   background: #555;
 }
 
-/* 添加新的容器样式 */
-.content-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-/* 修改播放器容器的样式 */
+/* 播放器容器样式 */
 .player-container {
   position: fixed;
   bottom: 0;

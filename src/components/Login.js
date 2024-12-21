@@ -5,72 +5,73 @@ import './Login.css';
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useUser();
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
+  const { login, register } = useUser();
+  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
 
-    if (!formData.username || !formData.password) {
-      setError('请输入用户名和密码');
+    if (!username || !password) {
+      setError('请填写完整信息');
       return;
     }
 
-    try {
-      setLoading(true);
-      await login(formData);
-    } catch (err) {
-      setError(err.message || '登录失败，请重试');
-    } finally {
-      setLoading(false);
+    if (isLogin) {
+      // 登录
+      if (login(username, password)) {
+        navigate('/');
+      } else {
+        setError('用户名或密码错误');
+      }
+    } else {
+      // 注册
+      if (register(username, password)) {
+        navigate('/');
+      } else {
+        setError('用户名已存在');
+      }
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
   };
 
   return (
     <div className="login-container">
-      <h1>登录</h1>
-      {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <input
-            type="text"
-            name="username"
-            placeholder="用户名"
-            value={formData.username}
-            onChange={handleChange}
-            disabled={loading}
-          />
+      <div className="login-box">
+        <h2>{isLogin ? '登录' : '注册'}</h2>
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="用户名"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="密码"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button type="submit" className="submit-btn">
+            {isLogin ? '登录' : '注册'}
+          </button>
+        </form>
+
+        <div className="switch-form">
+          <span onClick={() => setIsLogin(!isLogin)}>
+            {isLogin ? '没有账号？去注册' : '已有账号？去登录'}
+          </span>
         </div>
-        <div className="form-group">
-          <input
-            type="password"
-            name="password"
-            placeholder="密码"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={loading}
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? '登录中...' : '登录'}
-        </button>
-      </form>
-      <div className="register-link">
-        还没有账号？ <span onClick={() => navigate('/register')}>立即注册</span>
       </div>
     </div>
   );
