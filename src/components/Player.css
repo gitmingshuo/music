@@ -9,6 +9,7 @@
   align-items: center;
   padding: 0 16px;
   z-index: 1000;
+  transition: all 0.3s ease;
 }
 
 .player-left {
@@ -122,19 +123,51 @@
 }
 
 .mode-btn {
-  background: none !important;
-  border: none !important;
-  color: #b3b3b3 !important;
+  position: relative;
+  background: none;
+  border: none;
+  color: #b3b3b3;
   cursor: pointer;
-  padding: 8px !important;
-  font-size: 20px !important;
-  transition: none !important;
-  transform: none !important;
+  padding: 8px;
+  font-size: 16px;
+  transition: color 0.2s ease;
 }
 
-.mode-btn:disabled {
+.mode-btn:hover {
+  color: #fff;
+}
+
+.mode-btn.active {
+  color: #1db954;
+}
+
+.mode-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 添加提示动画 */
+.mode-btn::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.mode-btn:hover::after {
+  opacity: 1;
+  visibility: visible;
+  bottom: 120%;
 }
 
 .player-song-info {
@@ -267,4 +300,196 @@
 .mode-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 添加进度条样式 */
+.progress-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  position: relative;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+.progress {
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+  position: relative;
+}
+
+.progress-handle {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+.progress-bar:hover {
+  height: 6px;
+}
+
+.progress-bar:hover .progress-handle {
+  display: block;
+}
+
+/* 添加音量控制样式 */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.volume-btn {
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  cursor: pointer;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.volume-slider-container {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+.volume-control:hover .volume-slider-container {
+  width: 100px;
+}
+
+.volume-slider {
+  -webkit-appearance: none;
+  width: 100px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.time-current,
+.time-total {
+  font-size: 12px;
+  color: #b3b3b3;
+  min-width: 40px;
+}
+
+/* 迷你播放器样式 */
+.player.mini {
+  height: 48px;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.player.mini .player-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.player.mini .player-cover {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+}
+
+.player.mini .player-song-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.player.mini .song-name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player.mini .artist-name {
+  font-size: 10px;
+}
+
+.mini-controls {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.play-pause.mini {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: #fff;
+}
+
+/* 添加悬停效果 */
+.player.mini:hover {
+  background: #333;
+}
+
+/* 添加展开/收起动画 */
+.player {
+  transition: all 0.3s ease;
+}
+
+/* 优化进度条样式 */
+.progress-container {
+  position: relative;
+}
+
+.time-current,
+.time-total {
+  position: absolute;
+  top: -20px;
+  font-size: 12px;
+  color: #b3b3b3;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.time-current {
+  left: 0;
+}
+
+.time-total {
+  right: 0;
+}
+
+/* 鼠标悬停效果 */
+.progress-bar:hover {
+  height: 5px;
+}
+
+.progress-bar:hover .time-current,
+.progress-bar:hover .time-total {
+  opacity: 1;
+}
+
+.progress-bar:hover .progress {
+  background: #ff5252;
 }

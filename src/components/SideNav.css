@@ -1,84 +1,85 @@
-.jay-sidenav {
-    width: 250px;
-    height: 100vh;
-    background: #000000;
-    padding: 20px 0;
-    color: #fff;
-    border-right: 1px solid #282828;
-    overflow-y: auto;
+.side-nav {
+  width: 200px;
+  height: 100%;
+  background: #191919;
+  padding: 20px 0;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2c2c2c;
 }
 
-.jay-sidenav__logo {
-    padding: 0 20px;
-    margin-bottom: 30px;
+.logo {
+  padding: 0 20px;
+  margin-bottom: 20px;
 }
 
-.jay-sidenav__logo h1 {
-    color: #e6c06c;
-    font-size: 24px;
-    font-weight: bold;
+.logo h1 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
 }
 
-.jay-sidenav__section {
-    margin-bottom: 24px;
+.nav-section {
+  margin-bottom: 30px;
+  padding: 0 10px;
 }
 
-.jay-sidenav__title {
-    padding: 0 20px;
-    font-size: 12px;
-    color: #b3b3b3;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+.nav-section h3 {
+  font-size: 12px;
+  color: #999;
+  padding: 0 10px;
+  margin-bottom: 8px;
 }
 
-.jay-sidenav__item {
-    display: flex;
-    align-items: center;
-    padding: 8px 20px;
-    color: #b3b3b3;
-    text-decoration: none;
-    font-size: 14px;
+.nav-section ul {
+  list-style: none;
 }
 
-.jay-sidenav__item:hover {
-    color: #fff;
+.nav-section li {
+  margin-bottom: 2px;
 }
 
-.jay-sidenav__item.active {
-    color: #e6c06c;
-    background: rgba(230, 192, 108, 0.1);
+.nav-section a {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: #ccc;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.3s;
 }
 
-.jay-sidenav__icon {
-    margin-right: 12px;
-    font-size: 20px;
+.nav-section a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.jay-sidenav__playlist-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: all 0.3s;
+.nav-section a.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.jay-sidenav__playlist-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+.nav-section a svg {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
 }
 
-.jay-sidenav__playlist-cover {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    margin-right: 10px;
+.nav-section a span {
+  font-size: 14px;
 }
 
-.jay-sidenav__playlist-name {
-    color: #ccc;
-    font-size: 14px;
+/* 滚动条样式 */
+.side-nav::-webkit-scrollbar {
+  width: 6px;
 }
 
-.jay-sidenav__header {
-    padding: 20px;
-    border-bottom: 1px solid #282828;
+.side-nav::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.side-nav::-webkit-scrollbar-track {
+  background: transparent;
 }

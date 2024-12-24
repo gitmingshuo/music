@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BackButton from './components/BackButton';
 import './Search.css';
 import { albums } from './Home';
 
@@ -88,7 +87,7 @@ function Search() {
   return (
     <div className="search-page">
       <div className="search-header">
-        <BackButton />
+        <button onClick={() => navigate(-1)}>返回</button>
         <div className="search-bar">
           <input
             type="text"

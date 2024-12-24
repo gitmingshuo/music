@@ -1,78 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FaArrowLeft, FaArrowRight, FaSearch } from 'react-icons/fa';
 import './Header.css';
 
 function Header() {
-  const { currentUser, logout } = useUser();
   const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showMenu && !event.target.closest('.user-info')) {
-        setShowMenu(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [showMenu]);
+  const location = useLocation();
 
   return (
-    <div className="header">
+    <header className="header">
       <div className="header-left">
-        <div className="header-search">
-          <input type="text" placeholder="搜索音乐、歌手、歌词、用户" />
+        <div className="nav-buttons">
+          <button 
+            className="nav-btn"
+            onClick={() => navigate(-1)}
+          >
+            <FaArrowLeft />
+          </button>
+          <button 
+            className="nav-btn"
+            onClick={() => navigate(1)}
+          >
+            <FaArrowRight />
+          </button>
+        </div>
+        
+        <div className="search-box">
+          <FaSearch className="search-icon" />
+          <input 
+            type="text" 
+            placeholder="搜索音乐" 
+            onClick={() => navigate('/search')}
+          />
         </div>
       </div>
       
       <div className="header-right">
-        <div className="user-info" onClick={() => setShowMenu(!showMenu)}>
-          <div className="avatar">
-            {currentUser?.avatar ? (
-              <img src={currentUser.avatar} alt="头像" />
-            ) : (
-              <span>{currentUser?.username?.[0]?.toUpperCase()}</span>
-            )}
-          </div>
-          <span className="username">{currentUser?.username}</span>
-          
-          {showMenu && (
-            <div className="user-menu">
-              <div className="menu-items">
-                <div className="menu-item" onClick={() => {
-                  navigate('/profile');
-                  setShowMenu(false);
-                }}>
-                  个人主页
-                </div>
-                <div className="menu-item" onClick={() => {
-                  navigate('/level');
-                  setShowMenu(false);
-                }}>
-                  我的等级
-                </div>
-                <div className="menu-item" onClick={() => {
-                  navigate('/settings');
-                  setShowMenu(false);
-                }}>
-                  个人设置
-                </div>
-                <div className="menu-item" onClick={handleLogout}>
-                  退出登录
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="user-info">
+          <img 
+            src="/default-avatar.png" 
+            alt="用户头像" 
+            className="user-avatar"
+          />
+          <span className="user-name">游客</span>
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 

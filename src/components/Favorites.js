@@ -1,16 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFavorites } from '../context/FavoriteContext';
-import { usePlayer } from '../context/PlayerContext';
+import { useMusic } from '../context/MusicContext';
 import { FaHeart } from 'react-icons/fa';
-import BackButton from '../components/BackButton';
 import { albums } from '../Home';
 import './Favorites.css';
 
 function Favorites() {
   const navigate = useNavigate();
-  const { favorites, toggleFavorite } = useFavorites();
-  const { addToPlaylist } = usePlayer();
+  const { favorites, toggleFavorite, addToPlaylist } = useMusic();
 
   const getSongAlbumInfo = (songName) => {
     for (const album of albums) {
@@ -51,10 +48,7 @@ function Favorites() {
   return (
     <div className="favorites-page">
       <div className="favorites-header">
-        <h1>
-          <span className="back-arrow" onClick={() => navigate(-1)}>←</span>
-          我喜欢的音乐
-        </h1>
+        <h1>我喜欢的音乐</h1>
       </div>
 
       <div className="favorites-list">

@@ -1,105 +1,107 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { usePlayer } from './context/PlayerContext';
+import { useMusic } from './context/MusicContext';
 import './SongDetail.css';
 
 function SongDetail() {
-  const { addToPlaylist } = usePlayer();
   const location = useLocation();
   const { 
-    song, 
-    albumName, 
-    albumCover, 
-    audio: audioUrl,
-    songList,
-    currentIndex 
-  } = location.state || {};
+    currentSong, 
+    isPlaying, 
+    togglePlay, 
+    currentTime, 
+    duration,
+    setIsPlaying
+  } = useMusic();
   const [lyrics, setLyrics] = useState([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
-  const currentSongRef = useRef(null);
 
-  // 加载歌词
   useEffect(() => {
-    // 直接加载默认歌词文件
-    fetch('/lyrics/default.json')
-      .then(response => response.json())
-      .then(data => {
-        console.log('成功加载默认歌词');
-        setLyrics(data.lyrics);
-      })
-      .catch(error => {
+    // 加载歌词
+    const loadLyrics = async () => {
+      try {
+        const response = await fetch(`/lyrics/${encodeURIComponent(currentSong?.name || '')}.json`);
+        if (response.ok) {
+          const data = await response.json();
+          setLyrics(data.lyrics);
+        } else {
+          setLyrics([{ time: 0, text: "暂无歌词" }]);
+        }
+      } catch (error) {
         console.error('加载歌词失败:', error);
         setLyrics([{ time: 0, text: "暂无歌词" }]);
-      });
-  }, []);
+      }
+    };
+
+    if (currentSong) {
+      loadLyrics();
+    }
+  }, [currentSong]);
 
   // 更新当前歌词
   useEffect(() => {
     if (!lyrics.length) return;
     
-    const updateLyric = (currentTime) => {
-      const index = lyrics.findIndex((lyric, i) => {
-        const nextTime = lyrics[i + 1]?.time ?? Infinity;
-        return lyric.time <= currentTime && currentTime < nextTime;
-      });
-      
-      if (index !== -1) {
-        setCurrentLyricIndex(index);
-      }
-    };
+    const index = lyrics.findIndex((lyric, i) => {
+      const nextTime = lyrics[i + 1]?.time ?? Infinity;
+      return lyric.time <= currentTime && currentTime < nextTime;
+    });
     
-    const audio = document.querySelector('audio');
-    if (audio) {
-      const handleTimeUpdate = (e) => updateLyric(e.target.currentTime);
-      audio.addEventListener('timeupdate', handleTimeUpdate);
-
-      return () => {
-        audio.removeEventListener('timeupdate', handleTimeUpdate);
-      };
+    if (index !== -1) {
+      setCurrentLyricIndex(index);
     }
-  }, [lyrics]);
+  }, [currentTime, lyrics]);
 
-  // 设置当前歌曲
-  useEffect(() => {
-    if (song && albumName && albumCover && audioUrl) {
-      const songData = {
-        name: song,
-        album: albumName,
-        cover: albumCover,
-        audio: audioUrl
-      };
-      
-      // 如果有歌曲列表，使用完整列表
-      if (songList && songList.length > 0) {
-        const fullPlaylist = songList.map(s => ({
-          name: s,
-          album: albumName,
-          cover: albumCover,
-          audio: `/music/${encodeURIComponent(s)}.mp3`
-        }));
-        
-        // 使用 addToPlaylist 替代 setCurrentSong
-        if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
-          addToPlaylist(songData, fullPlaylist);
-          currentSongRef.current = songData;
-        }
-      } else {
-        // 如果没有列表，只添加当前歌曲
-        if (JSON.stringify(songData) !== JSON.stringify(currentSongRef.current)) {
-          addToPlaylist(songData, [songData]);
-          currentSongRef.current = songData;
-        }
-      }
+  // 添加播放控制相关的处理函数
+  const handlePlayPause = () => {
+    if (togglePlay) {
+      togglePlay();
     }
-  }, [song, albumName, albumCover, audioUrl, songList, addToPlaylist]);
+  };
+
+  const Comments = ({ songName }) => {
+    const songComments = Comments[songName] || [];
+    
+    return (
+      <div className="comments-section">
+        <h2>评论区</h2>
+        <div className="comments-container">
+          {songComments.map(comment => (
+            <div key={comment.id} className="comment-item">
+              <div className="comment-avatar">
+                <img src={comment.avatar} alt="avatar" />
+              </div>
+              <div className="comment-content">
+                <div className="comment-header">
+                  <span className="username">{comment.username}</span>
+                  <span className="time">{comment.time}</span>
+                </div>
+                <p className="comment-text">{comment.content}</p>
+                <div className="comment-footer">
+                  <button className="like-button">
+                    <span className="like-icon">♥</span>
+                    <span className="like-count">{comment.likes}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  if (!currentSong) {
+    return <div className="song-detail-container">未找到歌曲信息</div>;
+  }
 
   return (
     <div className="song-detail-container">
       <div className="song-header">
         <div className="song-title">
-          <h1>{song}</h1>
+          <h1>{currentSong.name}</h1>
           <div className="song-meta">
-            <span>专辑：{albumName}</span>
+            <span>专辑：{currentSong.album}</span>
             <span>歌手：周杰伦</span>
             <span>来源：心拓-喜欢的音乐</span>
           </div>
@@ -110,7 +112,7 @@ function SongDetail() {
         <div className="vinyl-container">
           <div className="vinyl-arm"></div>
           <div className="vinyl-disc">
-            <img src={albumCover} alt={song} className="vinyl-cover" />
+            <img src={currentSong.cover} alt={currentSong.name} className="vinyl-cover" />
           </div>
         </div>
 
@@ -127,6 +129,15 @@ function SongDetail() {
           </div>
         </div>
       </div>
+
+      {/* 可以添加播放控制按钮 */}
+      <div className="player-controls">
+        <button onClick={handlePlayPause}>
+          {isPlaying ? '暂停' : '播放'}
+        </button>
+      </div>
+
+      <Comments songName={currentSong?.name} />
     </div>
   );
 }

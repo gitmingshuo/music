@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaSyncAlt } from 'react-icons/fa';
-import { usePlayer } from '../context/PlayerContext';
-import { useFavorites } from '../context/FavoriteContext';
+import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaSyncAlt, FaRetweet, FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
+import { useMusic } from '../context/MusicContext';
 import { albums } from '../Home';
 import './Player.css';
 
@@ -19,11 +18,18 @@ function Player() {
     playNext,
     playPrevious,
     playMode,
-    togglePlayMode 
-  } = usePlayer();
+    togglePlayMode,
+    isMini,
+    toggleMiniMode,
+    favorites,
+    toggleFavorite
+  } = useMusic();
   
-  const { favorites, toggleFavorite } = useFavorites();
   const [isLiked, setIsLiked] = useState(false);
+
+  const [volume, setVolume] = useState(1);
+  const [prevVolume, setPrevVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   const getAlbumInfo = (songName) => {
     for (const album of albums) {
@@ -75,6 +81,8 @@ function Player() {
     if (currentSong) {
       toggleFavorite({
         name: currentSong.name,
+        albumName: currentSong.albumName,
+        albumCover: currentSong.albumCover
       });
     }
   };
@@ -160,8 +168,106 @@ function Player() {
     }
   }, [isPlaying]);
 
+  const getPlayModeIcon = () => {
+    switch(playMode) {
+      case 'single':
+        return <FaRetweet />;
+      case 'random':
+        return <FaRandom />;
+      case 'list':
+      default:
+        return <FaList />;
+    }
+  };
+
+  const getPlayModeTitle = () => {
+    switch(playMode) {
+      case 'single':
+        return '��曲循环';
+      case 'random':
+        return '随机播放';
+      case 'list':
+      default:
+        return '列表循环';
+    }
+  };
+
+  const handleSongEnd = () => {
+    if (playMode === 'single') {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+    } else if (playMode === 'random') {
+      const playlist = albums.flatMap(album => album.songs);
+      const randomIndex = Math.floor(Math.random() * playlist.length);
+      playNext(randomIndex);
+    } else {
+      playNext();
+    }
+  };
+
+  const handleProgressMouseDown = (e) => {
+    setIsDragging(true);
+    handleProgressChange(e);
+  };
+
+  const handleProgressMouseMove = (e) => {
+    if (isDragging) {
+      handleProgressChange(e);
+    }
+  };
+
+  const handleProgressMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleProgressChange = (e) => {
+    if (!audioRef.current || !progressRef.current) return;
+    
+    const rect = progressRef.current.getBoundingClientRect();
+    const percent = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    const newTime = percent * duration;
+    
+    setCurrentTime(newTime);
+    audioRef.current.currentTime = newTime;
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setPrevVolume(newVolume);
+    setIsMuted(newVolume === 0);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      if (isMuted) {
+        setVolume(prevVolume);
+        audioRef.current.volume = prevVolume;
+      } else {
+        setPrevVolume(volume);
+        setVolume(0);
+        audioRef.current.volume = 0;
+      }
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    toggleMiniMode();
+  };
+
   return (
-    <div className="player" onClick={e => e.stopPropagation()}>
+    <div 
+      className={`player ${isMini ? 'mini' : ''}`} 
+      onClick={e => e.stopPropagation()}
+      onDoubleClick={handleDoubleClick}
+    >
       <div className="player-left">
         <div className="player-cover">
           {currentSong?.name && (
@@ -179,60 +285,116 @@ function Player() {
         </div>
       </div>
       
-      <div className="player-center">
-        <div className="control-buttons">
+      {!isMini && (
+        <div className="player-center">
+          <div className="control-buttons">
+            <button 
+              onClick={handlePrevious} 
+              className="control-btn"
+              aria-label="上一首"
+              disabled={!currentSong}
+            >
+              <FaStepBackward />
+            </button>
+            <button 
+              className="play-pause"
+              onClick={togglePlay}
+              aria-label={isPlaying ? "暂停" : "播放"}
+              disabled={!currentSong}
+            >
+              {isPlaying ? <FaPause /> : <FaPlay />}
+            </button>
+            <button 
+              onClick={handleNext}
+              className="control-btn"
+              aria-label="下一首"
+              disabled={!currentSong}
+            >
+              <FaStepForward />
+            </button>
+          </div>
+          
+          <div className="progress-container">
+            <span className="time-current">{formatTime(currentTime)}</span>
+            <div 
+              className="progress-bar"
+              ref={progressRef}
+              onMouseDown={handleProgressMouseDown}
+              onMouseMove={handleProgressMouseMove}
+              onMouseUp={handleProgressMouseUp}
+              onMouseLeave={handleProgressMouseUp}
+            >
+              <div 
+                className="progress"
+                style={{ width: `${(currentTime / duration) * 100}%` }}
+              />
+              <div 
+                className="progress-handle"
+                style={{ left: `${(currentTime / duration) * 100}%` }}
+              />
+            </div>
+            <span className="time-total">{formatTime(duration)}</span>
+          </div>
+        </div>
+      )}
+
+      {!isMini ? (
+        <div className="player-right">
           <button 
-            onClick={handlePrevious} 
-            className="control-btn"
-            aria-label="上一首"
+            className={`like-btn ${isLiked ? 'active' : ''}`} 
+            onClick={handleLike}
+            aria-label={isLiked ? "取消收藏" : "收藏"}
             disabled={!currentSong}
           >
-            <FaStepBackward />
+            <FaHeart />
           </button>
           <button 
-            className="play-pause"
+            className={`mode-btn ${currentSong ? '' : 'disabled'}`}
+            onClick={handlePlayMode}
+            title={getPlayModeTitle()}
+            disabled={!currentSong}
+          >
+            {getPlayModeIcon()}
+          </button>
+          
+          <div className="volume-control">
+            <button 
+              className="volume-btn"
+              onClick={toggleMute}
+              title={isMuted ? "取消静音" : "静音"}
+            >
+              {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+            </button>
+            <div className="volume-slider-container">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="volume-slider"
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mini-controls">
+          <button 
+            className="play-pause mini"
             onClick={togglePlay}
             aria-label={isPlaying ? "暂停" : "播放"}
             disabled={!currentSong}
           >
             {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
-          <button 
-            onClick={handleNext}
-            className="control-btn"
-            aria-label="下一首"
-            disabled={!currentSong}
-          >
-            <FaStepForward />
-          </button>
         </div>
-      </div>
-
-      <div className="player-right">
-        <button 
-          className={`like-btn ${isLiked ? 'active' : ''}`} 
-          onClick={handleLike}
-          aria-label={isLiked ? "取消收藏" : "收藏"}
-          disabled={!currentSong}
-        >
-          <FaHeart />
-        </button>
-        <button 
-          className="mode-btn" 
-          onClick={handlePlayMode}
-          aria-label={`播放模式: ${playMode}`}
-          disabled={!currentSong}
-        >
-          {playMode === 'shuffle' ? <FaRandom /> : 
-           playMode === 'loop' ? <FaSyncAlt /> : 
-           <FaList />}
-        </button>
-      </div>
+      )}
 
       <audio
         ref={audioRef}
         src={currentSong?.audio}
-        onEnded={playNext}
+        onEnded={handleSongEnd}
       />
     </div>
   );

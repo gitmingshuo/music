@@ -1,14 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRecentPlays } from '../context/RecentPlaysContext';
-import { usePlayer } from '../context/PlayerContext';
-import BackButton from './BackButton';
+import { useMusic } from '../context/MusicContext';
 import './RecentPlays.css';
 
 function RecentPlays() {
   const navigate = useNavigate();
-  const { recentPlays, clearRecentPlays } = useRecentPlays();
-  const { setCurrentSong, setIsPlaying } = usePlayer();
+  const { recentPlays, clearRecentPlays, setCurrentSong, setIsPlaying } = useMusic();
 
   const handleSongClick = async (song) => {
     try {
@@ -57,7 +54,6 @@ function RecentPlays() {
   return (
     <div className="recent-plays-page">
       <div className="recent-plays-header">
-        <BackButton />
         <h1>最近播放</h1>
         {recentPlays.length > 0 && (
           <button 

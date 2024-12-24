@@ -3,15 +3,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { albums } from '../Home';
 import './Albums.css';
-import BackButton from './BackButton';
 
 function Albums() {
   const navigate = useNavigate();
-
+  
   return (
     <div className="albums-container">
       <div className="albums-header">
-        <BackButton />
         <h1>专辑</h1>
       </div>
 

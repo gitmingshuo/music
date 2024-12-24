@@ -76,16 +76,6 @@
   margin-top: 32px;
 }
 
-.songs-header {
-  display: grid;
-  grid-template-columns: 48px 1fr;
-  padding: 8px 16px;
-  color: #b3b3b3;
-  font-size: 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  margin-bottom: 8px;
-}
-
 .song-list {
   display: flex;
   flex-direction: column;
@@ -130,4 +120,30 @@
   .album-content {
     padding: 24px;
   }
+}
+
+/* 添加加载动画 */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #fff;
+}
+
+/* 错误提示样式 */
+.error-message {
+  color: #ff4444;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 优化动画过渡效果 */
+.song-item {
+  transition: all 0.2s ease;
+}
+
+.song-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(10px);
 }
