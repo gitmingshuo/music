@@ -10,6 +10,7 @@ function Player() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState(null);
   
   const { 
     currentSong, 
@@ -45,7 +46,8 @@ function Player() {
 
   useEffect(() => {
     if (currentSong) {
-      const isFavorited = favorites.some(
+      const favoritesList = Array.isArray(favorites) ? favorites : [];
+      const isFavorited = favoritesList.some(
         fav => fav.name === currentSong.name
       );
       setIsLiked(isFavorited);
@@ -79,11 +81,8 @@ function Player() {
   const handleLike = (e) => {
     e.stopPropagation();
     if (currentSong) {
-      toggleFavorite({
-        name: currentSong.name,
-        albumName: currentSong.albumName,
-        albumCover: currentSong.albumCover
-      });
+      toggleFavorite(currentSong);
+      setIsLiked(!isLiked);
     }
   };
 
@@ -183,7 +182,7 @@ function Player() {
   const getPlayModeTitle = () => {
     switch(playMode) {
       case 'single':
-        return '��曲循环';
+        return '单曲循环';
       case 'random':
         return '随机播放';
       case 'list':
@@ -257,9 +256,10 @@ function Player() {
     }
   };
 
-  const handleDoubleClick = (e) => {
-    e.stopPropagation();
-    toggleMiniMode();
+  const handleDoubleClick = () => {
+    if (toggleMiniMode) {
+      toggleMiniMode();
+    }
   };
 
   return (
@@ -268,6 +268,11 @@ function Player() {
       onClick={e => e.stopPropagation()}
       onDoubleClick={handleDoubleClick}
     >
+      {error && (
+        <div className="player-error">
+          {error}
+        </div>
+      )}
       <div className="player-left">
         <div className="player-cover">
           {currentSong?.name && (
@@ -341,9 +346,8 @@ function Player() {
       {!isMini ? (
         <div className="player-right">
           <button 
-            className={`like-btn ${isLiked ? 'active' : ''}`} 
+            className={`like-btn ${isLiked ? 'active' : ''}`}
             onClick={handleLike}
-            aria-label={isLiked ? "取消收藏" : "收藏"}
             disabled={!currentSong}
           >
             <FaHeart />
@@ -394,6 +398,12 @@ function Player() {
       <audio
         ref={audioRef}
         src={currentSong?.audio}
+        onError={(e) => {
+          console.error('音频加载失败:', e);
+          console.log('当前音频路径:', currentSong?.audio);
+          console.log('当前歌曲信息:', currentSong);
+          setError('音频加载失败，请稍后重试');
+        }}
         onEnded={handleSongEnd}
       />
     </div>

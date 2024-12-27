@@ -6,11 +6,22 @@ import {
   FaMusic, 
   FaHeart, 
   FaHistory,
-  FaList
+  FaList,
+  FaPlus
 } from 'react-icons/fa';
 import './SideNav.css';
+import { useMusic } from '../context/MusicContext';
 
 function SideNav() {
+  const { playlists, createPlaylist } = useMusic();
+  
+  const handleCreatePlaylist = () => {
+    const name = prompt('请输入歌单名称');
+    if (name && name.trim()) {
+      createPlaylist(name.trim());
+    }
+  };
+  
   return (
     <nav className="side-nav">
       <div className="logo">
@@ -60,14 +71,28 @@ function SideNav() {
       </div>
 
       <div className="nav-section">
-        <h3>创建的歌单</h3>
+        <div className="section-header">
+          <h3>创建的歌单</h3>
+          <button 
+            className="create-playlist-btn"
+            onClick={handleCreatePlaylist}
+            title="创建新歌单"
+          >
+            <FaPlus />
+          </button>
+        </div>
         <ul>
-          <li>
-            <NavLink to="/playlist/my-favorite" className={({ isActive }) => isActive ? 'active' : ''}>
-              <FaList />
-              <span>我喜欢的音乐</span>
-            </NavLink>
-          </li>
+          {playlists.map(playlist => (
+            <li key={playlist.id}>
+              <NavLink 
+                to={`/playlist/${playlist.id}`} 
+                className={({ isActive }) => isActive ? 'active' : ''}
+              >
+                <FaList />
+                <span>{playlist.name}</span>
+              </NavLink>
+            </li>
+          ))}
         </ul>
       </div>
     </nav>

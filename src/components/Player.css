@@ -93,33 +93,50 @@
   height: 18px;
 }
 
-.like-btn {
-  background: none !important;
-  border: none !important;
-  color: #b3b3b3 !important;
+.like-btn,
+.mode-btn,
+.volume-btn {
+  background: transparent;
+  border: none;
+  color: #999;
   cursor: pointer;
-  padding: 8px !important;
-  font-size: 20px !important;
-  transition: none !important;
-  transform: none !important;
+  padding: 8px;
+  font-size: 20px;
+  transition: color 0.2s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.like-btn svg,
+.mode-btn svg,
+.volume-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 .like-btn.active {
-  color: #ff3a3a !important;
+  color: #ff4e4e;
 }
 
-.like-btn:hover,
+.like-btn:disabled,
+.mode-btn:disabled,
+.volume-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.like-btn:focus,
+.mode-btn:focus,
+.volume-btn:focus {
+  outline: none;
+}
+
 .like-btn:active,
-.like-btn:focus {
-  background: none !important;
-  color: inherit !important;
-  transform: none !important;
-  opacity: 1 !important;
-}
-
-.like-btn:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
+.mode-btn:active,
+.volume-btn:active {
+  background: transparent;
 }
 
 .mode-btn {
@@ -492,4 +509,17 @@
 
 .progress-bar:hover .progress {
   background: #ff5252;
+}
+
+.player-error {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 82, 82, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
 }

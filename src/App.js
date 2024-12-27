@@ -13,6 +13,7 @@ import Player from './components/Player';
 import Albums from './components/Albums';
 import RecentPlays from './components/RecentPlays';
 import Header from './components/Header';
+import Playlist from './components/Playlist';
 
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
                   <Route path="/favorites" element={<Favorites />} />
                   <Route path="/albums" element={<Albums />} />
                   <Route path="/recent-plays" element={<RecentPlays />} />
+                  <Route path="/playlist/:id" element={<Playlist />} />
                 </Routes>
               </div>
             </div>

@@ -1,0 +1,13 @@
+# 允许访问静态文件
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType audio/mpeg mp3
+    AddType application/json json
+    AddType image/jpeg jpg jpeg
+</IfModule>
+
+# 允许目录列表
+Options +Indexes 

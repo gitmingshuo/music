@@ -1,0 +1,26 @@
+.error-container {
+  padding: 20px;
+  text-align: center;
+  color: #ff4444;
+}
+
+.error-message {
+  background: rgba(255, 68, 68, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.retry-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #ff4444;
+  color: white;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  background: #ff6666;
+} 

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useMusic } from './context/MusicContext';
 import './AlbumDetail.css';
 import { motion } from 'framer-motion';
+import AddToPlaylistButton from './components/AddToPlaylistButton';
 
 function AlbumDetail() {
   const location = useLocation();
@@ -29,28 +30,53 @@ function AlbumDetail() {
   const handleSongClick = async (song) => {
     try {
       setIsLoading(true);
-      const defaultAudio = '/music/说好不哭.mp3';
+      setError(null);
       
+      // 简化的文件名处理
+      const fileName = encodeURIComponent(song);
+      const audioPath = `/static/music/${fileName}.mp3`;
+      
+      // 检查文件是否存在
+      const checkFile = async () => {
+        try {
+          const response = await fetch(audioPath, {
+            method: 'HEAD',
+            headers: {
+              'Accept': '*/*',
+              'User-Agent': 'Music-App'
+            }
+          });
+          return response.ok;
+        } catch (err) {
+          return false;
+        }
+      };
+
+      if (!(await checkFile())) {
+        throw new Error(`音频文件不存在: ${song}`);
+      }
+
       const songInfo = {
         name: song,
         albumName: album.name,
         albumCover: album.cover,
-        audio: defaultAudio
+        audio: audioPath
       };
       
       const playlist = album.songs.map(s => ({
         name: s,
         albumName: album.name,
         albumCover: album.cover,
-        audio: defaultAudio
+        audio: `/static/music/${encodeURIComponent(s)}.mp3`
       }));
-      
+
       await addToPlaylist(songInfo, playlist);
-      navigate(`/song/${encodeURIComponent(song)}`);
+      navigate(`/song/${fileName}`);
     } catch (err) {
-      setError('播放失败,请稍后重试');
+      console.error('播放失败:', err);
+      setError(err.message || '播放失败，请稍后重试');
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -74,7 +100,7 @@ function AlbumDetail() {
         <>
           <img 
             src={album.cover} 
-            alt={album.name} 
+            alt={album.name}
             className="album-background"
           />
           
@@ -101,6 +127,7 @@ function AlbumDetail() {
               <div className="songs-header">
                 <div>#</div>
                 <div>歌曲名</div>
+                <div></div>
               </div>
               
               <motion.div 
@@ -110,16 +137,22 @@ function AlbumDetail() {
                 transition={{ delay: 0.2 }}
               >
                 {album.songs.map((song, index) => (
-                  <motion.div 
+                  <div 
                     key={index}
                     className="song-item"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleSongClick(song)}
                   >
                     <span className="song-number">{index + 1}</span>
                     <span className="song-name">{song}</span>
-                  </motion.div>
+                    <AddToPlaylistButton 
+                      song={{
+                        name: song,
+                        albumName: album.name,
+                        albumCover: album.cover,
+                        audio: `/static/music/${song}.mp3`
+                      }}
+                    />
+                  </div>
                 ))}
               </motion.div>
             </div>

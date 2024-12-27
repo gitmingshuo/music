@@ -83,3 +83,43 @@
 .side-nav::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* 添加标题栏样式 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  margin-bottom: 8px;
+}
+
+.section-header h3 {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+/* 添加创建按钮样式 */
+.create-playlist-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.create-playlist-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.create-playlist-btn svg {
+  width: 14px;
+  height: 14px;
+}

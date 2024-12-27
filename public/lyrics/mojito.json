@@ -1,0 +1,10 @@
+{
+  "title": "Mojito",
+  "artist": "周杰伦",
+  "lyrics": [
+    { "time": 0, "text": "作词：周杰伦" },
+    { "time": 2, "text": "作曲：周杰伦" },
+    { "time": 4, "text": "编曲：周杰伦" },
+    { "time": 6, "text": "制作人：周杰伦" }
+  ]
+} 

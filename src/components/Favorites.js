@@ -9,6 +9,9 @@ function Favorites() {
   const navigate = useNavigate();
   const { favorites, toggleFavorite, addToPlaylist } = useMusic();
 
+  // 确保 favorites 是数组
+  const favoritesList = Array.isArray(favorites) ? favorites : [];
+
   const getSongAlbumInfo = (songName) => {
     for (const album of albums) {
       if (album.songs.includes(songName)) {
@@ -52,41 +55,45 @@ function Favorites() {
       </div>
 
       <div className="favorites-list">
-        {favorites.map((favorite, index) => {
-          const songName = typeof favorite === 'string' ? favorite : favorite.name;
-          const albumInfo = getSongAlbumInfo(songName);
-          
-          return (
-            <div 
-              key={index} 
-              className="favorite-item"
-              onClick={() => handleSongClick(songName)}
-            >
-              <div className="song-cover">
-                {albumInfo?.albumCover ? (
-                  <img src={albumInfo.albumCover} alt={songName} />
-                ) : (
-                  <div className="default-cover">
-                    {songName[0]}
-                  </div>
-                )}
-              </div>
-              <div className="song-info">
-                <span className="song-name">{songName}</span>
-                <span className="album-name">{albumInfo?.albumName || '未知专辑'}</span>
-              </div>
-              <button 
-                className="remove-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(songName);
-                }}
+        {favoritesList.length === 0 ? (
+          <p>还没有收藏任何歌曲</p>
+        ) : (
+          favoritesList.map((favorite, index) => {
+            const songName = typeof favorite === 'string' ? favorite : favorite.name;
+            const albumInfo = getSongAlbumInfo(songName);
+            
+            return (
+              <div 
+                key={index} 
+                className="favorite-item"
+                onClick={() => handleSongClick(songName)}
               >
-                <FaHeart />
-              </button>
-            </div>
-          );
-        })}
+                <div className="song-cover">
+                  {albumInfo?.albumCover ? (
+                    <img src={albumInfo.albumCover} alt={songName} />
+                  ) : (
+                    <div className="default-cover">
+                      {songName[0]}
+                    </div>
+                  )}
+                </div>
+                <div className="song-info">
+                  <span className="song-name">{songName}</span>
+                  <span className="album-name">{albumInfo?.albumName || '未知专辑'}</span>
+                </div>
+                <button 
+                  className="remove-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(songName);
+                  }}
+                >
+                  <FaHeart />
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
