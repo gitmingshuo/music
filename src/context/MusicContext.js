@@ -1,6 +1,39 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { albums } from '../Home';  // 确保正确导入 albums
 
 const MusicContext = createContext();
+
+// 工具函数
+const getAlbumInfo = (songName) => {
+  try {
+    for (const album of albums) {
+      if (album.songs.includes(songName)) {
+        return {
+          albumName: album.name,
+          albumCover: album.cover
+        };
+      }
+    }
+    return {
+      albumName: '最伟大的作品',
+      albumCover: '/static/media/最伟大的作品.jpg'
+    };
+  } catch (error) {
+    console.error('获取专辑信息失败:', error);
+    return {
+      albumName: '未知专辑',
+      albumCover: '/static/media/最伟大的作品.jpg'
+    };
+  }
+};
+
+const getAudioPath = (songName) => {
+  return `/static/music/红颜如霜.mp3`;
+};
+
+const getLyricsPath = (songName) => {
+  return `/static/lyrics/粉色海洋.json`;
+};
 
 export function MusicProvider({ children }) {
   const [currentSong, setCurrentSong] = useState(null);
@@ -47,6 +80,9 @@ export function MusicProvider({ children }) {
     }
   });
   const [isMini, setIsMini] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     try {
@@ -100,26 +136,49 @@ export function MusicProvider({ children }) {
     if (!playlist.length) return;
     const currentIndex = playlist.findIndex(song => song.name === currentSong?.name);
     const nextIndex = (currentIndex + 1) % playlist.length;
-    setCurrentSong(playlist[nextIndex]);
+    const nextSong = playlist[nextIndex];
+    
+    setCurrentSong({
+      ...nextSong,
+      audio: getAudioPath(nextSong.name)
+    });
+    setIsPlaying(true);
+    addToRecentPlays(nextSong);
   };
 
   const playPrevious = () => {
     if (!playlist.length) return;
     const currentIndex = playlist.findIndex(song => song.name === currentSong?.name);
     const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    setCurrentSong(playlist[prevIndex]);
+    const prevSong = playlist[prevIndex];
+    
+    setCurrentSong({
+      ...prevSong,
+      audio: getAudioPath(prevSong.name)
+    });
+    setIsPlaying(true);
+    addToRecentPlays(prevSong);
   };
 
   const addToPlaylist = (song, fullPlaylist = null) => {
     console.log('Adding song:', song);
     if (fullPlaylist) {
-      console.log('Full playlist:', fullPlaylist);
-      setPlaylist(fullPlaylist);
+      const playlistWithAudio = fullPlaylist.map(song => ({
+        ...song,
+        audio: getAudioPath(song.name)
+      }));
+      setPlaylist(playlistWithAudio);
     } else {
-      setPlaylist(prev => [...prev, song]);
+      setPlaylist(prev => [...prev, { ...song, audio: getAudioPath(song.name) }]);
     }
-    setCurrentSong(song);
+    
+    const songWithAudio = {
+      ...song,
+      audio: getAudioPath(song.name)
+    };
+    setCurrentSong(songWithAudio);
     setIsPlaying(true);
+    addToRecentPlays(song);
   };
 
   // 收藏相关方法
@@ -220,6 +279,39 @@ export function MusicProvider({ children }) {
     setIsMini(prev => !prev);
   };
 
+  // 添加音频时间更新处理
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const time = audioRef.current.currentTime;
+      const duration = audioRef.current.duration;
+      setCurrentTime(time);
+      setDuration(duration);
+    }
+  };
+
+  // 添加音频加载完成处理
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  // 添加进度条控制函数
+  const handleSeek = (newTime) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+      
+      // 如果当前是暂停状态，设置为播放状态
+      if (!isPlaying) {
+        audioRef.current.play().catch(error => {
+          console.error('播放失败:', error);
+        });
+        setIsPlaying(true);
+      }
+    }
+  };
+
   const value = {
     currentSong,
     isPlaying,
@@ -227,23 +319,33 @@ export function MusicProvider({ children }) {
     favorites,
     recentPlays,
     playMode,
+    currentTime,
+    duration,
+    error,
     setCurrentSong,
     setIsPlaying,
-    togglePlay,
-    addToPlaylist,
-    toggleFavorite,
     addToRecentPlays,
     clearRecentPlays,
-    togglePlayMode,
+    setCurrentTime,
+    setDuration,
+    getAlbumInfo,
+    getAudioPath,
+    getLyricsPath,
     playlists,
     createPlaylist,
     addSongToPlaylist,
     removeSongFromPlaylist,
     deletePlaylist,
-    clearFavorites,
+    togglePlayMode,
+    playNext,
+    playPrevious,
+    handleSeek,
     isMini,
     toggleMiniMode,
-    audioRef
+    audioRef,
+    toggleFavorite,
+    addToPlaylist,
+    clearFavorites
   };
 
   return (
@@ -255,7 +357,17 @@ export function MusicProvider({ children }) {
         onEnded={playNext}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onError={(e) => console.error('Audio error:', e)}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={() => {
+          if (audioRef.current) {
+            setDuration(audioRef.current.duration);
+            setCurrentTime(audioRef.current.currentTime);
+          }
+        }}
+        onError={(e) => {
+          console.error('Audio error:', e);
+          setError('播放出错了');
+        }}
       />
     </MusicContext.Provider>
   );
@@ -267,4 +379,7 @@ export function useMusic() {
     throw new Error('useMusic must be used within a MusicProvider');
   }
   return context;
-} 
+}
+
+// 导出工具函数
+export { getAlbumInfo, getAudioPath, getLyricsPath }; 

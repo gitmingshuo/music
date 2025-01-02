@@ -5,44 +5,49 @@ import './RecentPlays.css';
 
 function RecentPlays() {
   const navigate = useNavigate();
-  const { recentPlays, clearRecentPlays, setCurrentSong, setIsPlaying } = useMusic();
+  const { 
+    recentPlays, 
+    clearRecentPlays, 
+    setCurrentSong, 
+    setIsPlaying,
+    getAlbumInfo,
+    getAudioPath
+  } = useMusic();
 
   const handleSongClick = async (song) => {
     try {
-      const defaultLyrics = {
-        title: song.name,
-        artist: "周杰伦",
-        lyrics: [{ time: 0, text: "加载歌词中..." }]
-      };
-
-      let lyrics = defaultLyrics;
-
+      let lyrics = null;
       try {
-        const response = await fetch(`/lyrics/${encodeURIComponent(song.name)}.json`);
+        const response = await fetch(`/static/lyrics/粉色海洋.json`);
         if (response.ok) {
-          lyrics = await response.json();
+          const data = await response.json();
+          lyrics = data;
         }
       } catch (error) {
         console.warn('歌词加载失败，使用默认歌词:', error);
+        lyrics = {
+          lyrics: [
+            { time: 0, text: '暂无歌词' },
+            { time: 1, text: '请欣赏音乐' }
+          ]
+        };
       }
 
-      setCurrentSong({
-        name: song.name,
-        audio: `/music/最伟大的作品.mp3`,
-        albumName: song.album,
-        albumCover: song.cover,
-        lyrics: lyrics.lyrics
-      });
+      const albumInfo = getAlbumInfo(song.name);
+      const songWithInfo = {
+        ...song,
+        albumName: song.albumName || albumInfo.albumName,
+        albumCover: song.cover || albumInfo.albumCover,
+        lyrics: lyrics.lyrics,
+        audio: getAudioPath(song.name)
+      };
+
+      setCurrentSong(songWithInfo);
       setIsPlaying(true);
 
       navigate(`/song/${encodeURIComponent(song.name)}`, {
         state: {
-          song: song.name,
-          lyrics: lyrics.lyrics,
-          audio: `/music/最伟大的作品.mp3`,
-          albumName: song.album,
-          albumCover: song.cover,
-          autoPlay: true
+          song: songWithInfo
         }
       });
     } catch (error) {
@@ -75,13 +80,16 @@ function RecentPlays() {
               onClick={() => handleSongClick(song)}
             >
               <img 
-                src={song.cover || '/path/to/default-cover.jpg'} 
+                src={song.cover || getAlbumInfo(song.name).albumCover} 
                 alt={song.name} 
-                className="song-cover" 
+                className="song-cover"
+                onError={(e) => {
+                  e.target.src = '/static/media/default-cover.jpg';
+                }}
               />
               <div className="song-info">
                 <span className="song-name">{song.name}</span>
-                <span className="album-name">{song.album}</span>
+                <span className="album-name">{song.albumName || getAlbumInfo(song.name).albumName}</span>
               </div>
             </div>
           ))

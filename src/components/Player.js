@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaSyncAlt, FaRetweet, FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaRetweet, FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
 import { useMusic } from '../context/MusicContext';
 import { albums } from '../Home';
 import './Player.css';
@@ -10,6 +10,7 @@ function Player() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragTime, setDragTime] = useState(null);
   const [error, setError] = useState(null);
   
   const { 
@@ -27,7 +28,6 @@ function Player() {
   } = useMusic();
   
   const [isLiked, setIsLiked] = useState(false);
-
   const [volume, setVolume] = useState(1);
   const [prevVolume, setPrevVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
@@ -86,11 +86,6 @@ function Player() {
     }
   };
 
-  const handlePlayMode = (e) => {
-    e.stopPropagation();
-    togglePlayMode();
-  };
-
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -98,138 +93,43 @@ function Player() {
   };
 
   const handleProgressClick = (e) => {
-    if (!audioRef.current || !progressRef.current) return;
+    e.stopPropagation();
+    if (!progressRef.current || !duration || !audioRef.current) return;
     
     const rect = progressRef.current.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const newTime = percent * duration;
     
     audioRef.current.currentTime = newTime;
     setCurrentTime(newTime);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      togglePlay(e);
-    } else if (e.code === 'ArrowLeft') {
-      audioRef.current.currentTime = Math.max(0, currentTime - 5);
-    } else if (e.code === 'ArrowRight') {
-      audioRef.current.currentTime = Math.min(duration, currentTime + 5);
-    }
-  };
-
-  useEffect(() => {
-    setCurrentTime(0);
-    setDuration(0);
-    
-    const audio = audioRef.current;
-    if (audio) {
-      audio.currentTime = 0;
-      
-      const updateTime = () => {
-        if (!isDragging) {
-          setCurrentTime(audio.currentTime);
-        }
-      };
-      
-      const updateDuration = () => {
-        setDuration(audio.duration);
-        if (isPlaying) {
-          audio.play().catch(error => {
-            console.error('播放失败:', error);
-          });
-        }
-      };
-      
-      audio.addEventListener('timeupdate', updateTime);
-      audio.addEventListener('loadedmetadata', updateDuration);
-      window.addEventListener('keydown', handleKeyPress);
-      
-      return () => {
-        audio.removeEventListener('timeupdate', updateTime);
-        audio.removeEventListener('loadedmetadata', updateDuration);
-        window.removeEventListener('keydown', handleKeyPress);
-      };
-    }
-  }, [currentSong, isPlaying, isDragging]);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(error => {
-          console.error('播放失败:', error);
-          setIsPlaying(false);
-        });
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isPlaying]);
-
-  const getPlayModeIcon = () => {
-    switch(playMode) {
-      case 'single':
-        return <FaRetweet />;
-      case 'random':
-        return <FaRandom />;
-      case 'list':
-      default:
-        return <FaList />;
-    }
-  };
-
-  const getPlayModeTitle = () => {
-    switch(playMode) {
-      case 'single':
-        return '单曲循环';
-      case 'random':
-        return '随机播放';
-      case 'list':
-      default:
-        return '列表循环';
-    }
-  };
-
-  const handleSongEnd = () => {
-    if (playMode === 'single') {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play();
-      }
-    } else if (playMode === 'random') {
-      const playlist = albums.flatMap(album => album.songs);
-      const randomIndex = Math.floor(Math.random() * playlist.length);
-      playNext(randomIndex);
-    } else {
-      playNext();
-    }
   };
 
   const handleProgressMouseDown = (e) => {
+    e.stopPropagation();
     setIsDragging(true);
-    handleProgressChange(e);
+    document.addEventListener('mousemove', handleProgressMouseMove);
+    document.addEventListener('mouseup', handleProgressMouseUp);
   };
 
   const handleProgressMouseMove = (e) => {
-    if (isDragging) {
-      handleProgressChange(e);
-    }
-  };
-
-  const handleProgressMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleProgressChange = (e) => {
-    if (!audioRef.current || !progressRef.current) return;
+    if (!isDragging || !progressRef.current || !duration) return;
     
     const rect = progressRef.current.getBoundingClientRect();
-    const percent = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const newTime = percent * duration;
     
-    setCurrentTime(newTime);
-    audioRef.current.currentTime = newTime;
+    setDragTime(newTime);
+  };
+
+  const handleProgressMouseUp = (e) => {
+    if (dragTime !== null && audioRef.current) {
+      audioRef.current.currentTime = dragTime;
+      setCurrentTime(dragTime);
+    }
+    setIsDragging(false);
+    setDragTime(null);
+    document.removeEventListener('mousemove', handleProgressMouseMove);
+    document.removeEventListener('mouseup', handleProgressMouseUp);
   };
 
   const handleVolumeChange = (e) => {
@@ -256,29 +156,29 @@ function Player() {
     }
   };
 
-  const handleDoubleClick = () => {
-    if (toggleMiniMode) {
-      toggleMiniMode();
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const updateTime = () => {
+        if (!isDragging) {
+          setCurrentTime(audio.currentTime);
+          setDuration(audio.duration);
+        }
+      };
+      
+      audio.addEventListener('timeupdate', updateTime);
+      return () => audio.removeEventListener('timeupdate', updateTime);
     }
-  };
+  }, [isDragging]);
 
   return (
-    <div 
-      className={`player ${isMini ? 'mini' : ''}`} 
-      onClick={e => e.stopPropagation()}
-      onDoubleClick={handleDoubleClick}
-    >
-      {error && (
-        <div className="player-error">
-          {error}
-        </div>
-      )}
+    <div className={`player ${isMini ? 'mini' : ''}`}>
       <div className="player-left">
         <div className="player-cover">
           {currentSong?.name && (
             <img 
-              src={getAlbumInfo(currentSong.name)?.albumCover} 
-              alt={currentSong.name} 
+              src={getAlbumInfo(currentSong.name)?.albumCover || '/default-cover.jpg'} 
+              alt={currentSong.name}
             />
           )}
         </div>
@@ -293,28 +193,13 @@ function Player() {
       {!isMini && (
         <div className="player-center">
           <div className="control-buttons">
-            <button 
-              onClick={handlePrevious} 
-              className="control-btn"
-              aria-label="上一首"
-              disabled={!currentSong}
-            >
+            <button onClick={handlePrevious} className="control-btn">
               <FaStepBackward />
             </button>
-            <button 
-              className="play-pause"
-              onClick={togglePlay}
-              aria-label={isPlaying ? "暂停" : "播放"}
-              disabled={!currentSong}
-            >
+            <button className="play-pause" onClick={togglePlay}>
               {isPlaying ? <FaPause /> : <FaPlay />}
             </button>
-            <button 
-              onClick={handleNext}
-              className="control-btn"
-              aria-label="下一首"
-              disabled={!currentSong}
-            >
+            <button onClick={handleNext} className="control-btn">
               <FaStepForward />
             </button>
           </div>
@@ -324,18 +209,14 @@ function Player() {
             <div 
               className="progress-bar"
               ref={progressRef}
+              onClick={handleProgressClick}
               onMouseDown={handleProgressMouseDown}
-              onMouseMove={handleProgressMouseMove}
-              onMouseUp={handleProgressMouseUp}
-              onMouseLeave={handleProgressMouseUp}
             >
               <div 
                 className="progress"
-                style={{ width: `${(currentTime / duration) * 100}%` }}
-              />
-              <div 
-                className="progress-handle"
-                style={{ left: `${(currentTime / duration) * 100}%` }}
+                style={{ 
+                  width: `${((isDragging ? dragTime : currentTime) / duration * 100) || 0}%`
+                }}
               />
             </div>
             <span className="time-total">{formatTime(duration)}</span>
@@ -343,68 +224,39 @@ function Player() {
         </div>
       )}
 
-      {!isMini ? (
-        <div className="player-right">
+      <div className="player-right">
+        <button 
+          className={`like-btn ${isLiked ? 'active' : ''}`}
+          onClick={handleLike}
+        >
+          <FaHeart />
+        </button>
+        
+        <div className="volume-control">
           <button 
-            className={`like-btn ${isLiked ? 'active' : ''}`}
-            onClick={handleLike}
-            disabled={!currentSong}
+            className="volume-btn"
+            onClick={toggleMute}
           >
-            <FaHeart />
+            {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
           </button>
-          <button 
-            className={`mode-btn ${currentSong ? '' : 'disabled'}`}
-            onClick={handlePlayMode}
-            title={getPlayModeTitle()}
-            disabled={!currentSong}
-          >
-            {getPlayModeIcon()}
-          </button>
-          
-          <div className="volume-control">
-            <button 
-              className="volume-btn"
-              onClick={toggleMute}
-              title={isMuted ? "取消静音" : "静音"}
-            >
-              {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-            </button>
-            <div className="volume-slider-container">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="volume-slider"
-              />
-            </div>
-          </div>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="volume-slider"
+          />
         </div>
-      ) : (
-        <div className="mini-controls">
-          <button 
-            className="play-pause mini"
-            onClick={togglePlay}
-            aria-label={isPlaying ? "暂停" : "播放"}
-            disabled={!currentSong}
-          >
-            {isPlaying ? <FaPause /> : <FaPlay />}
-          </button>
-        </div>
-      )}
+      </div>
 
       <audio
         ref={audioRef}
         src={currentSong?.audio}
-        onError={(e) => {
-          console.error('音频加载失败:', e);
-          console.log('当前音频路径:', currentSong?.audio);
-          console.log('当前歌曲信息:', currentSong);
-          setError('音频加载失败，请稍后重试');
-        }}
-        onEnded={handleSongEnd}
+        onEnded={playNext}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
       />
     </div>
   );
