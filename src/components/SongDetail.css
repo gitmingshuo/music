@@ -1,0 +1,19 @@
+.lyrics-container {
+  height: 400px;
+  overflow-y: auto;
+  padding: 20px;
+  scroll-behavior: smooth;
+}
+
+.lyric-line {
+  padding: 8px 0;
+  color: #999;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.lyric-line.active {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+} 
