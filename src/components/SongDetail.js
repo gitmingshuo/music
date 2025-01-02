@@ -13,17 +13,17 @@ function SongDetail() {
   // 加载歌词
   useEffect(() => {
     const loadLyrics = async () => {
+      if (!currentSong?.name) return;
+      
       try {
-        const response = await fetch(`/static/lyrics/粉色海洋.json`);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('加载的歌词:', data); // 调试用
-          setLyrics(data.lyrics || []);
-        } else {
+        const response = await fetch(getLyricsPath(currentSong.name));
+        if (!response.ok) {
           throw new Error('加载歌词失败');
         }
-      } catch (error) {
-        console.error('加载歌词失败:', error);
+        const data = await response.json();
+        setLyrics(data.lyrics || []);
+      } catch (err) {
+        console.error('加载歌词失败:', err);
         setLyrics([
           { time: 0, text: '暂无歌词' },
           { time: 1, text: '请欣赏音乐' }
@@ -32,7 +32,7 @@ function SongDetail() {
     };
 
     loadLyrics();
-  }, [currentSong?.name]);
+  }, [currentSong]);
 
   // 更新当前歌词
   useEffect(() => {

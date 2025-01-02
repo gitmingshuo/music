@@ -1,19 +1,19 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "将の音乐",
+  "name": "将の音乐 - 音乐播放器",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "tubiao.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
-     
+      "src": "tubiao.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-     
+      "src": "tubiao.png",
       "type": "image/png",
       "sizes": "512x512"
     }

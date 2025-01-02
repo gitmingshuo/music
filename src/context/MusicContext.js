@@ -28,11 +28,33 @@ const getAlbumInfo = (songName) => {
 };
 
 const getAudioPath = (songName) => {
-  return `/static/music/红颜如霜.mp3`;
+  // 确保 songName 是经过编码的
+  const encodedSongName = encodeURIComponent(songName);
+  return `${window.location.origin}/static/music/${encodedSongName}.mp3`;
 };
 
 const getLyricsPath = (songName) => {
-  return `/static/lyrics/粉色海洋.json`;
+  // 确保 songName 是经过编码的
+  const encodedSongName = encodeURIComponent(songName);
+  return `${window.location.origin}/static/lyrics/${encodedSongName}.json`;
+};
+
+// 修改歌词加载的错误处理
+const loadLyrics = async (songName) => {
+  try {
+    const response = await fetch(getLyricsPath(songName));
+    if (!response.ok) {
+      throw new Error('加载歌词失败');
+    }
+    const data = await response.json();
+    return data.lyrics || [];
+  } catch (error) {
+    console.warn('歌词加载失败，使用默认歌词:', error);
+    return [
+      { time: 0, text: '暂无歌词' },
+      { time: 1, text: '请欣赏音乐' }
+    ];
+  }
 };
 
 export function MusicProvider({ children }) {

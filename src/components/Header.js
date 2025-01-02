@@ -38,11 +38,11 @@ function Header() {
       <div className="header-right">
         <div className="user-info">
           <img 
-            src="/default-avatar.png" 
+            src="/Users/admin/my-website/public/static/media/叶惠美.jpg" 
             alt="用户头像" 
             className="user-avatar"
           />
-          <span className="user-name">游客</span>
+          <span className="user-name">将</span>
         </div>
       </div>
     </header>

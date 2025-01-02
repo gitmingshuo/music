@@ -25,7 +25,7 @@ function SideNav() {
   return (
     <nav className="side-nav">
       <div className="logo">
-        <h1>心拓音乐</h1>
+        <h1>将の音乐</h1>
       </div>
 
       <div className="nav-section">
