@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
+import { useAuth } from '../context/AuthContext';
 import './RecentPlays.css';
 
 function RecentPlays() {
@@ -13,6 +14,11 @@ function RecentPlays() {
     getAlbumInfo,
     getAudioPath
   } = useMusic();
+  const { user } = useAuth();
+
+  if (!user) {
+    return <div className="recent-plays-page">请先登录</div>;
+  }
 
   const handleSongClick = async (song) => {
     try {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
+import { useAuth } from '../context/AuthContext';
 import { FaPlay } from 'react-icons/fa';
 import AddToPlaylistButton from './AddToPlaylistButton';
 import './Playlist.css';
@@ -8,11 +9,16 @@ import './Playlist.css';
 function Playlist() {
   const { id } = useParams();
   const { playlists, addToPlaylist, removeSongFromPlaylist } = useMusic();
-  
+  const { user } = useAuth();
+
+  if (!user) {
+    return <div className="playlist-page">请先登录</div>;
+  }
+
   const playlist = playlists.find(p => p.id === id);
   
   if (!playlist) {
-    return <div className="empty-playlist">歌单不存在</div>;
+    return <div className="playlist-page">歌单不存在</div>;
   }
 
   const handlePlayAll = () => {

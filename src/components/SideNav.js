@@ -11,11 +11,17 @@ import {
 } from 'react-icons/fa';
 import './SideNav.css';
 import { useMusic } from '../context/MusicContext';
+import { useAuth } from '../context/AuthContext';
 
 function SideNav() {
   const { playlists, createPlaylist } = useMusic();
+  const { user } = useAuth();
   
   const handleCreatePlaylist = () => {
+    if (!user) {
+      alert('请先登录');
+      return;
+    }
     const name = prompt('请输入歌单名称');
     if (name && name.trim()) {
       createPlaylist(name.trim());
@@ -76,18 +82,15 @@ function SideNav() {
           <button 
             className="create-playlist-btn"
             onClick={handleCreatePlaylist}
-            title="创建新歌单"
+            title={user ? "创建新歌单" : "请先登录"}
           >
             <FaPlus />
           </button>
         </div>
         <ul>
-          {playlists.map(playlist => (
+          {user && playlists.map(playlist => (
             <li key={playlist.id}>
-              <NavLink 
-                to={`/playlist/${playlist.id}`} 
-                className={({ isActive }) => isActive ? 'active' : ''}
-              >
+              <NavLink to={`/playlist/${playlist.id}`}>
                 <FaList />
                 <span>{playlist.name}</span>
               </NavLink>

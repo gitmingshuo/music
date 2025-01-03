@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { albums } from '../Home';  // 确保正确导入 albums
+import { useAuth } from './AuthContext';
+import { userStorage } from '../utils/userStorage';
 
 const MusicContext = createContext();
 
@@ -77,109 +79,149 @@ const loadLyrics = async (songName) => {
 };
 
 export function MusicProvider({ children }) {
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  // 移除这些初始化，改为在 useEffect 中处理
+  const [favorites, setFavorites] = useState([]);
+  const [recentPlays, setRecentPlays] = useState([]);
+  const [playlists, setPlaylists] = useState([{
+    id: 'default',
+    name: '我喜欢的音乐',
+    songs: []
+  }]);
+
+  // 在用户ID变化时重新加载数据
+  useEffect(() => {
+    if (userId) {
+      // 加载该用户的收藏
+      const userFavorites = userStorage.get(userId, 'favorites', []);
+      setFavorites(userFavorites);
+
+      // 加载该用户的最近播放
+      const userRecentPlays = userStorage.get(userId, 'recentPlays', []);
+      setRecentPlays(userRecentPlays);
+
+      // 加载该用户的歌单
+      const userPlaylists = userStorage.get(userId, 'playlists', [{
+        id: 'default',
+        name: '我喜欢的音乐',
+        songs: []
+      }]);
+      setPlaylists(userPlaylists);
+    } else {
+      // 用户未登录时重置所有状态
+      setFavorites([]);
+      setRecentPlays([]);
+      setPlaylists([{
+        id: 'default',
+        name: '我喜欢的音乐',
+        songs: []
+      }]);
+    }
+  }, [userId]); // 当 userId 变化时触发
+
+  // 修改数据操作方法，确保每次都使用最新的 userId
+  const toggleFavorite = (song) => {
+    if (!userId) return;
+    setFavorites(prev => {
+      const exists = prev.some(f => f.name === song.name);
+      const newFavorites = exists
+        ? prev.filter(f => f.name !== song.name)
+        : [...prev, song];
+      userStorage.set(userId, 'favorites', newFavorites);
+      return newFavorites;
+    });
+  };
+
+  const addToRecentPlays = (song) => {
+    if (!userId) return;
+    setRecentPlays(prev => {
+      const filtered = prev.filter(p => p.name !== song.name);
+      const newRecentPlays = [song, ...filtered].slice(0, 20);
+      userStorage.set(userId, 'recentPlays', newRecentPlays);
+      return newRecentPlays;
+    });
+  };
+
+  const createPlaylist = (name) => {
+    if (!userId) return;
+    const newPlaylist = {
+      id: Date.now().toString(),
+      name,
+      songs: []
+    };
+    setPlaylists(prev => {
+      const newPlaylists = [...prev, newPlaylist];
+      userStorage.set(userId, 'playlists', newPlaylists);
+      return newPlaylists;
+    });
+  };
+
+  // 移除之前的 useEffect，因为现在在操作方法中直接保存数据
+  // useEffect(() => {...}, [userId, favorites]);
+  // useEffect(() => {...}, [userId, recentPlays]);
+  // useEffect(() => {...}, [userId, playlists]);
+
+  // 基础播放状态
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlist, setPlaylist] = useState([]);
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const savedFavorites = localStorage.getItem('favorites');
-      const parsed = savedFavorites ? JSON.parse(savedFavorites) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-      return [];
-    }
-  });
-  const [recentPlays, setRecentPlays] = useState(() => {
-    try {
-      const savedRecentPlays = localStorage.getItem('recentPlays');
-      return savedRecentPlays ? JSON.parse(savedRecentPlays) : [];
-    } catch (error) {
-      console.error('Error loading recent plays:', error);
-      return [];
-    }
-  });
-  const [playMode, setPlayMode] = useState(() => {
-    return localStorage.getItem('playMode') || 'list';
-  });
-  const audioRef = useRef(null);
-  const [playlists, setPlaylists] = useState(() => {
-    try {
-      const savedPlaylists = localStorage.getItem('playlists');
-      return savedPlaylists ? JSON.parse(savedPlaylists) : [{
-        id: 'default',
-        name: '我喜欢的音乐',
-        songs: []
-      }];
-    } catch (error) {
-      console.error('Error loading playlists:', error);
-      return [{
-        id: 'default',
-        name: '我喜欢的音乐',
-        songs: []
-      }];
-    }
-  });
+  const [playMode, setPlayMode] = useState(() => localStorage.getItem('playMode') || 'list');
   const [isMini, setIsMini] = useState(false);
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentLyrics, setCurrentLyrics] = useState([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const audioRef = useRef(null);
 
-  useEffect(() => {
-    try {
-      const favoritesToSave = Array.isArray(favorites) ? favorites : [];
-      localStorage.setItem('favorites', JSON.stringify(favoritesToSave));
-    } catch (error) {
-      console.error('Error saving favorites:', error);
-    }
-  }, [favorites]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('recentPlays', JSON.stringify(recentPlays));
-    } catch (error) {
-      console.error('Error saving recent plays:', error);
-    }
-  }, [recentPlays]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('playlists', JSON.stringify(playlists));
-    } catch (error) {
-      console.error('Error saving playlists:', error);
-    }
-  }, [playlists]);
-
-  useEffect(() => {
-    localStorage.setItem('playMode', playMode);
-  }, [playMode]);
-
-  useEffect(() => {
-    const audioElement = document.querySelector('audio');
-    if (audioElement) {
-      audioRef.current = audioElement;
-    }
-  }, []);
-
-  // 当歌曲改变时加载歌词
-  useEffect(() => {
-    if (currentSong?.name) {
-      loadLyrics(currentSong.name).then(lyrics => {
-        setCurrentLyrics(lyrics);
-      });
-    }
-  }, [currentSong?.name]);
-
-  // 更新当前歌词索引
-  useEffect(() => {
-    if (!currentLyrics.length) return;
+  // 歌单相关方法
+  const addSongToPlaylist = (playlistId, song) => {
+    if (!userId) return;
     
-    let index = currentLyrics.findIndex(lyric => lyric.time > currentTime) - 1;
-    if (index < 0) index = 0;
-    setCurrentLyricIndex(index);
-  }, [currentTime, currentLyrics]);
+    setPlaylists(prev => {
+      const newPlaylists = prev.map(playlist => {
+        if (playlist.id === playlistId && !playlist.songs.some(s => s.name === song.name)) {
+          return {
+            ...playlist,
+            songs: [...playlist.songs, song]
+          };
+        }
+        return playlist;
+      });
+      userStorage.set(userId, 'playlists', newPlaylists);
+      return newPlaylists;
+    });
+  };
+
+  const removeSongFromPlaylist = (playlistId, songName) => {
+    if (!userId) return;
+    
+    setPlaylists(prev => {
+      const newPlaylists = prev.map(playlist => {
+        if (playlist.id === playlistId) {
+          return {
+            ...playlist,
+            songs: playlist.songs.filter(song => song.name !== songName)
+          };
+        }
+        return playlist;
+      });
+      userStorage.set(userId, 'playlists', newPlaylists);
+      return newPlaylists;
+    });
+  };
+
+  const deletePlaylist = (playlistId) => {
+    if (!userId) return;
+    
+    setPlaylists(prev => {
+      const newPlaylists = prev.filter(playlist => playlist.id !== playlistId);
+      userStorage.set(userId, 'playlists', newPlaylists);
+      return newPlaylists;
+    });
+  };
 
   // 播放器相关方法
   const togglePlay = () => {
@@ -242,38 +284,11 @@ export function MusicProvider({ children }) {
     addToRecentPlays(song);
   };
 
-  // 收藏相关方法
-  const toggleFavorite = (song) => {
-    setFavorites(prev => {
-      const prevList = Array.isArray(prev) ? prev : [];
-      const exists = prevList.some(f => f.name === song.name);
-      const newFavorites = exists
-        ? prevList.filter(f => f.name !== song.name)
-        : [...prevList, song];
-      
-      // 立即保存到 localStorage
-      try {
-        localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      } catch (error) {
-        console.error('Error saving favorites:', error);
-      }
-      
-      return newFavorites;
-    });
-  };
-
-  // 最近播放相关方法
-  const addToRecentPlays = (song) => {
-    setRecentPlays(prev => {
-      if (!Array.isArray(prev)) prev = [];
-      const filtered = prev.filter(p => p.name !== song.name);
-      return [song, ...filtered].slice(0, 20);
-    });
-  };
-
   const clearRecentPlays = () => {
+    if (!userId) return; // 未登录时不执行操作
+    
     setRecentPlays([]);
-    localStorage.removeItem('recentPlays');
+    userStorage.remove(userId, 'recentPlays');
   };
 
   // 播放模式相关方法
@@ -287,59 +302,6 @@ export function MusicProvider({ children }) {
     });
   };
 
-  // 创建新歌单
-  const createPlaylist = (name) => {
-    const newPlaylist = {
-      id: Date.now().toString(),
-      name,
-      songs: []
-    };
-    setPlaylists(prev => [...prev, newPlaylist]);
-  };
-
-  // 添加歌曲到歌单
-  const addSongToPlaylist = (playlistId, song) => {
-    setPlaylists(prev => prev.map(playlist => {
-      if (playlist.id === playlistId) {
-        // 检查歌曲是否已存在
-        if (!playlist.songs.some(s => s.name === song.name)) {
-          return {
-            ...playlist,
-            songs: [...playlist.songs, song]
-          };
-        }
-      }
-      return playlist;
-    }));
-  };
-
-  // 从歌单移除歌曲
-  const removeSongFromPlaylist = (playlistId, songName) => {
-    setPlaylists(prev => prev.map(playlist => {
-      if (playlist.id === playlistId) {
-        return {
-          ...playlist,
-          songs: playlist.songs.filter(song => song.name !== songName)
-        };
-      }
-      return playlist;
-    }));
-  };
-
-  const deletePlaylist = (playlistId) => {
-    setPlaylists(prev => prev.filter(playlist => playlist.id !== playlistId));
-  };
-
-  const clearFavorites = () => {
-    setFavorites([]);
-    localStorage.removeItem('favorites');
-  };
-
-  // 添加切换迷你模式的函数
-  const toggleMiniMode = () => {
-    setIsMini(prev => !prev);
-  };
-
   // 添加音频时间更新处理
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -347,6 +309,17 @@ export function MusicProvider({ children }) {
       const duration = audioRef.current.duration;
       setCurrentTime(time);
       setDuration(duration);
+
+      // 更新当前歌词索引
+      if (currentLyrics.length > 0) {
+        const index = currentLyrics.findIndex((lyric, i) => {
+          const nextTime = currentLyrics[i + 1]?.time || Infinity;
+          return lyric.time <= time && time < nextTime;
+        });
+        if (index !== -1) {
+          setCurrentLyricIndex(index);
+        }
+      }
     }
   };
 
@@ -373,26 +346,40 @@ export function MusicProvider({ children }) {
     }
   };
 
+  // 添加切换迷你模式的函数
+  const toggleMiniMode = () => {
+    setIsMini(prev => !prev);
+  };
+
+  // 在 useEffect 中添加歌词加载逻辑
+  useEffect(() => {
+    if (currentSong?.name) {
+      loadLyrics(currentSong.name).then(lyrics => {
+        setCurrentLyrics(lyrics);
+        setCurrentLyricIndex(0);
+      });
+    }
+  }, [currentSong?.name]);
+
   const value = {
     currentSong,
     isPlaying,
     playlist,
     favorites,
     recentPlays,
+    playlists,
     playMode,
     currentTime,
     duration,
     error,
-    setCurrentSong,
-    setIsPlaying,
-    addToRecentPlays,
-    clearRecentPlays,
-    setCurrentTime,
-    setDuration,
+    isMini,
     getAlbumInfo,
     getAudioPath,
     getLyricsPath,
-    playlists,
+    setCurrentSong,
+    setIsPlaying,
+    toggleFavorite,
+    addToRecentPlays,
     createPlaylist,
     addSongToPlaylist,
     removeSongFromPlaylist,
@@ -401,15 +388,13 @@ export function MusicProvider({ children }) {
     playNext,
     playPrevious,
     handleSeek,
-    isMini,
     toggleMiniMode,
     audioRef,
-    toggleFavorite,
     addToPlaylist,
-    clearFavorites,
     currentLyrics,
     currentLyricIndex,
     loadLyrics,
+    clearRecentPlays,
   };
 
   return (
@@ -422,12 +407,7 @@ export function MusicProvider({ children }) {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={() => {
-          if (audioRef.current) {
-            setDuration(audioRef.current.duration);
-            setCurrentTime(audioRef.current.currentTime);
-          }
-        }}
+        onLoadedMetadata={handleLoadedMetadata}
         onError={(e) => {
           console.error('Audio error:', e);
           setError('播放出错了');
