@@ -136,19 +136,22 @@ function Home() {
       id: 1,
       name: '红心歌单',
       cover: '/static/media/jay.jpg',
-      description: '我喜欢的音乐'
+      description: '我喜欢的音乐',
+      onClick: () => handlePlaylistClick(1)
     },
     {
       id: 2,
       name: '私人漫游',
       cover: '/static/media/范特西.jpg',
-      description: '根据你的口味生成'
+      description: '根据你的口味生成',
+      onClick: () => handlePlaylistClick(2)
     },
     {
       id: 3,
       name: 'Jay Chou精选',
       cover: '/static/media/最伟大的作品.jpg',
-      description: '周杰伦热门歌曲'
+      description: '周杰伦热门歌曲',
+      onClick: () => handlePlaylistClick(3)
     }
   ];
 
@@ -161,7 +164,8 @@ function Home() {
         name: album.songs[0],
         album: album.name,
         cover: album.cover
-      }))
+      })),
+      onClick: () => handleRankingClick(rankings[0])
     },
     {
       id: 2,
@@ -170,7 +174,8 @@ function Home() {
         name: album.songs[0],
         album: album.name,
         cover: album.cover
-      }))
+      })),
+      onClick: () => handleRankingClick(rankings[1])
     }
   ];
 
@@ -181,6 +186,25 @@ function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  // 处理专辑点击
+  const handleAlbumClick = (album) => {
+    navigate(`/album/${album.id}`, { state: { album } });
+  };
+
+  // 处理排行榜点击
+  const handleRankingClick = (ranking) => {
+    // 可以直接播放排行榜中的歌曲
+    if (ranking.songs && ranking.songs.length > 0) {
+      addToPlaylist(ranking.songs[0], ranking.songs);
+    }
+  };
+
+  // 处理歌单点击
+  const handlePlaylistClick = (id) => {
+    // 根据id处理点击事件，例如导航到对应的歌单页面
+    navigate(`/playlists/${id}`);
+  };
+
   return (
     <div className="home-page">
       {/* 轮播图 */}
@@ -190,7 +214,7 @@ function Home() {
             <div
               key={item.id}
               className={`banner-slide ${index === currentSlide ? 'active' : ''}`}
-              onClick={() => navigate(`/album/${item.album}`)}
+              onClick={() => navigate('/albums')}
             >
               <img src={item.image} alt={item.title} />
             </div>
@@ -215,7 +239,19 @@ function Home() {
         </div>
         <div className="playlists-grid">
           {playlists.map(playlist => (
-            <div key={playlist.id} className="playlist-card">
+            <div 
+              key={playlist.id} 
+              className="playlist-card" 
+              onClick={() => {
+                if (playlist.id === 1) {
+                  navigate('/favorites'); // 跳转到 Favorites.js
+                } else if (playlist.id === 2) {
+                  navigate('/recent-plays'); // 跳转到 RecentPlays.js
+                } else if (playlist.id === 3) {
+                  navigate('/albums'); // 跳转到 Albums.js
+                }
+              }}
+            >
               <div className="playlist-cover">
                 <img src={playlist.cover} alt={playlist.name} />
                 <button className="play-btn">
@@ -229,30 +265,37 @@ function Home() {
         </div>
       </section>
 
+      
+
       {/* 排行榜 */}
       <section className="section">
         <div className="section-header">
           <h2>排行榜</h2>
-          <span className="more" onClick={() => navigate('/rankings')}>更多 &gt;</span>
+          <Link to="/rankings" className="more-link">更多 &gt;</Link>
         </div>
         <div className="rankings-grid">
-          {rankings.map(ranking => (
-            <div key={ranking.id} className="ranking-card">
-              <h3>{ranking.name}</h3>
-              <div className="ranking-songs">
-                {ranking.songs.map((song, index) => (
-                  <div key={index} className="ranking-song-item">
-                    <span className="rank-number">{index + 1}</span>
-                    <img src={song.cover} alt={song.name} />
-                    <div className="song-info">
-                      <div className="song-name">{song.name}</div>
-                      <div className="song-album">{song.album}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="ranking-card" onClick={rankings[0].onClick}>
+            <h3>飙升榜</h3>
+            <div className="ranking-songs">
+              {rankings[0].songs.slice(0, 3).map((song, index) => (
+                <div key={index} className="ranking-song-item">
+                  <span className="ranking-number">{index + 1}</span>
+                  <span className="song-name">{song.name}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+          <div className="ranking-card" onClick={rankings[1].onClick}>
+            <h3>新歌榜</h3>
+            <div className="ranking-songs">
+              {rankings[1].songs.slice(0, 3).map((song, index) => (
+                <div key={index} className="ranking-song-item">
+                  <span className="ranking-number">{index + 1}</span>
+                  <span className="song-name">{song.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </div>

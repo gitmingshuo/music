@@ -197,3 +197,52 @@
 .playlist-card p {
   color: var(--text-secondary);
 }
+
+.album-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
+.album-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.ranking-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--card-bg);
+}
+
+.ranking-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ranking-song-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  transition: background-color 0.2s ease;
+}
+
+.ranking-song-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.more-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.more-link:hover {
+  color: var(--text-primary);
+}
