@@ -1,0 +1,186 @@
+.fullscreen-player {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.3);
+  z-index: -1;
+}
+
+.fullscreen-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  color: white;
+}
+
+.fullscreen-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 40px;
+}
+
+.close-fullscreen {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.close-fullscreen:hover {
+  opacity: 1;
+}
+
+.fullscreen-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.album-cover-large {
+  width: 300px;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.album-cover-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.song-info-large {
+  text-align: center;
+}
+
+.song-info-large h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.song-info-large p {
+  font-size: 16px;
+  color: #999;
+  margin: 8px 0 0;
+}
+
+.lyrics-display {
+  flex: 1;
+  overflow-y: auto;
+  text-align: center;
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+  scroll-behavior: smooth;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 20%,
+    black 80%,
+    transparent 100%
+  );
+}
+
+.lyrics-display p {
+  margin: 24px 0;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s;
+  font-size: 16px;
+}
+
+.lyrics-display p.active {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  transform: scale(1.1);
+}
+
+.controls-large {
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+}
+
+.progress-bar-large {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  position: relative;
+}
+
+.progress-bar-container input {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.control-buttons-large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+}
+
+.control-buttons-large button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.3s;
+}
+
+.control-buttons-large button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.control-buttons-large .play-pause {
+  width: 60px;
+  height: 60px;
+  background: white;
+  color: black;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.like-btn.active {
+  color: #ff4e4e;
+  opacity: 1;
+} 

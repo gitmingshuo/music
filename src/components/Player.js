@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaRandom, FaList, FaRetweet, FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
 import { useMusic } from '../context/MusicContext';
-import { albums } from '../Home';
 import './Player.css';
+import FullscreenPlayer from './FullscreenPlayer';
 
 function Player() {
   const audioRef = useRef(null);
@@ -26,25 +26,16 @@ function Player() {
     favorites,
     toggleFavorite,
     startTimer,
-    timeRemaining
+    timeRemaining,
+    toggleFullscreen,
+    isFullscreen,
+    getAlbumInfo
   } = useMusic();
   
   const [isLiked, setIsLiked] = useState(false);
   const [volume, setVolume] = useState(1);
   const [prevVolume, setPrevVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-
-  const getAlbumInfo = (songName) => {
-    for (const album of albums) {
-      if (album.songs.includes(songName)) {
-        return {
-          albumName: album.name,
-          albumCover: album.cover
-        };
-      }
-    }
-    return null;
-  };
 
   useEffect(() => {
     if (currentSong) {
@@ -174,93 +165,100 @@ function Player() {
   }, [isDragging]);
 
   return (
-    <div className={`player ${isMini ? 'mini' : ''}`}>
-      <div className="player-left">
-        <div className="player-cover">
-          {currentSong?.name && (
-            <img 
-              src={getAlbumInfo(currentSong.name)?.albumCover || '/default-cover.jpg'} 
-              alt={currentSong.name}
-            />
-          )}
-        </div>
-        <div className="player-song-info">
-          <div className="song-name">{currentSong?.name || '未播放'}</div>
-          <div className="artist-name">
-            {currentSong?.name ? getAlbumInfo(currentSong.name)?.albumName || '-' : '-'}
-          </div>
-        </div>
-      </div>
-      
-      {!isMini && (
-        <div className="player-center">
-          <div className="control-buttons">
-            <button onClick={handlePrevious} className="control-btn">
-              <FaStepBackward />
-            </button>
-            <button className="play-pause" onClick={togglePlay}>
-              {isPlaying ? <FaPause /> : <FaPlay />}
-            </button>
-            <button onClick={handleNext} className="control-btn">
-              <FaStepForward />
-            </button>
-          </div>
-          
-          <div className="progress-container">
-            <span className="time-current">{formatTime(currentTime)}</span>
-            <div 
-              className="progress-bar"
-              ref={progressRef}
-              onClick={handleProgressClick}
-              onMouseDown={handleProgressMouseDown}
-            >
-              <div 
-                className="progress"
-                style={{ 
-                  width: `${((isDragging ? dragTime : currentTime) / duration * 100) || 0}%`
-                }}
-              />
-            </div>
-            <span className="time-total">{formatTime(duration)}</span>
-          </div>
-        </div>
-      )}
-
-      <div className="player-right">
-        <button 
-          className={`like-btn ${isLiked ? 'active' : ''}`}
-          onClick={handleLike}
-        >
-          <FaHeart />
-        </button>
-        
-        <div className="volume-control">
-          <button 
-            className="volume-btn"
-            onClick={toggleMute}
+    <>
+      <div className={`player ${isMini ? 'mini' : ''}`}>
+        <div className="player-left">
+          <div 
+            className="player-cover" 
+            onClick={toggleFullscreen}
+            style={{ cursor: 'pointer' }}
           >
-            {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-          </button>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={volume}
-            onChange={handleVolumeChange}
-            className="volume-slider"
-          />
+            {currentSong?.name && (
+              <img 
+                src={getAlbumInfo(currentSong.name)?.albumCover || '/default-cover.jpg'} 
+                alt={currentSong.name}
+              />
+            )}
+          </div>
+          <div className="player-song-info">
+            <div className="song-name">{currentSong?.name || '未播放'}</div>
+            <div className="artist-name">
+              {currentSong?.name ? getAlbumInfo(currentSong.name)?.albumName || '-' : '-'}
+            </div>
+          </div>
         </div>
-      </div>
+        
+        {!isMini && (
+          <div className="player-center">
+            <div className="control-buttons">
+              <button onClick={handlePrevious} className="control-btn">
+                <FaStepBackward />
+              </button>
+              <button className="play-pause" onClick={togglePlay}>
+                {isPlaying ? <FaPause /> : <FaPlay />}
+              </button>
+              <button onClick={handleNext} className="control-btn">
+                <FaStepForward />
+              </button>
+            </div>
+            
+            <div className="progress-container">
+              <span className="time-current">{formatTime(currentTime)}</span>
+              <div 
+                className="progress-bar"
+                ref={progressRef}
+                onClick={handleProgressClick}
+                onMouseDown={handleProgressMouseDown}
+              >
+                <div 
+                  className="progress"
+                  style={{ 
+                    width: `${((isDragging ? dragTime : currentTime) / duration * 100) || 0}%`
+                  }}
+                />
+              </div>
+              <span className="time-total">{formatTime(duration)}</span>
+            </div>
+          </div>
+        )}
 
-      <audio
-        ref={audioRef}
-        src={currentSong?.audio}
-        onEnded={playNext}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
-    </div>
+        <div className="player-right">
+          <button 
+            className={`like-btn ${isLiked ? 'active' : ''}`}
+            onClick={handleLike}
+          >
+            <FaHeart />
+          </button>
+          
+          <div className="volume-control">
+            <button 
+              className="volume-btn"
+              onClick={toggleMute}
+            >
+              {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="volume-slider"
+            />
+          </div>
+        </div>
+
+        <audio
+          ref={audioRef}
+          src={currentSong?.audio}
+          onEnded={playNext}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+      </div>
+      {isFullscreen && <FullscreenPlayer />}
+    </>
   );
 }
 

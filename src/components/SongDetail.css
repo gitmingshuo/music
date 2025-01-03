@@ -1,8 +1,48 @@
+.song-detail-container {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.song-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+.song-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(20px) brightness(0.3);
+}
+
+.song-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  color: white;
+}
+
 .lyrics-container {
   height: 400px;
   overflow-y: auto;
   padding: 20px;
   scroll-behavior: smooth;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 20%,
+    black 80%,
+    transparent 100%
+  );
 }
 
 .lyric-line {
@@ -10,10 +50,13 @@
   color: #999;
   transition: all 0.3s;
   text-align: center;
+  margin: 16px 0;
+  font-size: 16px;
 }
 
 .lyric-line.active {
   color: #fff;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
+  transform: scale(1.1);
 } 

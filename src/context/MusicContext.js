@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
-import { albums } from '../Home';  // 确保正确导入 albums
+import { albums } from '../Home';
 import { useAuth } from './AuthContext';
 import { userStorage } from '../utils/userStorage';
 
@@ -171,7 +171,7 @@ export function MusicProvider({ children }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentLyrics, setCurrentLyrics] = useState([]);
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const audioRef = useRef(null);
 
   // 歌单相关方法
@@ -304,18 +304,30 @@ export function MusicProvider({ children }) {
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       const time = audioRef.current.currentTime;
-      const duration = audioRef.current.duration;
       setCurrentTime(time);
-      setDuration(duration);
 
-      // 更新当前歌词索引
-      if (currentLyrics.length > 0) {
-        const index = currentLyrics.findIndex((lyric, i) => {
-          const nextTime = currentLyrics[i + 1]?.time || Infinity;
-          return lyric.time <= time && time < nextTime;
-        });
-        if (index !== -1) {
-          setCurrentLyricIndex(index);
+      // 更新总播放时间
+      setPlayStats(prev => {
+        const newStats = {
+          ...prev,
+          totalPlayTime: prev.totalPlayTime + 1  // 每秒增加1秒
+        };
+        userStorage.set(userId, 'playStats', newStats);
+        return newStats;
+      });
+
+      // 更新歌词索引
+      if (currentLyrics && currentLyrics.length > 0) {
+        let foundIndex = -1;
+        for (let i = 0; i < currentLyrics.length; i++) {
+          if (time >= currentLyrics[i].time) {
+            foundIndex = i;
+          } else {
+            break;
+          }
+        }
+        if (foundIndex !== currentLyricIndex) {
+          setCurrentLyricIndex(foundIndex);
         }
       }
     }
@@ -349,14 +361,32 @@ export function MusicProvider({ children }) {
     setIsMini(prev => !prev);
   };
 
-  // 在 useEffect 中添加歌词加载逻辑
+  // 修改歌词加载逻辑
   useEffect(() => {
-    if (currentSong?.name) {
-      loadLyrics(currentSong.name).then(lyrics => {
-        setCurrentLyrics(lyrics);
-        setCurrentLyricIndex(0);
-      });
-    }
+    const loadCurrentLyrics = async () => {
+      if (currentSong?.name) {
+        try {
+          const response = await fetch(getLyricsPath(currentSong.name));
+          if (!response.ok) throw new Error('Failed to load lyrics');
+          const data = await response.json();
+          if (data.lyrics && Array.isArray(data.lyrics)) {
+            // 确保歌词时间是数字
+            const processedLyrics = data.lyrics.map(lyric => ({
+              ...lyric,
+              time: parseFloat(lyric.time)
+            }));
+            setCurrentLyrics(processedLyrics);
+            setCurrentLyricIndex(-1); // 重置歌词索引
+          }
+        } catch (error) {
+          console.error('Error loading lyrics:', error);
+          setCurrentLyrics([]);
+          setCurrentLyricIndex(-1);
+        }
+      }
+    };
+
+    loadCurrentLyrics();
   }, [currentSong?.name]);
 
   // 添加播放统计
@@ -366,7 +396,8 @@ export function MusicProvider({ children }) {
       recentPlayed: [],
       totalPlayTime: 0,
       weeklyPlays: 0,
-      currentSession: 0
+      currentSession: 0,
+      lastSessionTime: Date.now()  // 添加会话时间记录
     });
   });
 
@@ -444,6 +475,55 @@ export function MusicProvider({ children }) {
     }, 1000));
   };
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // 添加切换全屏的方法
+  const toggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
+  };
+
+  // 音频设置
+  const [defaultVolume, setDefaultVolume] = useState(() => 
+    parseFloat(localStorage.getItem('defaultVolume')) || 1
+  );
+  const [autoPlay, setAutoPlay] = useState(() => 
+    localStorage.getItem('autoPlay') === 'true'
+  );
+  const [crossfade, setCrossfade] = useState(() => 
+    localStorage.getItem('crossfade') === 'true'
+  );
+
+  // 保存音频设置
+  useEffect(() => {
+    localStorage.setItem('defaultVolume', defaultVolume);
+    localStorage.setItem('autoPlay', autoPlay);
+    localStorage.setItem('crossfade', crossfade);
+
+    // 应用音频设置
+    if (audioRef.current) {
+      audioRef.current.volume = defaultVolume;
+    }
+  }, [defaultVolume, autoPlay, crossfade]);
+
+  // 修改歌曲播放完成的处理
+  const handleSongComplete = () => {
+    // 更新播放统计
+    setPlayStats(prev => {
+      const newStats = {
+        ...prev,
+        weeklyPlays: prev.weeklyPlays + 1,
+        currentSession: prev.currentSession + 1
+      };
+      userStorage.set(userId, 'playStats', newStats);
+      return newStats;
+    });
+
+    // 如果开启了自动播放，播放下一首
+    if (autoPlay) {
+      playNext();
+    }
+  };
+
   const value = {
     currentSong,
     isPlaying,
@@ -483,6 +563,15 @@ export function MusicProvider({ children }) {
     shortcuts,
     startTimer,
     timeRemaining,
+    isFullscreen,
+    toggleFullscreen,
+    albums,
+    defaultVolume,
+    setDefaultVolume,
+    autoPlay,
+    setAutoPlay,
+    crossfade,
+    setCrossfade,
   };
 
   return (
@@ -491,10 +580,10 @@ export function MusicProvider({ children }) {
       <audio
         ref={audioRef}
         src={currentSong?.audio}
-        onEnded={playNext}
+        onEnded={handleSongComplete}
+        onTimeUpdate={handleTimeUpdate}  // 确保这个事件处理器被正确绑定
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onError={(e) => {
           console.error('Audio error:', e);

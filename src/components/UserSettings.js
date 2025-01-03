@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useMusic } from '../context/MusicContext';
-import { FaRegClock, FaRegChartBar, FaPalette, FaKeyboard } from 'react-icons/fa';
+import { FaRegClock, FaRegChartBar, FaPalette, FaKeyboard, FaVolumeUp, FaInfoCircle } from 'react-icons/fa';
 import './UserSettings.css';
 
 function UserSettings({ onClose }) {
@@ -10,10 +10,65 @@ function UserSettings({ onClose }) {
     playStats, 
     startTimer, 
     shortcuts,
-    timeRemaining
+    timeRemaining,
+    defaultVolume,
+    setDefaultVolume,
+    autoPlay,
+    setAutoPlay,
+    crossfade,
+    setCrossfade,
+    clearRecentPlays
   } = useMusic();
   const [selectedTimer, setSelectedTimer] = useState(null);
   const [activeTab, setActiveTab] = useState('theme');
+  
+  const [historyClearInterval, setHistoryClearInterval] = useState(() => 
+    localStorage.getItem('historyClearInterval') || 'never'
+  );
+  const [maxHistoryItems, setMaxHistoryItems] = useState(() => 
+    parseInt(localStorage.getItem('maxHistoryItems')) || 100
+  );
+
+  const [fontSize, setFontSize] = useState(() => 
+    localStorage.getItem('fontSize') || 'medium'
+  );
+  const [enableAnimations, setEnableAnimations] = useState(() => 
+    localStorage.getItem('enableAnimations') !== 'false'
+  );
+  const [showTranslation, setShowTranslation] = useState(() => 
+    localStorage.getItem('showTranslation') === 'true'
+  );
+
+  useEffect(() => {
+    localStorage.setItem('historyClearInterval', historyClearInterval);
+    localStorage.setItem('maxHistoryItems', maxHistoryItems);
+    localStorage.setItem('fontSize', fontSize);
+    localStorage.setItem('enableAnimations', enableAnimations);
+    localStorage.setItem('showTranslation', showTranslation);
+  }, [historyClearInterval, maxHistoryItems, fontSize, enableAnimations, showTranslation]);
+
+  const clearAllHistory = () => {
+    if (window.confirm('确定要清除所有播放历史吗？')) {
+      localStorage.removeItem('recentPlays');
+      clearRecentPlays();
+    }
+  };
+
+  const showChangelog = () => {
+    alert('版本更新日志\n1.0.0: 初始版本发布');
+  };
+
+  const showLicenses = () => {
+    alert('MIT License\nCopyright (c) 2024');
+  };
+
+  const clearCache = () => {
+    if (window.confirm('确定要清除缓存吗？')) {
+      localStorage.clear();
+      alert('缓存已清除，需要刷新页面');
+      window.location.reload();
+    }
+  };
 
   // 格式化播放时间
   const formatPlayTime = (seconds) => {
@@ -26,7 +81,9 @@ function UserSettings({ onClose }) {
     { id: 'theme', name: '主题', icon: <FaPalette /> },
     { id: 'stats', name: '统计', icon: <FaRegChartBar /> },
     { id: 'timer', name: '定时', icon: <FaRegClock /> },
-    { id: 'shortcuts', name: '快捷键', icon: <FaKeyboard /> }
+    { id: 'shortcuts', name: '快捷键', icon: <FaKeyboard /> },
+    { id: 'audio', name: '音频', icon: <FaVolumeUp /> },
+    { id: 'about', name: '关于', icon: <FaInfoCircle /> }
   ];
 
   const timerOptions = [
@@ -121,6 +178,141 @@ function UserSettings({ onClose }) {
                   <kbd>{value}</kbd>
                 </div>
               ))}
+            </div>
+          </div>
+        );
+
+      case 'audio':
+        return (
+          <div className="settings-section">
+            <h3>音频设置</h3>
+            <div className="audio-settings">
+              <div className="setting-item">
+                <span>默认音量</span>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="1" 
+                  step="0.1" 
+                  value={defaultVolume}
+                  onChange={(e) => setDefaultVolume(e.target.value)}
+                />
+              </div>
+              <div className="setting-item">
+                <span>自动播放</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={autoPlay}
+                    onChange={(e) => setAutoPlay(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+              <div className="setting-item">
+                <span>淡入淡出效果</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={crossfade}
+                    onChange={(e) => setCrossfade(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'playlist':
+        return (
+          <div className="settings-section">
+            <h3>播放列表设置</h3>
+            <div className="playlist-settings">
+              <div className="setting-item">
+                <span>自动清除播放历史</span>
+                <select value={historyClearInterval} onChange={(e) => setHistoryClearInterval(e.target.value)}>
+                  <option value="never">从不</option>
+                  <option value="daily">每天</option>
+                  <option value="weekly">每周</option>
+                  <option value="monthly">每月</option>
+                </select>
+              </div>
+              <div className="setting-item">
+                <span>最大播放历史数量</span>
+                <input 
+                  type="number" 
+                  min="10" 
+                  max="1000"
+                  value={maxHistoryItems}
+                  onChange={(e) => setMaxHistoryItems(e.target.value)}
+                />
+              </div>
+              <button className="danger-btn" onClick={clearAllHistory}>
+                清除所有播放历史
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'interface':
+        return (
+          <div className="settings-section">
+            <h3>界面设置</h3>
+            <div className="interface-settings">
+              <div className="setting-item">
+                <span>字体大小</span>
+                <select value={fontSize} onChange={(e) => setFontSize(e.target.value)}>
+                  <option value="small">小</option>
+                  <option value="medium">中</option>
+                  <option value="large">大</option>
+                </select>
+              </div>
+              <div className="setting-item">
+                <span>动画效果</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={enableAnimations}
+                    onChange={(e) => setEnableAnimations(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+              <div className="setting-item">
+                <span>显示歌词翻译</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={showTranslation}
+                    onChange={(e) => setShowTranslation(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'about':
+        return (
+          <div className="settings-section">
+            <h3>关于</h3>
+            <div className="about-content">
+              <div className="app-info">
+                <h4>将の音乐</h4>
+                <p>版本: 1.0.0</p>
+                <p>作者: Your Name</p>
+              </div>
+              <div className="links">
+                <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+                <a href="#" onClick={showChangelog}>更新日志</a>
+                <a href="#" onClick={showLicenses}>开源协议</a>
+              </div>
+              <div className="storage-info">
+                <p>缓存大小: 128MB</p>
+                <button onClick={clearCache}>清除缓存</button>
+              </div>
             </div>
           </div>
         );

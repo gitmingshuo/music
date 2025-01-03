@@ -5,25 +5,24 @@ import './SongDetail.css';
 
 function SongDetail() {
   const location = useLocation();
-  const { currentSong, currentTime } = useMusic();
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const { currentSong, currentTime, currentLyrics, currentLyricIndex } = useMusic();
   const [lyrics, setLyrics] = useState([]);
-  const lyricsContainerRef = useRef(null);
+  const lyricsRef = useRef(null);
 
   // 加载歌词
   useEffect(() => {
     const loadLyrics = async () => {
-      if (!currentSong?.name) return;
-      
       try {
-        const response = await fetch(getLyricsPath(currentSong.name));
-        if (!response.ok) {
+        const response = await fetch(`/static/lyrics/粉色海洋.json`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('加载的歌词:', data); // 调试用
+          setLyrics(data.lyrics || []);
+        } else {
           throw new Error('加载歌词失败');
         }
-        const data = await response.json();
-        setLyrics(data.lyrics || []);
-      } catch (err) {
-        console.error('加载歌词失败:', err);
+      } catch (error) {
+        console.error('加载歌词失败:', error);
         setLyrics([
           { time: 0, text: '暂无歌词' },
           { time: 1, text: '请欣赏音乐' }
@@ -32,28 +31,19 @@ function SongDetail() {
     };
 
     loadLyrics();
-  }, [currentSong]);
+  }, [currentSong?.name]);
 
-  // 更新当前歌词
   useEffect(() => {
-    if (!lyrics.length) return;
-    
-    let index = lyrics.findIndex(lyric => lyric.time > currentTime) - 1;
-    if (index < 0) index = 0;
-    
-    setCurrentLyricIndex(index);
-
-    // 滚动到当前歌词
-    if (lyricsContainerRef.current) {
-      const activeLyric = lyricsContainerRef.current.querySelector('.active');
-      if (activeLyric) {
-        activeLyric.scrollIntoView({
+    if (lyricsRef.current && currentLyricIndex >= 0) {
+      const lyricElements = lyricsRef.current.children;
+      if (lyricElements[currentLyricIndex]) {
+        lyricElements[currentLyricIndex].scrollIntoView({
           behavior: 'smooth',
           block: 'center'
         });
       }
     }
-  }, [currentTime, lyrics]);
+  }, [currentLyricIndex]);
 
   return (
     <div className="song-detail-container">
@@ -67,12 +57,12 @@ function SongDetail() {
         />
       </div>
       <div className="song-content">
-        <div className="lyrics-container" ref={lyricsContainerRef}>
-          {lyrics.length > 0 ? (
-            lyrics.map((lyric, index) => (
+        <div className="lyrics-container" ref={lyricsRef}>
+          {currentLyrics.length > 0 ? (
+            currentLyrics.map((lyric, index) => (
               <p 
                 key={index}
-                className={`lyric-line ${index === currentLyricIndex ? 'active' : ''}`}
+                className={index === currentLyricIndex ? 'active' : ''}
               >
                 {lyric.text}
               </p>
