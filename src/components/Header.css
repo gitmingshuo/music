@@ -76,22 +76,41 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 16px;
-  transition: background 0.3s;
-}
-
-.user-info:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 .user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .user-name {
-  color: #ccc;
+  color: #fff;
   font-size: 14px;
+}
+
+.user-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: #2c2c2c;
+  border-radius: 4px;
+  padding: 8px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.user-menu button {
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-menu button:hover {
+  background: #3c3c3c;
 }

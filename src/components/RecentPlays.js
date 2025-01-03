@@ -27,7 +27,7 @@ function RecentPlays() {
         console.warn('歌词加载失败，使用默认歌词:', error);
         lyrics = {
           lyrics: [
-            { time: 0, text: '暂无歌词' },
+            { time: 0, text: '暂无歌111词' },
             { time: 1, text: '请欣赏音乐' }
           ]
         };

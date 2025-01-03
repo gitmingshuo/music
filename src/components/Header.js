@@ -1,4 +1,6 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaArrowRight, FaSearch } from 'react-icons/fa';
 import './Header.css';
@@ -6,6 +8,20 @@ import './Header.css';
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="header">
@@ -36,14 +52,25 @@ function Header() {
       </div>
       
       <div className="header-right">
-        <div className="user-info">
+        <div 
+          className="user-info" 
+          onClick={() => {
+            console.log('User info clicked');
+            setShowUserMenu(!showUserMenu);
+          }}
+        >
           <img 
-            src="/Users/admin/my-website/public/static/media/叶惠美.jpg" 
+            src="/tubiao.png"
             alt="用户头像" 
             className="user-avatar"
           />
-          <span className="user-name">将</span>
+          <span className="user-name">{user?.username}</span>
         </div>
+        {showUserMenu && (
+          <div className="user-menu" ref={menuRef}>
+            <button onClick={logout}>退出登录</button>
+          </div>
+        )}
       </div>
     </header>
   );

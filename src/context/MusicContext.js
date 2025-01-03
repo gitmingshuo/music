@@ -28,32 +28,51 @@ const getAlbumInfo = (songName) => {
 };
 
 const getAudioPath = (songName) => {
-  // 确保 songName 是经过编码的
-  const encodedSongName = encodeURIComponent(songName);
-  return `${window.location.origin}/static/music/${encodedSongName}.mp3`;
+  try {
+    const encodedSongName = encodeURIComponent(songName);
+    // 检查音频文件是否存在
+    const audioPath = `/static/music/${encodedSongName}.mp3`;
+    return audioPath;
+  } catch (error) {
+    console.warn('获取音频路径失败，使用默认音频:', error);
+    // 返回默认音频路径
+    return '/static/music/粉色海洋.mp3';
+  }
 };
 
 const getLyricsPath = (songName) => {
-  // 确保 songName 是经过编码的
-  const encodedSongName = encodeURIComponent(songName);
-  return `${window.location.origin}/static/lyrics/${encodedSongName}.json`;
+  try {
+    const encodedSongName = encodeURIComponent(songName);
+    // 检查歌词文件是否存在
+    const lyricsPath = `/static/lyrics/${encodedSongName}.json`;
+    return lyricsPath;
+  } catch (error) {
+    console.warn('获取歌词路径失败，使用默认歌词:', error);
+    // 返回默认歌词路径
+    return '/static/lyrics/粉色海洋.json';
+  }
 };
 
-// 修改歌词加载的错误处理
+// 添加歌词加载函数
 const loadLyrics = async (songName) => {
+  if (!songName) return [];
+  
   try {
     const response = await fetch(getLyricsPath(songName));
     if (!response.ok) {
       throw new Error('加载歌词失败');
     }
     const data = await response.json();
-    return data.lyrics || [];
-  } catch (error) {
-    console.warn('歌词加载失败，使用默认歌词:', error);
-    return [
-      { time: 0, text: '暂无歌词' },
-      { time: 1, text: '请欣赏音乐' }
-    ];
+    if (data.lyrics && data.lyrics.length > 0) {
+      return data.lyrics;
+    }
+    throw new Error('歌词格式错误');
+  } catch (err) {
+    console.warn('歌词加载失败，使用默认歌词:', err);
+    // 加载默认歌词
+    const defaultResponse = await fetch('/static/lyrics/粉色海洋.json');
+    const defaultData = await defaultResponse.json();
+    return defaultData.lyrics || [];
   }
 };
 
@@ -105,6 +124,8 @@ export function MusicProvider({ children }) {
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [currentLyrics, setCurrentLyrics] = useState([]);
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
 
   useEffect(() => {
     try {
@@ -141,6 +162,24 @@ export function MusicProvider({ children }) {
       audioRef.current = audioElement;
     }
   }, []);
+
+  // 当歌曲改变时加载歌词
+  useEffect(() => {
+    if (currentSong?.name) {
+      loadLyrics(currentSong.name).then(lyrics => {
+        setCurrentLyrics(lyrics);
+      });
+    }
+  }, [currentSong?.name]);
+
+  // 更新当前歌词索引
+  useEffect(() => {
+    if (!currentLyrics.length) return;
+    
+    let index = currentLyrics.findIndex(lyric => lyric.time > currentTime) - 1;
+    if (index < 0) index = 0;
+    setCurrentLyricIndex(index);
+  }, [currentTime, currentLyrics]);
 
   // 播放器相关方法
   const togglePlay = () => {
@@ -367,7 +406,10 @@ export function MusicProvider({ children }) {
     audioRef,
     toggleFavorite,
     addToPlaylist,
-    clearFavorites
+    clearFavorites,
+    currentLyrics,
+    currentLyricIndex,
+    loadLyrics,
   };
 
   return (

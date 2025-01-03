@@ -1,6 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { MusicProvider } from './context/MusicContext';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import Login from './pages/Login';
 
 // 组件导入
 import Home from './Home';
@@ -46,29 +49,38 @@ class ErrorBoundary extends React.Component {
 function App() {
   return (
     <ErrorBoundary>
-      <MusicProvider>
-        <div className="app">
-          <SideNav />
-          <div className="main-container">
-            <Header />
-            <div className="content-wrapper">
-              <div className="main-content">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/album/:id" element={<AlbumDetail />} />
-                  <Route path="/song/:id" element={<SongDetail />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/favorites" element={<Favorites />} />
-                  <Route path="/albums" element={<Albums />} />
-                  <Route path="/recent-plays" element={<RecentPlays />} />
-                  <Route path="/playlist/:id" element={<Playlist />} />
-                </Routes>
-              </div>
-            </div>
-          </div>
-          <Player />
-        </div>
-      </MusicProvider>
+      <AuthProvider>
+        <MusicProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/*" element={
+              <PrivateRoute>
+                <div className="app">
+                  <SideNav />
+                  <div className="main-container">
+                    <Header />
+                    <div className="content-wrapper">
+                      <div className="main-content">
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/album/:id" element={<AlbumDetail />} />
+                          <Route path="/song/:id" element={<SongDetail />} />
+                          <Route path="/search" element={<Search />} />
+                          <Route path="/favorites" element={<Favorites />} />
+                          <Route path="/albums" element={<Albums />} />
+                          <Route path="/recent-plays" element={<RecentPlays />} />
+                          <Route path="/playlist/:id" element={<Playlist />} />
+                        </Routes>
+                      </div>
+                    </div>
+                  </div>
+                  <Player />
+                </div>
+              </PrivateRoute>
+            } />
+          </Routes>
+        </MusicProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
