@@ -407,6 +407,8 @@
 
 .volume-slider {
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   width: 100px;
   height: 4px;
   background: rgba(255, 255, 255, 0.3);

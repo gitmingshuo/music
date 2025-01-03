@@ -1,15 +1,16 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useMusic } from '../context/MusicContext';
 import { useAuth } from '../context/AuthContext';
-import { FaPlay } from 'react-icons/fa';
-import AddToPlaylistButton from './AddToPlaylistButton';
+import { FaPlay, FaTrash, FaEllipsisV } from 'react-icons/fa';
 import './Playlist.css';
 
 function Playlist() {
   const { id } = useParams();
-  const { playlists, addToPlaylist, removeSongFromPlaylist } = useMusic();
+  const navigate = useNavigate();
+  const { playlists, addToPlaylist, removeSongFromPlaylist, deletePlaylist } = useMusic();
   const { user } = useAuth();
+  const [showOptions, setShowOptions] = useState(false);
 
   if (!user) {
     return <div className="playlist-page">请先登录</div>;
@@ -27,14 +28,27 @@ function Playlist() {
     }
   };
 
+  const handleDeletePlaylist = () => {
+    if (window.confirm('确定要删除这个歌单吗？')) {
+      deletePlaylist(playlist.id);
+      navigate('/');
+    }
+  };
+
+  const handleDeleteSong = (songName, e) => {
+    e.stopPropagation();
+    if (window.confirm(`确定要从歌单中删除 "${songName}" 吗？`)) {
+      removeSongFromPlaylist(playlist.id, songName);
+    }
+  };
+
   const handleSongClick = (song) => {
-    // 创建当前歌单的完整播放列表
     const fullPlaylist = playlist.songs.map(s => {
       return {
         name: typeof s === 'string' ? s : s.name,
         albumName: s.albumName || playlist.name,
         albumCover: s.albumCover || '/default-cover.jpg',
-        audio: s.audio || `/music/${encodeURIComponent(s.name || s)}.mp3`
+        audio: `/static/music/${encodeURIComponent(typeof s === 'string' ? s : s.name)}.mp3`
       };
     });
     
@@ -44,54 +58,66 @@ function Playlist() {
   return (
     <div className="playlist-page">
       <div className="playlist-header">
-        <h1>{playlist.name}</h1>
         <div className="playlist-info">
-          <span>{playlist.songs.length} 首歌</span>
+          <h1>{playlist.name}</h1>
+          <div className="playlist-meta">
+            <span>{playlist.songs.length} 首歌</span>
+          </div>
         </div>
-      </div>
-
-      {playlist.songs.length > 0 ? (
-        <>
-          <div className="playlist-controls">
+        
+        <div className="playlist-actions">
+          {playlist.songs.length > 0 && (
             <button className="play-all-btn" onClick={handlePlayAll}>
               <FaPlay />
               播放全部
             </button>
-          </div>
+          )}
+          <button 
+            className="more-options-btn"
+            onClick={() => setShowOptions(!showOptions)}
+          >
+            <FaEllipsisV />
+          </button>
           
-          <div className="song-list">
-            {playlist.songs.map((song, index) => {
-              const songName = typeof song === 'string' ? song : song.name;
-              const songData = {
-                name: songName,
-                albumName: song.albumName || playlist.name,
-                albumCover: song.albumCover || '/default-cover.jpg',
-                audio: song.audio || `/music/${encodeURIComponent(songName)}.mp3`
-              };
+          {showOptions && (
+            <div className="options-menu">
+              <button 
+                className="delete-playlist-btn"
+                onClick={handleDeletePlaylist}
+              >
+                <FaTrash />
+                删除歌单
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
-              return (
-                <div 
-                  key={index}
-                  className="song-item"
-                  onClick={() => handleSongClick(songData)}
-                >
-                  <span className="song-number">{index + 1}</span>
+      {playlist.songs.length > 0 ? (
+        <div className="song-list">
+          {playlist.songs.map((song, index) => {
+            const songName = typeof song === 'string' ? song : song.name;
+            return (
+              <div 
+                key={index}
+                className="song-item"
+                onClick={() => handleSongClick(song)}
+              >
+                <span className="song-number">{index + 1}</span>
+                <div className="song-info">
                   <span className="song-name">{songName}</span>
-                  <span className="song-album">{songData.albumName}</span>
-                  <button 
-                    className="remove-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeSongFromPlaylist(playlist.id, songName);
-                    }}
-                  >
-                    删除
-                  </button>
+                  <span className="song-album">{song.albumName || '-'}</span>
                 </div>
-              );
-            })}
-          </div>
-        </>
+                <button 
+                  className="delete-song-btn"
+                  onClick={(e) => handleDeleteSong(songName, e)}
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div className="empty-playlist">
           <p>歌单还没有歌曲</p>

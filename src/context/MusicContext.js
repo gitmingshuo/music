@@ -196,14 +196,14 @@ export function MusicProvider({ children }) {
   };
 
   const removeSongFromPlaylist = (playlistId, songName) => {
-    if (!userId) return;
-    
     setPlaylists(prev => {
       const newPlaylists = prev.map(playlist => {
         if (playlist.id === playlistId) {
           return {
             ...playlist,
-            songs: playlist.songs.filter(song => song.name !== songName)
+            songs: playlist.songs.filter(song => 
+              (typeof song === 'string' ? song : song.name) !== songName
+            )
           };
         }
         return playlist;
@@ -214,8 +214,6 @@ export function MusicProvider({ children }) {
   };
 
   const deletePlaylist = (playlistId) => {
-    if (!userId) return;
-    
     setPlaylists(prev => {
       const newPlaylists = prev.filter(playlist => playlist.id !== playlistId);
       userStorage.set(userId, 'playlists', newPlaylists);
