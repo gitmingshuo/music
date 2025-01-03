@@ -245,13 +245,20 @@ function Player() {
         {!isMini && (
           <div className="player-center">
             <div className="control-buttons">
-              <button onClick={handlePrevious} className="control-btn">
+              <button 
+                className={`mode-btn ${playMode === 'random' ? 'active' : ''}`}
+                onClick={() => togglePlayMode()}
+                title={playMode === 'random' ? '随机播放' : '顺序播放'}
+              >
+                {playMode === 'random' ? <FaRandom /> : <FaRetweet />}
+              </button>
+              <button className="prev-btn" onClick={handlePrevious}>
                 <FaStepBackward />
               </button>
               <button className="play-pause" onClick={togglePlay}>
                 {isPlaying ? <FaPause /> : <FaPlay />}
               </button>
-              <button onClick={handleNext} className="control-btn">
+              <button className="next-btn" onClick={handleNext}>
                 <FaStepForward />
               </button>
             </div>

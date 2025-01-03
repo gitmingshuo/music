@@ -141,14 +141,13 @@
 }
 
 .mode-btn {
-  position: relative;
   background: none;
   border: none;
   color: #b3b3b3;
   cursor: pointer;
   padding: 8px;
   font-size: 16px;
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .mode-btn:hover {
@@ -156,7 +155,7 @@
 }
 
 .mode-btn.active {
-  color: #1db954;
+  color: #b3b3b3;
 }
 
 .mode-btn.disabled {
@@ -609,4 +608,11 @@
   border-radius: 4px;
   font-size: 14px;
   z-index: 1000;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
 }

@@ -165,7 +165,9 @@ export function MusicProvider({ children }) {
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlist, setPlaylist] = useState([]);
-  const [playMode, setPlayMode] = useState(() => localStorage.getItem('playMode') || 'list');
+  const [playMode, setPlayMode] = useState(() => 
+    localStorage.getItem('playMode') || 'list'
+  );
   const [isMini, setIsMini] = useState(() => 
     localStorage.getItem('isMiniModeEnabled') === 'true'
   );
@@ -236,9 +238,19 @@ export function MusicProvider({ children }) {
   const playNext = () => {
     if (!playlist.length) return;
     const currentIndex = playlist.findIndex(song => song.name === currentSong?.name);
-    const nextIndex = (currentIndex + 1) % playlist.length;
-    const nextSong = playlist[nextIndex];
+    let nextIndex;
     
+    if (playMode === 'random') {
+      // 随机模式：随机选择一首（排除当前歌曲）
+      do {
+        nextIndex = Math.floor(Math.random() * playlist.length);
+      } while (nextIndex === currentIndex && playlist.length > 1);
+    } else {
+      // 顺序模式：播放下一首
+      nextIndex = (currentIndex + 1) % playlist.length;
+    }
+    
+    const nextSong = playlist[nextIndex];
     setCurrentSong({
       ...nextSong,
       audio: getAudioPath(nextSong.name)
@@ -250,9 +262,19 @@ export function MusicProvider({ children }) {
   const playPrevious = () => {
     if (!playlist.length) return;
     const currentIndex = playlist.findIndex(song => song.name === currentSong?.name);
-    const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    const prevSong = playlist[prevIndex];
+    let prevIndex;
     
+    if (playMode === 'random') {
+      // 随机模式：随机选择一首（排除当前歌曲）
+      do {
+        prevIndex = Math.floor(Math.random() * playlist.length);
+      } while (prevIndex === currentIndex && playlist.length > 1);
+    } else {
+      // 顺序模式：播放上一首
+      prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+    }
+    
+    const prevSong = playlist[prevIndex];
     setCurrentSong({
       ...prevSong,
       audio: getAudioPath(prevSong.name)
@@ -291,13 +313,9 @@ export function MusicProvider({ children }) {
 
   // 播放模式相关方法
   const togglePlayMode = () => {
-    setPlayMode(prev => {
-      switch (prev) {
-        case 'list': return 'single';
-        case 'single': return 'random';
-        default: return 'list';
-      }
-    });
+    const newMode = playMode === 'list' ? 'random' : 'list';
+    setPlayMode(newMode);
+    localStorage.setItem('playMode', newMode);
   };
 
   // 添加音频时间更新处理
@@ -524,6 +542,50 @@ export function MusicProvider({ children }) {
     if (autoPlay) {
       playNext();
     }
+  };
+
+  // 修改下一首歌曲的逻辑
+  const handleNext = () => {
+    if (!currentSong || playlist.length === 0) return;
+    
+    const currentIndex = playlist.findIndex(
+      song => song.name === currentSong.name
+    );
+
+    let nextIndex;
+    if (playMode === 'random') {
+      // 随机模式：随机选择一首歌（排除当前歌曲）
+      do {
+        nextIndex = Math.floor(Math.random() * playlist.length);
+      } while (nextIndex === currentIndex && playlist.length > 1);
+    } else {
+      // 顺序模式：播放下一首歌
+      nextIndex = (currentIndex + 1) % playlist.length;
+    }
+
+    setCurrentSong(playlist[nextIndex]);
+  };
+
+  // 修改上一首歌曲的逻辑
+  const handlePrevious = () => {
+    if (!currentSong || playlist.length === 0) return;
+    
+    const currentIndex = playlist.findIndex(
+      song => song.name === currentSong.name
+    );
+
+    let prevIndex;
+    if (playMode === 'random') {
+      // 随机模式：随机选择一首歌（排除当前歌曲）
+      do {
+        prevIndex = Math.floor(Math.random() * playlist.length);
+      } while (prevIndex === currentIndex && playlist.length > 1);
+    } else {
+      // 顺序模式：播放上一首歌
+      prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+    }
+
+    setCurrentSong(playlist[prevIndex]);
   };
 
   const value = {
