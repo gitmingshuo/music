@@ -166,7 +166,9 @@ export function MusicProvider({ children }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlist, setPlaylist] = useState([]);
   const [playMode, setPlayMode] = useState(() => localStorage.getItem('playMode') || 'list');
-  const [isMini, setIsMini] = useState(false);
+  const [isMini, setIsMini] = useState(() => 
+    localStorage.getItem('isMiniModeEnabled') === 'true'
+  );
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -357,8 +359,10 @@ export function MusicProvider({ children }) {
   };
 
   // 添加切换迷你模式的函数
-  const toggleMiniMode = () => {
-    setIsMini(prev => !prev);
+  const toggleMiniMode = (value) => {
+    const newValue = typeof value === 'boolean' ? value : !isMini;
+    setIsMini(newValue);
+    localStorage.setItem('isMiniModeEnabled', newValue);
   };
 
   // 修改歌词加载逻辑

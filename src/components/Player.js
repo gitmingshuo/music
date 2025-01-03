@@ -164,29 +164,83 @@ function Player() {
     }
   }, [isDragging]);
 
+  const renderMiniPlayer = () => {
+    if (!currentSong) return null;
+    
+    return (
+      <div className="mini-player" onClick={toggleMiniMode}>
+        <div className="mini-player-info">
+          <div className="mini-player-title">
+            <span className="mini-song-name">{currentSong.name}</span>
+            <span className="mini-time">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </div>
+          <div className="mini-progress-bar">
+            <div 
+              className="mini-progress" 
+              style={{ width: `${(currentTime / duration * 100) || 0}%` }}
+            />
+          </div>
+        </div>
+        <div className="mini-controls">
+          <button 
+            className="mini-control-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrevious(e);
+            }}
+          >
+            <FaStepBackward />
+          </button>
+          <button 
+            className="mini-control-btn mini-play-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay(e);
+            }}
+          >
+            {isPlaying ? <FaPause /> : <FaPlay />}
+          </button>
+          <button 
+            className="mini-control-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext(e);
+            }}
+          >
+            <FaStepForward />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className={`player ${isMini ? 'mini' : ''}`}>
-        <div className="player-left">
-          <div 
-            className="player-cover" 
-            onClick={toggleFullscreen}
-            style={{ cursor: 'pointer' }}
-          >
-            {currentSong?.name && (
-              <img 
-                src={getAlbumInfo(currentSong.name)?.albumCover || '/default-cover.jpg'} 
-                alt={currentSong.name}
-              />
-            )}
-          </div>
-          <div className="player-song-info">
-            <div className="song-name">{currentSong?.name || '未播放'}</div>
-            <div className="artist-name">
-              {currentSong?.name ? getAlbumInfo(currentSong.name)?.albumName || '-' : '-'}
+        {isMini ? renderMiniPlayer() : (
+          <div className="player-left">
+            <div 
+              className="player-cover" 
+              onClick={toggleFullscreen}
+              style={{ cursor: 'pointer' }}
+            >
+              {currentSong?.name && (
+                <img 
+                  src={getAlbumInfo(currentSong.name)?.albumCover || '/default-cover.jpg'} 
+                  alt={currentSong.name}
+                />
+              )}
+            </div>
+            <div className="player-song-info">
+              <div className="song-name">{currentSong?.name || '未播放'}</div>
+              <div className="artist-name">
+                {currentSong?.name ? getAlbumInfo(currentSong.name)?.albumName || '-' : '-'}
+              </div>
             </div>
           </div>
-        </div>
+        )}
         
         {!isMini && (
           <div className="player-center">

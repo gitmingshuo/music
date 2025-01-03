@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useMusic } from '../context/MusicContext';
-import { FaRegClock, FaRegChartBar, FaPalette, FaKeyboard, FaVolumeUp, FaInfoCircle } from 'react-icons/fa';
+import { FaRegClock, FaRegChartBar, FaPalette, FaKeyboard, FaVolumeUp, FaInfoCircle, FaDesktop } from 'react-icons/fa';
 import './UserSettings.css';
 
 function UserSettings({ onClose }) {
@@ -17,7 +17,8 @@ function UserSettings({ onClose }) {
     setAutoPlay,
     crossfade,
     setCrossfade,
-    clearRecentPlays
+    clearRecentPlays,
+    toggleMiniMode
   } = useMusic();
   const [selectedTimer, setSelectedTimer] = useState(null);
   const [activeTab, setActiveTab] = useState('theme');
@@ -38,6 +39,9 @@ function UserSettings({ onClose }) {
   const [showTranslation, setShowTranslation] = useState(() => 
     localStorage.getItem('showTranslation') === 'true'
   );
+  const [isMiniModeEnabled, setIsMiniModeEnabled] = useState(() => 
+    localStorage.getItem('isMiniModeEnabled') === 'true'
+  );
 
   useEffect(() => {
     localStorage.setItem('historyClearInterval', historyClearInterval);
@@ -45,7 +49,8 @@ function UserSettings({ onClose }) {
     localStorage.setItem('fontSize', fontSize);
     localStorage.setItem('enableAnimations', enableAnimations);
     localStorage.setItem('showTranslation', showTranslation);
-  }, [historyClearInterval, maxHistoryItems, fontSize, enableAnimations, showTranslation]);
+    localStorage.setItem('isMiniModeEnabled', isMiniModeEnabled);
+  }, [historyClearInterval, maxHistoryItems, fontSize, enableAnimations, showTranslation, isMiniModeEnabled]);
 
   const clearAllHistory = () => {
     if (window.confirm('确定要清除所有播放历史吗？')) {
@@ -83,6 +88,7 @@ function UserSettings({ onClose }) {
     { id: 'timer', name: '定时', icon: <FaRegClock /> },
     { id: 'shortcuts', name: '快捷键', icon: <FaKeyboard /> },
     { id: 'audio', name: '音频', icon: <FaVolumeUp /> },
+    { id: 'interface', name: '界面', icon: <FaDesktop /> },
     { id: 'about', name: '关于', icon: <FaInfoCircle /> }
   ];
 
@@ -260,6 +266,20 @@ function UserSettings({ onClose }) {
           <div className="settings-section">
             <h3>界面设置</h3>
             <div className="interface-settings">
+              <div className="setting-item">
+                <span>启用迷你播放器</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={isMiniModeEnabled}
+                    onChange={(e) => {
+                      setIsMiniModeEnabled(e.target.checked);
+                      toggleMiniMode(e.target.checked);
+                    }}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
               <div className="setting-item">
                 <span>字体大小</span>
                 <select value={fontSize} onChange={(e) => setFontSize(e.target.value)}>
