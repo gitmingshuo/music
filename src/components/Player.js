@@ -24,7 +24,9 @@ function Player() {
     isMini,
     toggleMiniMode,
     favorites,
-    toggleFavorite
+    toggleFavorite,
+    startTimer,
+    timeRemaining
   } = useMusic();
   
   const [isLiked, setIsLiked] = useState(false);

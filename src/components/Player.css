@@ -4,12 +4,13 @@
   left: 0;
   right: 0;
   height: 72px;
-  background: #282828;
+  background: var(--player-bg);
   display: flex;
   align-items: center;
   padding: 0 16px;
   z-index: 1000;
   transition: all 0.3s ease;
+  border-top: 1px solid var(--border-color);
 }
 
 .player-left {
@@ -60,7 +61,7 @@
   height: 32px;
   border: none;
   background: transparent;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -98,7 +99,7 @@
 .volume-btn {
   background: transparent;
   border: none;
-  color: #999;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 8px;
   font-size: 20px;
@@ -194,12 +195,12 @@
 }
 
 .song-name {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
 .artist-name {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 

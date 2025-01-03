@@ -3,12 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaArrowRight, FaSearch } from 'react-icons/fa';
+import UserSettings from './UserSettings';
 import './Header.css';
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -68,10 +70,18 @@ function Header() {
         </div>
         {showUserMenu && (
           <div className="user-menu" ref={menuRef}>
+            <button onClick={() => {
+              setShowSettings(true);
+              setShowUserMenu(false);
+            }}>
+              设置
+            </button>
             <button onClick={logout}>退出登录</button>
           </div>
         )}
       </div>
+
+      {showSettings && <UserSettings onClose={() => setShowSettings(false)} />}
     </header>
   );
 }

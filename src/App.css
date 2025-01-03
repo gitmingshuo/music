@@ -13,8 +13,9 @@ body {
 .app {
   display: flex;
   height: 100vh;
-  background: #121212;
+  background-color: var(--bg-primary);
   width: 100%;
+  color: var(--text-primary);
 }
 
 .main-container {
@@ -23,6 +24,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  background-color: var(--bg-secondary);
 }
 
 .content-wrapper {
@@ -40,6 +42,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
+  background-color: var(--content-bg);
 }
 
 /* 滚动条样式 */
@@ -62,7 +65,8 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #181818;
+  background: var(--player-bg);
+  border-top: 1px solid var(--border-color);
   z-index: 1000;
   pointer-events: auto;
 }

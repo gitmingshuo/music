@@ -1,12 +1,12 @@
 .side-nav {
   width: 200px;
   height: 100%;
-  background: #191919;
+  background-color: var(--nav-bg);
   padding: 20px 0;
-  color: #fff;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #2c2c2c;
+  border-right: 1px solid var(--border-color);
 }
 
 .logo {
@@ -17,7 +17,7 @@
 .logo h1 {
   font-size: 20px;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .nav-section {
@@ -27,7 +27,7 @@
 
 .nav-section h3 {
   font-size: 12px;
-  color: #999;
+  color: var(--text-secondary);
   padding: 0 10px;
   margin-bottom: 8px;
 }
@@ -44,20 +44,20 @@
   display: flex;
   align-items: center;
   padding: 10px;
-  color: #ccc;
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 4px;
   transition: all 0.3s;
 }
 
 .nav-section a:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
 }
 
 .nav-section a.active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
 }
 
 .nav-section a svg {
@@ -105,7 +105,7 @@
   height: 24px;
   border: none;
   background: transparent;
-  color: #999;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -115,7 +115,7 @@
 }
 
 .create-playlist-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.1);
 }
 

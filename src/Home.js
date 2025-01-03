@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMusic } from './context/MusicContext';
 import { FaPlay } from 'react-icons/fa';
 import './Home.css';
+import { Link } from 'react-router-dom';
 
 export const albums = [
     {
@@ -209,8 +210,8 @@ function Home() {
       {/* 推荐歌单 */}
       <section className="section">
         <div className="section-header">
-          <h2>推荐歌单</h2>
-          <span className="more" onClick={() => navigate('/playlists')}>更多 &gt;</span>
+          <h2 className="section-title">推荐歌单</h2>
+          <Link to="/playlists" className="more-link">更多 &gt;</Link>
         </div>
         <div className="playlists-grid">
           {playlists.map(playlist => (

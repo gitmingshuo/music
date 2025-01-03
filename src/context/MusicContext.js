@@ -85,11 +85,9 @@ export function MusicProvider({ children }) {
   // 移除这些初始化，改为在 useEffect 中处理
   const [favorites, setFavorites] = useState([]);
   const [recentPlays, setRecentPlays] = useState([]);
-  const [playlists, setPlaylists] = useState([{
-    id: 'default',
-    name: '我喜欢的音乐',
-    songs: []
-  }]);
+  const [playlists, setPlaylists] = useState(() => {
+    return userStorage.get(userId, 'playlists', []);
+  });
 
   // 在用户ID变化时重新加载数据
   useEffect(() => {
@@ -361,6 +359,91 @@ export function MusicProvider({ children }) {
     }
   }, [currentSong?.name]);
 
+  // 添加播放统计
+  const [playStats, setPlayStats] = useState(() => {
+    return userStorage.get(userId, 'playStats', {
+      mostPlayed: [],
+      recentPlayed: [],
+      totalPlayTime: 0,
+      weeklyPlays: 0,
+      currentSession: 0
+    });
+  });
+
+  // 更新播放统计
+  const updatePlayStats = (song) => {
+    setPlayStats(prev => {
+      // 获取本周开始时间
+      const startOfWeek = new Date();
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+      // 更新统计
+      const newStats = {
+        ...prev,
+        recentPlayed: [song, ...prev.recentPlayed].slice(0, 50),
+        totalPlayTime: prev.totalPlayTime + (song.duration || 0),
+        weeklyPlays: prev.weeklyPlays + 1,
+        currentSession: prev.currentSession + 1
+      };
+
+      // 保存到本地存储
+      userStorage.set(userId, 'playStats', newStats);
+      return newStats;
+    });
+  };
+
+  // 在音频播放开始时更新统计
+  useEffect(() => {
+    if (currentSong && isPlaying) {
+      updatePlayStats(currentSong);
+    }
+  }, [currentSong, isPlaying]);
+
+  // 添加快捷键设置
+  const [shortcuts, setShortcuts] = useState(() => {
+    return userStorage.get(userId, 'shortcuts', {
+      playPause: 'Space',
+      nextTrack: 'ArrowRight',
+      prevTrack: 'ArrowLeft',
+      volumeUp: 'ArrowUp',
+      volumeDown: 'ArrowDown'
+    });
+  });
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === shortcuts.playPause) togglePlay();
+      if (e.key === shortcuts.nextTrack) playNext();
+      if (e.key === shortcuts.prevTrack) playPrevious();
+      // ...其他快捷键
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [shortcuts]);
+
+  const [timer, setTimer] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+
+  const startTimer = (minutes) => {
+    clearTimeout(timer);
+    const endTime = Date.now() + minutes * 60 * 1000;
+    
+    setTimer(setInterval(() => {
+      const remaining = Math.max(0, endTime - Date.now());
+      setTimeRemaining(remaining);
+      
+      if (remaining === 0) {
+        clearInterval(timer);
+        if (audioRef.current) {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        }
+      }
+    }, 1000));
+  };
+
   const value = {
     currentSong,
     isPlaying,
@@ -381,7 +464,7 @@ export function MusicProvider({ children }) {
     toggleFavorite,
     addToRecentPlays,
     createPlaylist,
-    addSongToPlaylist,
+    addSongToPlaylist,                                                                                                         
     removeSongFromPlaylist,
     deletePlaylist,
     togglePlayMode,
@@ -395,6 +478,11 @@ export function MusicProvider({ children }) {
     currentLyricIndex,
     loadLyrics,
     clearRecentPlays,
+    playStats,
+    updatePlayStats,
+    shortcuts,
+    startTimer,
+    timeRemaining,
   };
 
   return (
