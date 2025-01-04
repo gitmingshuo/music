@@ -1,24 +1,10 @@
-// 模拟用户数据存储
-const USERS_KEY = 'chat_users';
-const MESSAGES_KEY = 'chat_messages';
+import { getAllUsers as getStorageUsers, findUserById } from './userStorage';
 
-// 初始化一些测试用户
-const initializeUsers = () => {
-  const defaultUsers = [
-    { id: '1', username: 'user1', avatar: '/default-avatar.png' },
-    { id: '2', username: 'user2', avatar: '/default-avatar.png' },
-    { id: '3', username: 'user3', avatar: '/default-avatar.png' }
-  ];
-  
-  if (!localStorage.getItem(USERS_KEY)) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
-  }
-};
+const MESSAGES_KEY = 'chat_messages';
 
 // 获取所有用户
 export const getAllUsers = () => {
-  const users = localStorage.getItem(USERS_KEY);
-  return users ? JSON.parse(users) : [];
+  return getStorageUsers();
 };
 
 // 搜索用户
@@ -29,16 +15,25 @@ export const searchUser = (username) => {
 
 // 获取用户消息
 export const getUserMessages = (userId1, userId2) => {
+  if (!userId1 || !userId2) return [];
+  
   const messages = localStorage.getItem(MESSAGES_KEY);
   const allMessages = messages ? JSON.parse(messages) : [];
-  return allMessages.filter(msg => 
-    (msg.senderId === userId1 && msg.receiverId === userId2) ||
-    (msg.senderId === userId2 && msg.receiverId === userId1)
+  const userMessages = allMessages.filter(msg => 
+    msg && msg.senderId && msg.receiverId && (
+      (msg.senderId === userId1 && msg.receiverId === userId2) ||
+      (msg.senderId === userId2 && msg.receiverId === userId1)
+    )
   );
+  return userMessages;
 };
 
 // 保存新消息
 export const saveMessage = (senderId, receiverId, content) => {
+  if (!senderId || !receiverId || !content) {
+    throw new Error('Invalid message data');
+  }
+  
   const messages = localStorage.getItem(MESSAGES_KEY);
   const allMessages = messages ? JSON.parse(messages) : [];
   
@@ -53,7 +48,20 @@ export const saveMessage = (senderId, receiverId, content) => {
   
   allMessages.push(newMessage);
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(allMessages));
+  
+  // 触发一个自定义事件，通知其他标签页有新消息
+  window.dispatchEvent(new CustomEvent('newMessage', { 
+    detail: { message: newMessage } 
+  }));
+  
   return newMessage;
+};
+
+// 添加消息监听器
+export const initMessageListener = (callback) => {
+  window.addEventListener('newMessage', (event) => {
+    callback(event.detail.message);
+  });
 };
 
 // 获取用户的所有会话
@@ -106,7 +114,4 @@ export const markMessagesAsRead = (userId, otherUserId) => {
   });
   
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(updatedMessages));
-};
-
-// 初始化
-initializeUsers(); 
+}; 

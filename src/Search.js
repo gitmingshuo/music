@@ -33,7 +33,7 @@ function Search() {
   const handleSearch = (value) => {
     setSearchTerm(value);
     if (!value.trim()) {
-      setFilteredSongs([]);
+      setFilteredSongs([]); 
       return;
     }
 

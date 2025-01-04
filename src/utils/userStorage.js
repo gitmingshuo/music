@@ -14,9 +14,22 @@ export const initializeDefaultUsers = () => {
     { id: '6', username: 'chou', password: '123456', avatar: '/default-avatar.png' }
   ];
 
+  // 检查是否已经初始化过
   if (!localStorage.getItem(USERS_KEY)) {
     localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
   }
+  
+  // 确保所有默认用户都存在
+  const currentUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+  const currentUsernames = currentUsers.map(u => u.username);
+  
+  defaultUsers.forEach(defaultUser => {
+    if (!currentUsernames.includes(defaultUser.username)) {
+      currentUsers.push(defaultUser);
+    }
+  });
+  
+  localStorage.setItem(USERS_KEY, JSON.stringify(currentUsers));
 };
 
 // 用户相关操作
@@ -144,6 +157,9 @@ initializeDefaultUsers();
 // 登录验证函数
 export const validateUser = (username, password) => {
   const users = getAllUsers();
-  const user = users.find(user => user.username === username);
-  return user && user.password === password;
+  const user = users.find(user => 
+    user.username.toLowerCase() === username.toLowerCase() && 
+    user.password === password
+  );
+  return user || null; // 返回找到的用户对象或null
 }; 

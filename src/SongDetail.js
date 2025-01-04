@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useMusic } from './context/MusicContext';
 import './SongDetail.css';
-
+  
 function SongDetail() {
   const location = useLocation();
   const { 

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMessage } from '../context/MessageContext';
 import { isFollowing, followUser, unfollowUser } from '../utils/userStorage';
 import './Messages.css';
+import { useNavigate } from 'react-router-dom';
+import EmojiPicker from '../components/EmojiPicker';
 
 function Messages() {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -10,8 +12,8 @@ function Messages() {
   const [newMessageUsername, setNewMessageUsername] = useState('');
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
   const [isFollowed, setIsFollowed] = useState(false);
+  const [sending, setSending] = useState(false);
   
   const { user } = useAuth();
   const { 
@@ -19,8 +21,33 @@ function Messages() {
     sendMessage, 
     fetchConversations,
     searchUsers,
-    loadChatMessages
+    loadChatMessages,
+    currentMessages
   } = useMessage();
+  const navigate = useNavigate();
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [currentMessages]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      scrollToBottom();
+    }
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (selectedUser) {
@@ -29,18 +56,24 @@ function Messages() {
   }, [selectedUser, user.id]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedUser) return;
+    if (!message.trim() || !selectedUser || !user || sending) return;
     
-    const success = await sendMessage(selectedUser.id, message);
-    if (success) {
-      setMessage('');
-      const messages = loadChatMessages(selectedUser.id);
-      setChatMessages(messages);
+    try {
+      setSending(true);
+      const success = await sendMessage(selectedUser.id, message);
+      if (success) {
+        setMessage('');
+        loadChatMessages(selectedUser.id);
+      } else {
+        console.error('消息发送失败');
+      }
+    } finally {
+      setSending(false);
     }
   };
 
   const handleNewMessage = async () => {
-    if (!newMessageUsername.trim()) {
+    if (!user || !newMessageUsername.trim()) {
       setSearchError('请输入用户名');
       return;
     }
@@ -62,8 +95,7 @@ function Messages() {
       setSelectedUser(foundUser);
       setShowNewMessage(false);
       setNewMessageUsername('');
-      const messages = loadChatMessages(foundUser.id);
-      setChatMessages(messages);
+      loadChatMessages(foundUser.id);
       setIsFollowed(isFollowing(user.id, foundUser.id));
     } catch (error) {
       console.error('查找用户失败:', error);
@@ -72,14 +104,15 @@ function Messages() {
   };
 
   const handleSelectConversation = (conv) => {
+    if (!conv?.user || !user) return;
+    
     setSelectedUser(conv.user);
-    const messages = loadChatMessages(conv.user.id);
-    setChatMessages(messages);
+    loadChatMessages(conv.user.id);
     setIsFollowed(isFollowing(user.id, conv.user.id));
   };
 
   const handleFollow = () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !user) return;
     
     if (isFollowed) {
       unfollowUser(user.id, selectedUser.id);
@@ -87,6 +120,10 @@ function Messages() {
       followUser(user.id, selectedUser.id);
     }
     setIsFollowed(!isFollowed);
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    setMessage(prev => prev + emoji);
   };
 
   return (
@@ -116,21 +153,23 @@ function Messages() {
         )}
 
         <div className="conversations">
-          {conversations.map((conv) => (
-            <div
-              key={conv.id}
-              className={`conversation-item ${selectedUser?.id === conv.user.id ? 'active' : ''}`}
-              onClick={() => handleSelectConversation(conv)}
-            >
-              <img src={conv.user.avatar || '/default-avatar.png'} alt="avatar" />
-              <div className="conversation-info">
-                <span className="username">{conv.user.username}</span>
-                <span className="last-message">{conv.lastMessage}</span>
+          {conversations && conversations.map((conv) => (
+            conv?.user && (
+              <div
+                key={conv.id}
+                className={`conversation-item ${selectedUser?.id === conv.user.id ? 'active' : ''}`}
+                onClick={() => handleSelectConversation(conv)}
+              >
+                <img src={conv.user.avatar || '/default-avatar.png'} alt="avatar" />
+                <div className="conversation-info">
+                  <span className="username">{conv.user.username}</span>
+                  <span className="last-message">{conv.lastMessage}</span>
+                </div>
+                {conv.unreadCount > 0 && (
+                  <span className="unread-count">{conv.unreadCount}</span>
+                )}
               </div>
-              {conv.unreadCount > 0 && (
-                <span className="unread-count">{conv.unreadCount}</span>
-              )}
-            </div>
+            )
           ))}
         </div>
       </div>
@@ -149,28 +188,40 @@ function Messages() {
                 </button>
               </div>
             </div>
+            
             <div className="messages-list">
-              {chatMessages.map((msg) => (
-                <div 
-                  key={msg.id}
-                  className={`message ${msg.senderId === user.id ? 'sent' : 'received'}`}
-                >
-                  <div className="message-content">{msg.content}</div>
-                  <div className="message-time">
-                    {new Date(msg.timestamp).toLocaleTimeString()}
+              {currentMessages && currentMessages.map((msg) => (
+                msg && user && (
+                  <div 
+                    key={msg.id}
+                    className={`message ${msg.senderId === user.id ? 'sent' : 'received'}`}
+                  >
+                    <div className="message-content">{msg.content}</div>
+                    <div className="message-time">
+                      {new Date(msg.timestamp).toLocaleTimeString()}
+                    </div>
                   </div>
-                </div>
+                )
               ))}
+              <div ref={messagesEndRef} />
             </div>
+
             <div className="message-input">
+              <EmojiPicker onEmojiSelect={handleEmojiSelect} />
               <input
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="输入消息..."
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === 'Enter' && !sending && handleSendMessage()}
+                disabled={sending}
               />
-              <button onClick={handleSendMessage}>发送</button>
+              <button 
+                onClick={handleSendMessage}
+                disabled={sending || !message.trim()}
+              >
+                {sending ? '发送中...' : '发送'}
+              </button>
             </div>
           </>
         ) : (
