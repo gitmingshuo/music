@@ -17,6 +17,8 @@ function Header() {
   const menuRef = useRef(null);
 
   useEffect(() => {
+    let intervalId;
+
     const fetchUnreadCount = async () => {
       if (!user) return;
       
@@ -27,14 +29,23 @@ function Header() {
         setUnreadCount(data.count);
       } catch (error) {
         console.error('获取未读消息数量失败:', error);
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
       }
     };
 
     if (user) {
       fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 30000);
-      return () => clearInterval(interval);
+      intervalId = setInterval(fetchUnreadCount, 30000);
     }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [user]);
 
   useEffect(() => {

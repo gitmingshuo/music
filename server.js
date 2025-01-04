@@ -5,13 +5,9 @@ const app = express();
 
 // CORS 配置
 app.use(cors({
-  // 允许的源，开发环境和生产环境
-  origin: ['http://localhost:3000', 'https://your-production-domain.com'],
-  // 允许的方法
+  origin: '*',  // 允许所有来源
   methods: ['GET', 'POST', 'OPTIONS'],
-  // 允许的请求头
   allowedHeaders: ['Content-Type', 'Authorization'],
-  // 允许发送凭证
   credentials: true
 }));
 
@@ -25,29 +21,8 @@ const pusher = new Pusher({
   useTLS: true
 });
 
-// API 路由前缀
-const API_PREFIX = '/api';
-
-// 未读消息计数路由
-app.get(`${API_PREFIX}/messages/unread-count`, async (req, res) => {
-  try {
-    const userId = req.query.userId;
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
-
-    const conversations = await getUserConversations(userId);
-    const unreadCount = conversations.reduce((total, conv) => total + (conv.unreadCount || 0), 0);
-
-    res.json({ count: unreadCount });
-  } catch (error) {
-    console.error('Error getting unread count:', error);
-    res.status(500).json({ error: 'Failed to get unread count' });
-  }
-});
-
 // 发送消息路由
-app.post(`${API_PREFIX}/send-message`, async (req, res) => {
+app.post('/api/send-message', async (req, res) => {
   try {
     const { type, message } = req.body;
     console.log('Server received message:', { type, message });

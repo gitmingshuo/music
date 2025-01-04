@@ -20,6 +20,11 @@ export function MessageProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
+  // 监控 currentChat 变化
+  useEffect(() => {
+    console.log('Current chat changed to:', currentChat);
+  }, [currentChat]);
+
   // 初始化 WebSocket 连接
   useEffect(() => {
     if (user) {
@@ -33,54 +38,47 @@ export function MessageProvider({ children }) {
     if (!user) return;
 
     const handleNewMessage = async (message) => {
-      console.log('Handling new message:', message);
+      console.log('Received new message:', message);
       
-      // 确保消息对象只包含需要的属性
-      const processedMessage = {
-        id: message.id,
-        senderId: message.senderId,
-        receiverId: message.receiverId,
-        content: message.content,
-        timestamp: message.timestamp
-      };
-
       try {
-        // 保存消息到本地数据库
+        console.log('Saving message to local DB...');
         const savedMessage = await saveMessage(
-          processedMessage.senderId, 
-          processedMessage.receiverId, 
-          processedMessage.content
+          message.senderId,
+          message.receiverId,
+          message.content
         );
+        console.log('Message saved:', savedMessage);
 
-        // 检查是否是当前聊天的消息
-        const isCurrentChat = currentChat && 
-          (processedMessage.senderId === currentChat || processedMessage.receiverId === currentChat);
-
-        if (isCurrentChat) {
-          // 使用函数式更新确保状态正确更新
-          setCurrentMessages(prevMessages => {
-            // 检查消息是否已存在
-            const messageExists = prevMessages.some(msg => msg.id === savedMessage.id);
-            if (messageExists) {
-              return prevMessages;
-            }
-            return [...prevMessages, savedMessage];
+        // 使用函数式更新确保获取最新的 currentChat 值
+        setCurrentMessages(prevMessages => {
+          const isRelevantMessage = currentChat && 
+            (message.senderId === currentChat || message.receiverId === currentChat);
+          
+          console.log('Message relevance check:', {
+            currentChat,
+            senderId: message.senderId,
+            receiverId: message.receiverId,
+            isRelevant: isRelevantMessage
           });
-        }
 
-        // 更新会话列表
+          if (!isRelevantMessage) {
+            console.log('Message not relevant to current chat');
+            return prevMessages;
+          }
+
+          const messageExists = prevMessages.some(msg => msg.id === savedMessage.id);
+          if (messageExists) {
+            console.log('Message already exists in current chat');
+            return prevMessages;
+          }
+
+          console.log('Adding new message to chat');
+          return [...prevMessages, savedMessage];
+        });
+
         await fetchConversations();
-
-        // 如果不是当前用户发送的消息，发送通知
-        if (processedMessage.senderId !== user.id) {
-          await sendNotification(
-            user.id,
-            '新消息',
-            processedMessage.content
-          );
-        }
       } catch (error) {
-        console.error('Error handling message:', error);
+        console.error('Error handling new message:', error);
       }
     };
 
@@ -104,19 +102,35 @@ export function MessageProvider({ children }) {
   };
 
   const loadChatMessages = async (otherUserId) => {
-    if (!user || !otherUserId) return [];
+    console.log('Loading chat messages for:', otherUserId);
+    if (!user || !otherUserId) {
+      console.log('Missing user or otherUserId:', { user, otherUserId });
+      return [];
+    }
     
     try {
       setLoading(true);
-      setCurrentChat(otherUserId);
+      // 使用 await 确保 currentChat 更新完成
+      await new Promise(resolve => {
+        setCurrentChat(otherUserId);
+        resolve();
+      });
+      console.log('Set new currentChat:', otherUserId);
+      
       const messages = await getUserMessages(user.id, otherUserId);
       console.log('Loaded messages:', messages);
-      setCurrentMessages(messages);
+      
+      // 使用函数式更新确保最新状态
+      setCurrentMessages(prevMessages => {
+        console.log('Updating messages:', { prevMessages, newMessages: messages });
+        return messages;
+      });
+      
       await markMessagesAsRead(user.id, otherUserId);
       await fetchConversations();
       return messages;
     } catch (error) {
-      console.error('加载聊天消息失败:', error);
+      console.error('Error loading chat messages:', error);
       return [];
     } finally {
       setLoading(false);
@@ -124,7 +138,16 @@ export function MessageProvider({ children }) {
   };
 
   const sendMessage = async (receiverId, content) => {
-    if (!user || !receiverId || !content || loading) return false;
+    console.log('MessageContext sendMessage:', { receiverId, content });
+    if (!user || !receiverId || !content || loading) {
+      console.log('Send message preconditions not met:', {
+        hasUser: !!user,
+        hasReceiverId: !!receiverId,
+        hasContent: !!content,
+        isLoading: loading
+      });
+      return false;
+    }
     
     try {
       setLoading(true);
@@ -140,26 +163,30 @@ export function MessageProvider({ children }) {
         }
       };
 
-      // 发送消息
-      await wsService.sendMessage(messageData);
-      
-      // 保存到本地并获取保存的消息对象
+      console.log('Sending message data:', messageData);
+
+      // 先保存到本地
       const savedMessage = await saveMessage(
-        user.id, 
-        receiverId, 
+        user.id,
+        receiverId,
         content
       );
-      
-      // 立即更新当前聊天消息列表
+      console.log('Message saved locally:', savedMessage);
+
+      // 发送到服务器
+      await wsService.sendMessage(messageData);
+      console.log('Message sent to server');
+
+      // 更新当前聊天消息列表
       if (currentChat === receiverId) {
         setCurrentMessages(prevMessages => [...prevMessages, savedMessage]);
       }
-      
+
       // 更新会话列表
       await fetchConversations();
       return true;
     } catch (error) {
-      console.error('发送消息失败:', error);
+      console.error('Error in send message flow:', error);
       return false;
     } finally {
       setLoading(false);

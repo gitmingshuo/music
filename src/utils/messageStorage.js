@@ -59,11 +59,16 @@ export const getUserMessages = async (userId1, userId2) => {
 
 // 获取用户的所有会话
 export const getUserConversations = async (userId) => {
-  const conversations = await getDBConversations(userId);
-  return conversations.map(conv => ({
-    ...conv,
-    user: findUserById(conv.otherUserId)
-  }));
+  try {
+    const conversations = await getDBConversations(userId);
+    return conversations.map(conv => ({
+      ...conv,
+      user: findUserById(conv.otherUserId)
+    }));
+  } catch (error) {
+    console.error('Error getting conversations:', error);
+    return []; // 返回空数组而不是抛出错误
+  }
 };
 
 // 搜索用户

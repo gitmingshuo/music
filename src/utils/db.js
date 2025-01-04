@@ -31,19 +31,37 @@ export async function getDB() {
 
 // 保存消息
 export async function saveMessageToDB(message) {
+  console.log('Starting to save message to DB:', message);
   const db = await getDB();
-  // 添加会话ID
   const conversationId = [message.senderId, message.receiverId].sort().join('-');
-  await db.add('messages', { ...message, conversationId });
-  return message;
+  
+  try {
+    console.log('Saving message with conversationId:', conversationId);
+    const savedMessage = await db.add('messages', { ...message, conversationId });
+    console.log('Message saved successfully:', savedMessage);
+    return message;
+  } catch (error) {
+    console.error('Error saving message to DB:', error);
+    throw error;
+  }
 }
 
 // 获取会话消息
 export async function getConversationMessages(userId1, userId2) {
+  console.log('Fetching messages for users:', userId1, userId2);
   const db = await getDB();
-  // 确保消息按时间排序
-  const messages = await db.getAllFromIndex('messages', 'conversationId', [userId1, userId2].sort().join('-'));
-  return messages;
+  const conversationId = [userId1, userId2].sort().join('-');
+  
+  try {
+    console.log('Getting messages for conversationId:', conversationId);
+    const messages = await db.getAllFromIndex('messages', 'conversationId', conversationId);
+    console.log('Retrieved messages count:', messages.length);
+    console.log('Messages:', messages);
+    return messages;
+  } catch (error) {
+    console.error('Error getting conversation messages:', error);
+    throw error;
+  }
 }
 
 // 更新会话

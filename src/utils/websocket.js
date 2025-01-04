@@ -23,39 +23,21 @@ class WebSocketService {
     
     this.channel.bind('new-message', (message) => {
       console.log('WebSocket received message:', message);
-      const processedMessage = {
-        id: message.id,
-        senderId: message.senderId,
-        receiverId: message.receiverId,
-        content: message.content,
-        timestamp: message.timestamp
-      };
-      this.messageCallbacks.forEach(callback => callback(processedMessage));
+      this.messageCallbacks.forEach(callback => callback(message));
     });
 
     this.pusher.connection.bind('connected', () => {
       console.log('Connected to Pusher');
     });
-
-    this.pusher.connection.bind('error', (err) => {
-      console.error('Pusher connection error:', err);
-    });
   }
 
   sendMessage(messageData) {
     console.log('Sending message:', messageData);
-    
-    if (!messageData.message || !messageData.message.receiverId) {
-      console.error('Invalid message format:', messageData);
-      return Promise.reject(new Error('Invalid message format'));
-    }
-
     return fetch(`${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include',
       body: JSON.stringify(messageData)
     }).then(response => {
       if (!response.ok) {
