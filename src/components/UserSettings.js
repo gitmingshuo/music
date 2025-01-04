@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useMusic } from '../context/MusicContext';
-import { FaRegClock, FaRegChartBar, FaPalette, FaKeyboard, FaVolumeUp, FaInfoCircle, FaDesktop } from 'react-icons/fa';
+import { FaRegClock, FaRegChartBar, FaPalette, FaKeyboard, FaVolumeUp, FaInfoCircle, FaDesktop, FaUser } from 'react-icons/fa';
+import AvatarPicker from './AvatarPicker';
+import { useAuth } from '../context/AuthContext';
+import { updateUser } from '../utils/userStorage';
 import './UserSettings.css';
 
 function UserSettings({ onClose }) {
@@ -20,6 +23,7 @@ function UserSettings({ onClose }) {
     clearRecentPlays,
     toggleMiniMode
   } = useMusic();
+  const { user, login } = useAuth();
   const [selectedTimer, setSelectedTimer] = useState(null);
   const [activeTab, setActiveTab] = useState('theme');
   
@@ -82,6 +86,13 @@ function UserSettings({ onClose }) {
     return `${hours}小时${minutes}分钟`;
   };
 
+  const handleAvatarChange = (newAvatar) => {
+    const updatedUser = updateUser(user.id, { avatar: newAvatar });
+    if (updatedUser) {
+      login(updatedUser); // 更新当前用户信息
+    }
+  };
+
   const tabs = [
     { id: 'theme', name: '主题', icon: <FaPalette /> },
     { id: 'stats', name: '统计', icon: <FaRegChartBar /> },
@@ -89,7 +100,8 @@ function UserSettings({ onClose }) {
     { id: 'shortcuts', name: '快捷键', icon: <FaKeyboard /> },
     { id: 'audio', name: '音频', icon: <FaVolumeUp /> },
     { id: 'interface', name: '界面', icon: <FaDesktop /> },
-    { id: 'about', name: '关于', icon: <FaInfoCircle /> }
+    { id: 'about', name: '关于', icon: <FaInfoCircle /> },
+    { id: 'profile', name: '个人资料', icon: <FaUser /> }
   ];
 
   const timerOptions = [
@@ -333,6 +345,25 @@ function UserSettings({ onClose }) {
                 <p>缓存大小: 128MB</p>
                 <button onClick={clearCache}>清除缓存</button>
               </div>
+            </div>
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <div className="settings-section">
+            <h3>个人资料</h3>
+            <div className="profile-settings">
+              <div className="current-avatar">
+                <span>当前头像</span>
+                <div className="avatar-display">
+                  {user.avatar}
+                </div>
+              </div>
+              <AvatarPicker 
+                currentAvatar={user.avatar}
+                onSelect={handleAvatarChange}
+              />
             </div>
           </div>
         );

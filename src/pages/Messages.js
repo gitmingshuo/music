@@ -160,14 +160,20 @@ function Messages() {
                 className={`conversation-item ${selectedUser?.id === conv.user.id ? 'active' : ''}`}
                 onClick={() => handleSelectConversation(conv)}
               >
-                <img src={conv.user.avatar || '/default-avatar.png'} alt="avatar" />
-                <div className="conversation-info">
-                  <span className="username">{conv.user.username}</span>
-                  <span className="last-message">{conv.lastMessage}</span>
+                <div className="user-avatar">
+                  {conv.user.avatar}
                 </div>
-                {conv.unreadCount > 0 && (
-                  <span className="unread-count">{conv.unreadCount}</span>
-                )}
+                <div className="conversation-info">
+                  <div className="conversation-header">
+                    <span className="username">{conv.user.username}</span>
+                    {conv.unreadCount > 0 && (
+                      <span className="unread-count">{conv.unreadCount}</span>
+                    )}
+                  </div>
+                  <span className="last-message">
+                    {conv.lastMessage || '暂无消息'}
+                  </span>
+                </div>
               </div>
             )
           ))}

@@ -6,12 +6,12 @@ const MESSAGES_KEY = 'messages';
 // 初始化默认用户
 export const initializeDefaultUsers = () => {
   const defaultUsers = [
-    { id: '1', username: 'user1', password: '123456', avatar: '/default-avatar.png' },
-    { id: '2', username: 'user2', password: '123456', avatar: '/default-avatar.png' },
-    { id: '3', username: 'user3', password: '123456', avatar: '/default-avatar.png' },
-    { id: '4', username: 'user4', password: '123456', avatar: '/default-avatar.png' },
-    { id: '5', username: 'jay', password: '123456', avatar: '/default-avatar.png' },
-    { id: '6', username: 'chou', password: '123456', avatar: '/default-avatar.png' }
+    { id: '1', username: 'user1', password: '123456', avatar: '😊' },
+    { id: '2', username: 'user2', password: '123456', avatar: '😎' },
+    { id: '3', username: 'user3', password: '123456', avatar: '🤓' },
+    { id: '4', username: 'user4', password: '123456', avatar: '🤠' },
+    { id: '5', username: 'jay', password: '123456', avatar: '😇' },
+    { id: '6', username: 'chou', password: '123456', avatar: '🎵' }
   ];
 
   // 检查是否已经初始化过

@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaArrowLeft, FaArrowRight, FaSearch, FaEnvelope, FaBell } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaSearch, FaEnvelope } from 'react-icons/fa';
 import UserSettings from './UserSettings';
 import './Header.css';
 
@@ -79,31 +79,33 @@ function Header() {
           <FaEnvelope />
           {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
         </div>
-        <div 
-          className="user-info" 
-          onClick={() => {
-            console.log('User info clicked');
-            setShowUserMenu(!showUserMenu);
-          }}
-        >
+        <div className="user-container">
           <img 
             src="/tubiao.png"
-            alt="用户头像" 
-            className="user-avatar"
+            alt="网站图标" 
+            className="site-logo"
           />
-          <span className="user-name">{user?.username}</span>
-        </div>
-        {showUserMenu && (
-          <div className="user-menu" ref={menuRef}>
-            <button onClick={() => {
-              setShowSettings(true);
-              setShowUserMenu(false);
-            }}>
-              设置
-            </button>
-            <button onClick={logout}>退出登录</button>
+          <div 
+            className="user-info" 
+            onClick={() => setShowUserMenu(!showUserMenu)}
+          >
+            <div className="user-avatar">
+              {user?.avatar}
+            </div>
+            <span className="username">{user?.username}</span>
           </div>
-        )}
+          {showUserMenu && (
+            <div className="user-menu" ref={menuRef}>
+              <button onClick={() => {
+                setShowSettings(true);
+                setShowUserMenu(false);
+              }}>
+                设置
+              </button>
+              <button onClick={logout}>退出</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {showSettings && <UserSettings onClose={() => setShowSettings(false)} />}

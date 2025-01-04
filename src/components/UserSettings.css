@@ -272,4 +272,26 @@ input:checked + .slider:before {
 .links a {
   color: var(--primary-color);
   text-decoration: none;
+}
+
+.profile-settings {
+  padding: 15px;
+}
+
+.current-avatar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.avatar-display {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
 } 
