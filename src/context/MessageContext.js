@@ -5,7 +5,8 @@ import {
   saveMessage, 
   searchUser,
   getUserMessages,
-  markMessagesAsRead
+  markMessagesAsRead,
+  initMessageListener
 } from '../utils/messageStorage';
 
 const MessageContext = createContext();
@@ -16,24 +17,57 @@ export function MessageProvider({ children }) {
   const [currentMessages, setCurrentMessages] = useState([]);
   const { user } = useAuth();
 
-  const updateCurrentChat = (chatUserId) => {
-    if (user && chatUserId) {
-      const messages = getUserMessages(user.id, chatUserId);
-      setCurrentMessages(messages || []);
-      setCurrentChat(chatUserId);
-    }
-  };
+  // 实时更新消息和会话
+  useEffect(() => {
+    if (!user) return;
 
-  const fetchConversations = async () => {
+    // 初始化消息监听器
+    const handleNewMessage = (message) => {
+      // 如果消息与当前用户相关
+      if (message.senderId === user.id || message.receiverId === user.id) {
+        // 更新会话列表
+        fetchConversations();
+        
+        // 如果是当前聊天，更新消息列表
+        if (currentChat && 
+           (message.senderId === currentChat || message.receiverId === currentChat)) {
+          loadChatMessages(currentChat);
+        }
+      }
+    };
+
+    // 添加消息监听器
+    initMessageListener((message) => handleNewMessage(message.detail.message));
+
+    // 定期刷新会话列表
+    const interval = setInterval(() => {
+      fetchConversations();
+      if (currentChat) {
+        loadChatMessages(currentChat);
+      }
+    }, 1000); // 每秒更新一次
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [user, currentChat]);
+
+  const fetchConversations = () => {
     if (user) {
       const userConversations = getUserConversations(user.id);
       setConversations(userConversations);
-      
-      if (currentChat) {
-        const messages = getUserMessages(user.id, currentChat);
-        setCurrentMessages(messages || []);
-      }
     }
+  };
+
+  const loadChatMessages = (otherUserId) => {
+    if (!user || !otherUserId) return [];
+    
+    setCurrentChat(otherUserId);
+    const messages = getUserMessages(user.id, otherUserId);
+    setCurrentMessages(messages);
+    markMessagesAsRead(user.id, otherUserId);
+    fetchConversations();
+    return messages;
   };
 
   const sendMessage = async (receiverId, content) => {
@@ -42,12 +76,13 @@ export function MessageProvider({ children }) {
     try {
       const newMessage = saveMessage(user.id, receiverId, content);
       
-      if (receiverId === currentChat) {
+      // 立即更新当前消息列表
+      if (currentChat === receiverId) {
         setCurrentMessages(prev => [...prev, newMessage]);
       }
       
-      const updatedConversations = await getUserConversations(user.id);
-      setConversations(updatedConversations);
+      // 立即更新会话列表
+      fetchConversations();
       
       return true;
     } catch (error) {
@@ -57,48 +92,8 @@ export function MessageProvider({ children }) {
   };
 
   const searchUsers = async (username) => {
-    const foundUser = searchUser(username);
-    return foundUser;
+    return searchUser(username);
   };
-
-  const loadChatMessages = (otherUserId) => {
-    if (!user || !otherUserId) return [];
-    
-    setCurrentChat(otherUserId);
-    const messages = getUserMessages(user.id, otherUserId);
-    setCurrentMessages(messages || []);
-    markMessagesAsRead(user.id, otherUserId);
-    fetchConversations();
-    return messages || [];
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchConversations();
-      
-      const interval = setInterval(() => {
-        fetchConversations();
-      }, 3000);
-
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const handleNewMessage = (event) => {
-      const newMessage = event.detail.message;
-      
-      if (currentChat && 
-         (newMessage.senderId === currentChat || newMessage.receiverId === currentChat)) {
-        setCurrentMessages(prev => [...prev, newMessage]);
-      }
-      
-      fetchConversations();
-    };
-
-    window.addEventListener('newMessage', handleNewMessage);
-    return () => window.removeEventListener('newMessage', handleNewMessage);
-  }, [currentChat, user]);
 
   return (
     <MessageContext.Provider
