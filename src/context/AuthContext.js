@@ -1,67 +1,89 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  // 验证用户数据的有效性
-  const validateUser = (userData) => {
-    return userData && 
-           typeof userData === 'object' && 
-           typeof userData.username === 'string' &&
-           typeof userData.password === 'string';
-  };
-
+  // 初始化时从 localStorage 读取用户信息
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        if (validateUser(userData)) {
-          setUser(userData);
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // 验证用户数据的完整性
+        if (parsedUser && parsedUser.id && parsedUser.username) {
+          setUser(parsedUser);
         } else {
-          // 数据无效，清除存储
-          localStorage.removeItem('user');
+          localStorage.removeItem('currentUser');
         }
+      } catch (error) {
+        console.error('Failed to parse stored user:', error);
+        localStorage.removeItem('currentUser');
       }
-    } catch (err) {
-      console.error('Failed to load user data:', err);
-      localStorage.removeItem('user');
-    } finally {
-      setLoading(false);
     }
   }, []);
 
+  // 登录函数
   const login = (userData) => {
-    if (!validateUser(userData)) {
+    if (!userData || !userData.id || !userData.username) {
       console.error('Invalid user data:', userData);
       return;
     }
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
+  // 登出函数
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    const tabId = window.sessionStorage.getItem('tabId');
+    if (tabId) {
+      sessionStorage.removeItem(`user_${tabId}`);
+    }
+    localStorage.removeItem('currentUser');
   };
 
-  const value = {
-    user,
-    login,
-    logout,
-    loading
-  };
+  // 监听存储事件
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // 只有当全局存储变化时才更新当前标签页的用户状态
+      if (e.key === 'currentUser') {
+        const tabId = window.sessionStorage.getItem('tabId');
+        const currentTabUser = sessionStorage.getItem(`user_${tabId}`);
+        
+        // 如果当前标签页没有特定的用户信息，则跟随全局状态
+        if (!currentTabUser) {
+          if (e.newValue === null) {
+            setUser(null);
+          } else {
+            try {
+              const newUser = JSON.parse(e.newValue);
+              setUser(newUser);
+            } catch (error) {
+              console.error('Failed to parse new user data:', error);
+            }
+          }
+        }
+      }
+    };
+
+    // 为每个标签页生成唯一ID
+    if (!window.sessionStorage.getItem('tabId')) {
+      window.sessionStorage.setItem('tabId', Date.now().toString());
+    }
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   return useContext(AuthContext);
-}; 
+} 

@@ -161,5 +161,5 @@ export const validateUser = (username, password) => {
     user.username.toLowerCase() === username.toLowerCase() && 
     user.password === password
   );
-  return user || null; // 返回找到的用户对象或null
+  return user; // 直接返回用户对象，而不是布尔值
 }; 

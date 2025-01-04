@@ -1,7 +1,7 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { MusicProvider } from './context/MusicContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { MessageProvider } from './context/MessageContext';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
@@ -58,7 +58,11 @@ function App() {
           <MusicProvider>
             <MessageProvider>
               <Routes>
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } />
                 <Route path="/*" element={
                   <PrivateRoute>
                     <div className="app">
@@ -92,6 +96,20 @@ function App() {
       </AuthProvider>
     </ErrorBoundary>
   );
+}
+
+// 公共路由组件
+function PublicRoute({ children }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  return children;
 }
 
 export default App;

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import './Login.css';
 import { validateUser } from '../utils/userStorage';
+import './Login.css';
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,7 +10,14 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  // 如果已经登录，直接跳转到首页
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,9 +30,9 @@ function Login() {
 
     if (isLogin) {
       // 登录逻辑
-      const user = validateUser(username, password);
-      if (user) {
-        login(user);
+      const validatedUser = validateUser(username, password);
+      if (validatedUser) {
+        login(validatedUser); // 传入完整的用户对象
         navigate('/');
       } else {
         setError('用户名或密码错误');
