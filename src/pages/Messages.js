@@ -22,7 +22,8 @@ function Messages() {
     fetchConversations,
     searchUsers,
     loadChatMessages,
-    currentMessages
+    currentMessages,
+    loading
   } = useMessage();
   const navigate = useNavigate();
 
@@ -152,8 +153,9 @@ function Messages() {
           </div>
         )}
 
+        {loading && <div className="loading-indicator">加载中...</div>}
         <div className="conversations">
-          {conversations && conversations.map((conv) => (
+          {conversations?.map((conv) => (
             conv?.user && (
               <div
                 key={conv.id}
@@ -181,6 +183,7 @@ function Messages() {
       </div>
 
       <div className="chat-area">
+        {loading && <div className="loading-indicator">加载中...</div>}
         {selectedUser ? (
           <>
             <div className="chat-header">

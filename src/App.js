@@ -6,6 +6,7 @@ import { MessageProvider } from './context/MessageContext';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import { ThemeProvider } from './context/ThemeContext';
+import { initPushNotifications } from './utils/pushNotifications';
 
 // 组件导入
 import Home from './Home';
@@ -51,6 +52,14 @@ class ErrorBoundary extends React.Component {
 }
 
 function App() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      initPushNotifications(user.id);
+    }
+  }, [user]);
+
   return (
     <ErrorBoundary>
       <AuthProvider>

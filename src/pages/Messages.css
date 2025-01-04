@@ -90,6 +90,8 @@
   gap: 10px;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) transparent;
+  min-height: 200px;
+  position: relative;
 }
 
 .messages-list::-webkit-scrollbar {
@@ -303,4 +305,18 @@
 .conversation-info {
   flex: 1;
   overflow: hidden;
+}
+
+.loading-indicator {
+  padding: 10px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.messages-list .loading-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 } 

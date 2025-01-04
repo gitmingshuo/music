@@ -1,4 +1,4 @@
-import { getAllUsers as getStorageUsers } from './userStorage';
+import { getAllUsers as getStorageUsers, findUserById } from './userStorage';
 import { 
   saveMessageToDB, 
   getConversationMessages, 
@@ -6,6 +6,7 @@ import {
   updateConversation,
   listenToMessages
 } from './db';
+import { wsService } from './websocket';
 
 // 保存新消息
 export const saveMessage = async (senderId, receiverId, content) => {
@@ -21,6 +22,13 @@ export const saveMessage = async (senderId, receiverId, content) => {
     read: false
   };
 
+  // 发送消息到 WebSocket 服务器
+  wsService.sendMessage({
+    type: 'chat',
+    message: newMessage
+  });
+
+  // 本地存储
   await saveMessageToDB(newMessage);
   await updateConversations(senderId, receiverId, content, timestamp);
   
@@ -83,8 +91,10 @@ export const markMessagesAsRead = async (userId, otherUserId) => {
 
 // 初始化消息监听器
 export const initMessageListener = (callback) => {
-  return listenToMessages(callback);
-};
-
-// 从 userStorage.js 导入
-import { findUserById } from './userStorage'; 
+  // 使用 WebSocket 监听消息
+  return wsService.onMessage((data) => {
+    if (data.type === 'chat') {
+      callback(data.message);
+    }
+  });
+}; 
