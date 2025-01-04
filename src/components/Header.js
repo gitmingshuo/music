@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaArrowLeft, FaArrowRight, FaSearch } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaSearch, FaEnvelope, FaBell } from 'react-icons/fa';
 import UserSettings from './UserSettings';
 import './Header.css';
 
@@ -12,7 +12,28 @@ function Header() {
   const { user, logout } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/messages/unread-count');
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadCount(data.count);
+        }
+      } catch (error) {
+        console.error('获取未读消息数量失败:', error);
+      }
+    };
+
+    if (user) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -54,6 +75,10 @@ function Header() {
       </div>
       
       <div className="header-right">
+        <div className="message-icon" onClick={() => navigate('/messages')}>
+          <FaEnvelope />
+          {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
+        </div>
         <div 
           className="user-info" 
           onClick={() => {

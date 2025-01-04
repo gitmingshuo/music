@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { userStorage } from '../utils/userStorage';
+import { userStorage } from '../utils/storage';
 
 const ThemeContext = createContext();
 

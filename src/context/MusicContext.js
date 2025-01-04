@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { albums } from '../Home';
 import { useAuth } from './AuthContext';
-import { userStorage } from '../utils/userStorage';
+import { userStorage } from '../utils/storage';
 
 const MusicContext = createContext();
 

@@ -325,7 +325,7 @@ function UserSettings({ onClose }) {
                 <p>作者: Your Name</p>
               </div>
               <div className="links">
-                <a href="https://github.com/yourusername" target="_blank">GitHub</a>
+                <a href="https://github.com/gitmingshuo" target="_blank">GitHub</a>
                 <a href="#" onClick={showChangelog}>更新日志</a>
                 <a href="#" onClick={showLicenses}>开源协议</a>
               </div>

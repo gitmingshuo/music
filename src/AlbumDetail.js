@@ -19,11 +19,8 @@ function AlbumDetail() {
       return;
     }
     
-    // 模拟加载
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-
+    // 简化加载逻辑
+    const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, [album]);
 
@@ -32,27 +29,12 @@ function AlbumDetail() {
       setIsLoading(true);
       setError(null);
       
-      // 简化的文件名处理
       const fileName = encodeURIComponent(song);
       const audioPath = `/static/music/${fileName}.mp3`;
       
-      // 检查文件是否存在
-      const checkFile = async () => {
-        try {
-          const response = await fetch(audioPath, {
-            method: 'HEAD',
-            headers: {
-              'Accept': '*/*',
-              'User-Agent': 'Music-App'
-            }
-          });
-          return response.ok;
-        } catch (err) {
-          return false;
-        }
-      };
-
-      if (!(await checkFile())) {
+      // 简化文件检查逻辑
+      const response = await fetch(audioPath, { method: 'HEAD' });
+      if (!response.ok) {
         throw new Error(`音频文件不存在: ${song}`);
       }
 
