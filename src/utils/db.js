@@ -32,23 +32,18 @@ export async function getDB() {
 // 保存消息
 export async function saveMessageToDB(message) {
   const db = await getDB();
-  const tx = db.transaction('messages', 'readwrite');
-  await tx.store.add({
-    ...message,
-    conversationId: [message.senderId, message.receiverId].sort().join('-')
-  });
-  await tx.done;
-  
-  // 广播消息到其他标签页
-  broadcastMessage('new-message', message);
+  // 添加会话ID
+  const conversationId = [message.senderId, message.receiverId].sort().join('-');
+  await db.add('messages', { ...message, conversationId });
+  return message;
 }
 
 // 获取会话消息
 export async function getConversationMessages(userId1, userId2) {
   const db = await getDB();
-  const conversationId = [userId1, userId2].sort().join('-');
-  const messages = await db.getAllFromIndex('messages', 'conversationId', conversationId);
-  return messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  // 确保消息按时间排序
+  const messages = await db.getAllFromIndex('messages', 'conversationId', [userId1, userId2].sort().join('-'));
+  return messages;
 }
 
 // 更新会话

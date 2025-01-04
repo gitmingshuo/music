@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaArrowRight, FaSearch, FaEnvelope } from 'react-icons/fa';
 import UserSettings from './UserSettings';
 import './Header.css';
+import { API_ENDPOINTS, apiRequest } from '../config/api';
 
 function Header() {
   const navigate = useNavigate();
@@ -17,12 +18,13 @@ function Header() {
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
+      if (!user) return;
+      
       try {
-        const response = await fetch('/api/messages/unread-count');
-        if (response.ok) {
-          const data = await response.json();
-          setUnreadCount(data.count);
-        }
+        const data = await apiRequest(
+          `${API_ENDPOINTS.UNREAD_COUNT}?userId=${user.id}`
+        );
+        setUnreadCount(data.count);
       } catch (error) {
         console.error('获取未读消息数量失败:', error);
       }

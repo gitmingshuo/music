@@ -33,18 +33,61 @@ export function MessageProvider({ children }) {
     if (!user) return;
 
     const handleNewMessage = async (message) => {
-      if (message.senderId === user.id || message.receiverId === user.id) {
-        await fetchConversations();
-        
-        if (currentChat && 
-           (message.senderId === currentChat || message.receiverId === currentChat)) {
-          await loadChatMessages(currentChat);
+      console.log('Handling new message:', message);
+      
+      // 确保消息对象只包含需要的属性
+      const processedMessage = {
+        id: message.id,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        content: message.content,
+        timestamp: message.timestamp
+      };
+
+      try {
+        // 保存消息到本地数据库
+        const savedMessage = await saveMessage(
+          processedMessage.senderId, 
+          processedMessage.receiverId, 
+          processedMessage.content
+        );
+
+        // 检查是否是当前聊天的消息
+        const isCurrentChat = currentChat && 
+          (processedMessage.senderId === currentChat || processedMessage.receiverId === currentChat);
+
+        if (isCurrentChat) {
+          // 使用函数式更新确保状态正确更新
+          setCurrentMessages(prevMessages => {
+            // 检查消息是否已存在
+            const messageExists = prevMessages.some(msg => msg.id === savedMessage.id);
+            if (messageExists) {
+              return prevMessages;
+            }
+            return [...prevMessages, savedMessage];
+          });
         }
+
+        // 更新会话列表
+        await fetchConversations();
+
+        // 如果不是当前用户发送的消息，发送通知
+        if (processedMessage.senderId !== user.id) {
+          await sendNotification(
+            user.id,
+            '新消息',
+            processedMessage.content
+          );
+        }
+      } catch (error) {
+        console.error('Error handling message:', error);
       }
     };
 
-    const messageUnsubscribe = initMessageListener((message) => handleNewMessage(message));
-    return () => messageUnsubscribe();
+    const unsubscribe = initMessageListener(handleNewMessage);
+    fetchConversations();
+
+    return () => unsubscribe();
   }, [user, currentChat]);
 
   const fetchConversations = async () => {
@@ -67,6 +110,7 @@ export function MessageProvider({ children }) {
       setLoading(true);
       setCurrentChat(otherUserId);
       const messages = await getUserMessages(user.id, otherUserId);
+      console.log('Loaded messages:', messages);
       setCurrentMessages(messages);
       await markMessagesAsRead(user.id, otherUserId);
       await fetchConversations();
@@ -84,19 +128,34 @@ export function MessageProvider({ children }) {
     
     try {
       setLoading(true);
-      const newMessage = await saveMessage(user.id, receiverId, content);
       
-      // 发送通知
-      await sendNotification(
-        receiverId,
-        `新消息来自 ${user.username}`,
+      const messageData = {
+        type: 'chat',
+        message: {
+          id: Date.now().toString(),
+          senderId: user.id,
+          receiverId: receiverId,
+          content: content,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      // 发送消息
+      await wsService.sendMessage(messageData);
+      
+      // 保存到本地并获取保存的消息对象
+      const savedMessage = await saveMessage(
+        user.id, 
+        receiverId, 
         content
       );
       
+      // 立即更新当前聊天消息列表
       if (currentChat === receiverId) {
-        setCurrentMessages(prev => [...prev, newMessage]);
+        setCurrentMessages(prevMessages => [...prevMessages, savedMessage]);
       }
       
+      // 更新会话列表
       await fetchConversations();
       return true;
     } catch (error) {

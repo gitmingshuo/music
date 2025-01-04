@@ -21,15 +21,11 @@ export const saveMessage = async (senderId, receiverId, content) => {
     timestamp
   };
 
-  // 发送到 Pusher
-  wsService.sendMessage({
-    type: 'chat',
-    message: newMessage
-  });
-
   // 本地存储
   await saveMessageToDB(newMessage);
   await updateConversations(senderId, receiverId, content, timestamp);
+
+  return newMessage; // 确保返回新消息对象
 };
 
 // 更新会话信息
@@ -57,7 +53,8 @@ const updateConversations = async (senderId, receiverId, lastMessage, timestamp)
 
 // 获取用户消息
 export const getUserMessages = async (userId1, userId2) => {
-  return await getConversationMessages(userId1, userId2);
+  const messages = await getConversationMessages(userId1, userId2);
+  return messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 };
 
 // 获取用户的所有会话
@@ -88,7 +85,6 @@ export const markMessagesAsRead = async (userId, otherUserId) => {
 
 // 初始化消息监听器
 export const initMessageListener = (callback) => {
-  // 使用 WebSocket 监听消息
   return wsService.onMessage((data) => {
     if (data.type === 'chat') {
       callback(data.message);

@@ -16,7 +16,11 @@ export const initPushNotifications = async (userId) => {
 
 export const sendNotification = async (userId, title, body) => {
   try {
-    const response = await fetch('/api/send-notification', {
+    const apiUrl = process.env.NODE_ENV === 'production'
+      ? 'https://mingshuo.website/api/send-notification'
+      : '/api/send-notification';
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
