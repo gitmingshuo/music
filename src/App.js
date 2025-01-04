@@ -51,7 +51,8 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function App() {
+// 创建一个新的组件来使用 useAuth
+function AppContent() {
   const { user } = useAuth();
 
   useEffect(() => {
@@ -61,44 +62,50 @@ function App() {
   }, [user]);
 
   return (
+    <Routes>
+      <Route path="/login" element={
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
+      } />
+      <Route path="/*" element={
+        <PrivateRoute>
+          <div className="app">
+            <SideNav />
+            <div className="main-container">
+              <Header />
+              <div className="content-wrapper">
+                <div className="main-content">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/album/:id" element={<AlbumDetail />} />
+                    <Route path="/song/:id" element={<SongDetail />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/favorites" element={<Favorites />} />
+                    <Route path="/albums" element={<Albums />} />
+                    <Route path="/recent-plays" element={<RecentPlays />} />
+                    <Route path="/playlist/:id" element={<Playlist />} />
+                    <Route path="/messages" element={<Messages />} />
+                  </Routes>
+                </div>
+              </div>
+            </div>
+            <Player />
+          </div>
+        </PrivateRoute>
+      } />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
     <ErrorBoundary>
       <AuthProvider>
         <ThemeProvider>
           <MusicProvider>
             <MessageProvider>
-              <Routes>
-                <Route path="/login" element={
-                  <PublicRoute>
-                    <Login />
-                  </PublicRoute>
-                } />
-                <Route path="/*" element={
-                  <PrivateRoute>
-                    <div className="app">
-                      <SideNav />
-                      <div className="main-container">
-                        <Header />
-                        <div className="content-wrapper">
-                          <div className="main-content">
-                            <Routes>
-                              <Route path="/" element={<Home />} />
-                              <Route path="/album/:id" element={<AlbumDetail />} />
-                              <Route path="/song/:id" element={<SongDetail />} />
-                              <Route path="/search" element={<Search />} />
-                              <Route path="/favorites" element={<Favorites />} />
-                              <Route path="/albums" element={<Albums />} />
-                              <Route path="/recent-plays" element={<RecentPlays />} />
-                              <Route path="/playlist/:id" element={<Playlist />} />
-                              <Route path="/messages" element={<Messages />} />
-                            </Routes>
-                          </div>
-                        </div>
-                      </div>
-                      <Player />
-                    </div>
-                  </PrivateRoute>
-                } />
-              </Routes>
+              <AppContent />
             </MessageProvider>
           </MusicProvider>
         </ThemeProvider>

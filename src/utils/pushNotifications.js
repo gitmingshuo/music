@@ -1,3 +1,5 @@
+import * as PusherPushNotifications from "@pusher/push-notifications-web";
+
 const beamsClient = new PusherPushNotifications.Client({
   instanceId: '7489c2ed-669a-4c48-8f69-933dbef714a2',
 });

@@ -44,18 +44,7 @@ export function MessageProvider({ children }) {
     };
 
     const messageUnsubscribe = initMessageListener((message) => handleNewMessage(message));
-
-    const interval = setInterval(async () => {
-      await fetchConversations();
-      if (currentChat) {
-        await loadChatMessages(currentChat);
-      }
-    }, 3000); // 改为3秒更新一次，减少性能开销
-
-    return () => {
-      clearInterval(interval);
-      messageUnsubscribe();
-    };
+    return () => messageUnsubscribe();
   }, [user, currentChat]);
 
   const fetchConversations = async () => {

@@ -18,11 +18,10 @@ export const saveMessage = async (senderId, receiverId, content) => {
     senderId,
     receiverId,
     content,
-    timestamp,
-    read: false
+    timestamp
   };
 
-  // 发送消息到 WebSocket 服务器
+  // 发送到 Pusher
   wsService.sendMessage({
     type: 'chat',
     message: newMessage
@@ -31,8 +30,6 @@ export const saveMessage = async (senderId, receiverId, content) => {
   // 本地存储
   await saveMessageToDB(newMessage);
   await updateConversations(senderId, receiverId, content, timestamp);
-  
-  return newMessage;
 };
 
 // 更新会话信息

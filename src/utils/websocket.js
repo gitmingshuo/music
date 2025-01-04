@@ -2,9 +2,9 @@ import Pusher from 'pusher-js';
 
 class WebSocketService {
   constructor() {
-    // 使用你在 Pusher 控制台看到的 key 和 cluster
-    this.pusher = new Pusher('你的key', {
-      cluster: '你的cluster',
+    this.currentUserId = null;
+    this.pusher = new Pusher('4b522f1169d2c59a5253', {
+      cluster: 'ap1',
       encrypted: true
     });
     this.channel = null;
@@ -12,7 +12,7 @@ class WebSocketService {
   }
 
   connect(userId) {
-    // 为每个用户创建频道
+    this.currentUserId = userId;
     this.channel = this.pusher.subscribe(`chat-${userId}`);
     
     this.channel.bind('new-message', (data) => {
@@ -37,9 +37,10 @@ class WebSocketService {
   }
 
   disconnect() {
-    if (this.channel) {
+    if (this.channel && this.currentUserId) {
       this.channel.unbind_all();
-      this.pusher.unsubscribe(`chat-${userId}`);
+      this.pusher.unsubscribe(`chat-${this.currentUserId}`);
+      this.currentUserId = null;
     }
   }
 }
