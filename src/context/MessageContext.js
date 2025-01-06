@@ -22,67 +22,7 @@ export function MessageProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  // 监控 currentChat 变化
-  useEffect(() => {
-    console.log('Current chat changed to:', currentChat);
-  }, [currentChat]);
-
-  // 初始化 WebSocket 连接
-  useEffect(() => {
-    if (user) {
-      console.log('Initializing WebSocket for user:', user.id);
-      wsService.connect(user.id);
-      
-      const unsubscribe = wsService.onMessage(async (data) => {
-        console.log('WebSocket message received in context:', data);
-        
-        try {
-          const message = data.type === 'chat' ? data.message : data;
-          console.log('Processing received message:', message);
-
-          // 更新所有消息列表
-          setAllMessages(prevMessages => {
-            if (prevMessages.some(msg => msg.id === message.id)) {
-              return prevMessages;
-            }
-            return [...prevMessages, message];
-          });
-
-          // 如果是当前聊天的消息，也更新当前消息列表
-          if (currentChat && 
-              (message.senderId === currentChat || message.receiverId === currentChat)) {
-            setCurrentMessages(prevMessages => {
-              if (prevMessages.some(msg => msg.id === message.id)) {
-                return prevMessages;
-              }
-              return [...prevMessages, message].sort((a, b) => 
-                new Date(a.timestamp) - new Date(b.timestamp)
-              );
-            });
-          }
-
-          // 保存到本地存储
-          await saveMessage(
-            message.senderId,
-            message.receiverId,
-            message.content
-          );
-
-          // 更新会话列表
-          await fetchConversations();
-        } catch (error) {
-          console.error('Error processing received message:', error);
-        }
-      });
-
-      return () => {
-        console.log('Cleaning up WebSocket connection');
-        unsubscribe();
-        wsService.disconnect();
-      };
-    }
-  }, [user, currentChat]);
-
+  // 1. 首先定义 fetchConversations
   const fetchConversations = useCallback(async () => {
     if (!user) return;
     
@@ -94,52 +34,86 @@ export function MessageProvider({ children }) {
     }
   }, [user]);
 
-  const loadChatMessages = async (otherUserId) => {
-    console.log('Loading chat messages for:', otherUserId);
-    if (!user || !otherUserId) {
-      console.log('Missing user or otherUserId:', { user, otherUserId });
-      return [];
-    }
+  // 2. 然后定义 loadChatMessages
+  const loadChatMessages = useCallback(async (otherUserId) => {
+    if (!user || !otherUserId) return [];
     
     try {
       setLoading(true);
       setCurrentChat(otherUserId);
       
-      // 获取历史消息
-      const historicalMessages = await getUserMessages(user.id, otherUserId);
-      console.log('Loaded historical messages:', historicalMessages);
+      // 从 IndexedDB 加载消息
+      const messages = await getUserMessages(user.id, otherUserId);
       
-      // 从所有消息中筛选出相关消息
-      const relevantMessages = allMessages.filter(msg => 
-        (msg.senderId === user.id && msg.receiverId === otherUserId) ||
-        (msg.senderId === otherUserId && msg.receiverId === user.id)
-      );
-      console.log('Relevant messages from memory:', relevantMessages);
-
-      // 合并消息并去重
-      const mergedMessages = [...historicalMessages, ...relevantMessages];
-      const uniqueMessages = Array.from(new Map(
-        mergedMessages.map(msg => [msg.id, msg])
-      ).values());
-
-      // 按时间排序
-      const sortedMessages = uniqueMessages.sort(
-        (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-      );
-
-      console.log('Final sorted messages:', sortedMessages);
-      setCurrentMessages(sortedMessages);
+      // 合并内存中的消息
+      const allMessages = [
+        ...messages,
+        ...currentMessages.filter(msg => 
+          !messages.some(m => m.id === msg.id)
+        )
+      ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       
+      setCurrentMessages(allMessages);
       await markMessagesAsRead(user.id, otherUserId);
       await fetchConversations();
-      return sortedMessages;
+      
+      return allMessages;
     } catch (error) {
       console.error('Error loading chat messages:', error);
       return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, currentMessages]);
+
+  // 3. WebSocket 相关的 useEffect
+  useEffect(() => {
+    if (user) {
+      wsService.connect(user.id);
+      
+      const unsubscribe = wsService.onMessage(async (data) => {
+        try {
+          const message = data.type === 'chat' ? data.message : data;
+          
+          setAllMessages(prevMessages => {
+            if (prevMessages.some(msg => msg.id === message.id)) {
+              return prevMessages;
+            }
+            return [...prevMessages, message];
+          });
+
+          setCurrentMessages(prevMessages => {
+            if (prevMessages.some(msg => msg.id === message.id)) {
+              return prevMessages;
+            }
+            
+            if (currentChat && 
+                (message.senderId === currentChat || message.receiverId === currentChat)) {
+              return [...prevMessages, message].sort((a, b) => 
+                new Date(a.timestamp) - new Date(b.timestamp)
+              );
+            }
+            
+            return prevMessages;
+          });
+
+          await saveMessage(message.senderId, message.receiverId, message.content);
+          await fetchConversations();
+          
+          if (message.senderId !== user.id && !currentChat) {
+            await loadChatMessages(message.senderId);
+          }
+        } catch (error) {
+          console.error('Error processing received message:', error);
+        }
+      });
+
+      return () => {
+        unsubscribe();
+        wsService.disconnect();
+      };
+    }
+  }, [user, currentChat, loadChatMessages, fetchConversations]);
 
   const sendMessage = async (receiverId, content) => {
     console.log('MessageContext sendMessage:', { receiverId, content });
@@ -236,6 +210,51 @@ export function MessageProvider({ children }) {
       throw error;
     }
   };
+
+  // 添加一个新的 useEffect 专门用于初始化
+  useEffect(() => {
+    const initializeData = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        
+        // 1. 先加载所有会话
+        await fetchConversations();
+        
+        // 2. 加载所有历史消息
+        const convs = await getUserConversations(user.id);
+        const allHistoricalMessages = [];
+        
+        for (const conv of convs) {
+          const messages = await getUserMessages(user.id, conv.otherUserId);
+          allHistoricalMessages.push(...messages);
+        }
+        
+        // 去重并按时间排序
+        const uniqueMessages = Array.from(
+          new Map(allHistoricalMessages.map(msg => [msg.id, msg])).values()
+        ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        setAllMessages(uniqueMessages);
+        
+        // 3. 如果有当前聊天，加载相关消息
+        if (currentChat) {
+          const currentMessages = uniqueMessages.filter(msg => 
+            (msg.senderId === user.id && msg.receiverId === currentChat) ||
+            (msg.senderId === currentChat && msg.receiverId === user.id)
+          );
+          setCurrentMessages(currentMessages);
+        }
+      } catch (error) {
+        console.error('Error initializing data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeData();
+  }, [user]); // 只在用户变化时执行
 
   return (
     <MessageContext.Provider

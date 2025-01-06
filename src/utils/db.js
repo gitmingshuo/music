@@ -31,15 +31,17 @@ export async function getDB() {
 
 // 保存消息
 export async function saveMessageToDB(message) {
-  console.log('Starting to save message to DB:', message);
   const db = await getDB();
-  const conversationId = [message.senderId, message.receiverId].sort().join('-');
-  
   try {
-    console.log('Saving message with conversationId:', conversationId);
-    const savedMessage = await db.add('messages', { ...message, conversationId });
-    console.log('Message saved successfully:', savedMessage);
-    return message;
+    const conversationId = [message.senderId, message.receiverId].sort().join('-');
+    const messageToSave = {
+      ...message,
+      conversationId,
+      timestamp: message.timestamp || new Date().toISOString()
+    };
+    
+    await db.put('messages', messageToSave);
+    return messageToSave;
   } catch (error) {
     console.error('Error saving message to DB:', error);
     throw error;
@@ -48,19 +50,14 @@ export async function saveMessageToDB(message) {
 
 // 获取会话消息
 export async function getConversationMessages(userId1, userId2) {
-  console.log('Fetching messages for users:', userId1, userId2);
   const db = await getDB();
-  const conversationId = [userId1, userId2].sort().join('-');
-  
   try {
-    console.log('Getting messages for conversationId:', conversationId);
+    const conversationId = [userId1, userId2].sort().join('-');
     const messages = await db.getAllFromIndex('messages', 'conversationId', conversationId);
-    console.log('Retrieved messages count:', messages.length);
-    console.log('Messages:', messages);
-    return messages;
+    return messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   } catch (error) {
     console.error('Error getting conversation messages:', error);
-    throw error;
+    return [];
   }
 }
 

@@ -30,22 +30,41 @@ function Messages() {
   const navigate = useNavigate();
 
   const messagesEndRef = useRef(null);
+  const messagesListRef = useRef(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
-  const scrollToBottom = (smooth = true) => {
-    if (messagesEndRef.current) {
+  const isNearBottom = () => {
+    const container = messagesListRef.current;
+    if (!container) return false;
+    
+    const threshold = 150;
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  };
+
+  const handleScroll = () => {
+    setShouldAutoScroll(isNearBottom());
+  };
+
+  const scrollToBottom = () => {
+    if (shouldAutoScroll && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ 
-        behavior: smooth ? 'smooth' : 'auto',
+        behavior: 'smooth',
         block: 'end'
       });
     }
   };
 
-  const scrollToOptimalPosition = () => {
-    const messagesList = document.querySelector('.messages-list');
+  useEffect(() => {
+    const messagesList = messagesListRef.current;
     if (messagesList) {
-      messagesList.scrollTop = messagesList.scrollHeight;
+      messagesList.addEventListener('scroll', handleScroll);
+      return () => messagesList.removeEventListener('scroll', handleScroll);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [currentMessages, shouldAutoScroll]);
 
   useEffect(() => {
     if (currentMessages?.length > 0) {
@@ -54,7 +73,7 @@ function Messages() {
         messages: currentMessages
       });
       if (currentMessages[currentMessages.length - 1]?.senderId === user?.id) {
-        scrollToBottom(true);
+        scrollToBottom();
       }
     }
   }, [currentMessages, user?.id]);
@@ -196,6 +215,13 @@ function Messages() {
     }
   };
 
+  const scrollToOptimalPosition = () => {
+    const messagesList = document.querySelector('.messages-list');
+    if (messagesList) {
+      messagesList.scrollTop = messagesList.scrollHeight;
+    }
+  };
+
   const handleSelectConversation = (conv) => {
     console.log('Selecting conversation:', {
       conversation: conv,
@@ -294,23 +320,20 @@ function Messages() {
               </div>
             </div>
             
-            <div className="messages-list">
-              {currentMessages && currentMessages.map((msg) => {
-                console.log('Rendering message:', msg);
-                return msg && user && (
-                  <div 
-                    key={msg.id || Date.now()}
-                    className={`message ${msg.senderId === user.id ? 'sent' : 'received'}`}
-                  >
-                    <div className="message-content">
-                      {msg.content || msg.message?.content}
-                    </div>
-                    <div className="message-time">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
-                    </div>
+            <div className="messages-list" ref={messagesListRef}>
+              {currentMessages && currentMessages.map((msg) => (
+                <div 
+                  key={msg.id || Date.now()}
+                  className={`message ${msg.senderId === user.id ? 'sent' : 'received'}`}
+                >
+                  <div className="message-content">
+                    {msg.content || msg.message?.content}
                   </div>
-                );
-              })}
+                  <div className="message-time">
+                    {new Date(msg.timestamp).toLocaleTimeString()}
+                  </div>
+                </div>
+              ))}
               <div ref={messagesEndRef} />
             </div>
 

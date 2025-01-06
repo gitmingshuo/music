@@ -17,11 +17,12 @@ app.use(cors({
 app.use(express.json());
 
 const pusher = new Pusher({
-  appId: '1920738',
-  key: '4b522f1169d2c59a5253',
-  secret: '8b7948135891378f5fb0',
-  cluster: 'ap1',
-  useTLS: true
+  appId: process.env.PUSHER_APP_ID || '1920738',
+  key: process.env.PUSHER_KEY || '4b522f1169d2c59a5253',
+  secret: process.env.PUSHER_SECRET || '8b7948135891378f5fb0',
+  cluster: process.env.PUSHER_CLUSTER || 'ap1',
+  useTLS: true,
+  encrypted: true
 });
 
 // 添加未读消息计数路由
@@ -57,22 +58,20 @@ app.post('/api/send-message', async (req, res) => {
     const currentCount = unreadMessages.get(message.receiverId) || 0;
     unreadMessages.set(message.receiverId, currentCount + 1);
 
+    // 分别触发发送者和接收者的频道
     await Promise.all([
-      pusher.trigger(
-        `chat-${message.receiverId}`,
-        'new-message',
-        message
-      ),
-      pusher.trigger(
-        `chat-${message.senderId}`,
-        'new-message',
-        message
-      )
+      pusher.trigger(`chat-${message.receiverId}`, 'new-message', message),
+      pusher.trigger(`chat-${message.senderId}`, 'new-message', message)
     ]);
+    
+    console.log('Message sent successfully to channels:', {
+      receiver: `chat-${message.receiverId}`,
+      sender: `chat-${message.senderId}`
+    });
     
     res.json({ success: true });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error sending message:', error);
     res.status(500).json({ error: error.message });
   }
 });

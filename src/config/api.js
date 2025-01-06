@@ -5,14 +5,15 @@ export const API_BASE_URL = isDevelopment
   : 'https://mingshuo.website';
 
 export const API_ENDPOINTS = {
-  UNREAD_COUNT: '/api/messages/unread-count',
+  SEARCH_USER: '/api/users/search',
+  MARK_READ: '/api/messages/mark-read',
   SEND_MESSAGE: '/api/send-message',
-  MARK_READ: '/api/messages/mark-read'
+  UNREAD_COUNT: '/api/messages/unread-count'
 };
 
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const defaultOptions = {
+  const defaultOptions = {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json'

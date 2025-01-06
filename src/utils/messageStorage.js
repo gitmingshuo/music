@@ -35,28 +35,15 @@ export const saveMessage = async (senderId, receiverId, content) => {
       timestamp: new Date().toISOString()
     };
 
-    console.log('Saving new message:', message);
-    
-    // 验证消息格式
-    if (!validateMessage(message)) {
-      throw new Error('Invalid message format');
-    }
+    // 保存消息到 IndexedDB
+    await saveMessageToDB(message);
 
-    // 保存到 IndexedDB
-    const db = await getDB();
-    if (!db) {
-      throw new Error('Failed to connect to database');
-    }
-
-    await db.add('messages', message);
-    console.log('Message saved to IndexedDB:', message);
-    
     // 更新会话信息
     await updateConversations(senderId, receiverId, content, message.timestamp);
-    
+
     return message;
   } catch (error) {
-    console.error('Error in saveMessage:', error);
+    console.error('Error saving message:', error);
     throw error;
   }
 };
@@ -98,17 +85,11 @@ const updateConversations = async (senderId, receiverId, content, timestamp) => 
 // 获取用户消息
 export const getUserMessages = async (userId1, userId2) => {
   try {
+    // 直接从 IndexedDB 获取消息
     const messages = await getConversationMessages(userId1, userId2);
-    console.log('Retrieved messages from storage:', messages);
-    
-    // 确保消息按时间排序
-    const sortedMessages = messages.sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
-    
-    return sortedMessages;
+    return messages;
   } catch (error) {
-    console.error('Error getting user messages:', error);
+    console.error('Error getting messages:', error);
     return [];
   }
 };

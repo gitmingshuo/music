@@ -6,7 +6,8 @@ class WebSocketService {
     this.currentUserId = null;
     this.pusher = new Pusher('4b522f1169d2c59a5253', {
       cluster: 'ap1',
-      encrypted: true
+      encrypted: true,
+      forceTLS: true
     });
     this.channel = null;
     this.messageCallbacks = new Set();
@@ -22,7 +23,9 @@ class WebSocketService {
     this.disconnect();
     this.currentUserId = userId;
     
-    this.channel = this.pusher.subscribe(`chat-${userId}`);
+    const channelName = `chat-${userId}`;
+    console.log('Subscribing to channel:', channelName);
+    this.channel = this.pusher.subscribe(channelName);
     
     this.channel.bind('new-message', (data) => {
       console.log('WebSocket received message:', data);
@@ -33,6 +36,14 @@ class WebSocketService {
           console.error('Error in message callback:', error);
         }
       });
+    });
+
+    this.channel.bind('pusher:subscription_succeeded', () => {
+      console.log('Successfully subscribed to channel:', channelName);
+    });
+
+    this.channel.bind('pusher:subscription_error', (error) => {
+      console.error('Failed to subscribe to channel:', error);
     });
 
     console.log('WebSocket connected for user:', userId);
