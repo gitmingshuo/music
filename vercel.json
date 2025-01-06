@@ -12,7 +12,16 @@
         "Service-Worker-Allowed": "/"
       }
     },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { 
+      "src": "/api/(.*)", 
+      "dest": "/api/$1",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://mingshuo.website",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "env": {
@@ -20,16 +29,5 @@
     "PUSHER_KEY": "4b522f1169d2c59a5253",
     "PUSHER_SECRET": "8b7948135891378f5fb0",
     "PUSHER_CLUSTER": "ap1"
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "http://localhost:3000" },
-        { "key": "Access-Control-Allow-Methods", "value": "*" },
-        { "key": "Access-Control-Allow-Headers", "value": "*" },
-        { "key": "Access-Control-Allow-Credentials", "value": "true" }
-      ]
-    }
-  ]
+  }
 } 
