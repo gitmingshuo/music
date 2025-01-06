@@ -1,20 +1,26 @@
 const express = require('express');
 const Pusher = require('pusher');
-const cors = require('cors');
 const app = express();
+
+// CORS 中间件
+const corsMiddleware = (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+};
+
+// 应用 CORS 中间件
+app.use(corsMiddleware);
+app.use(express.json());
 
 // 添加一个简单的内存存储来跟踪未读消息
 const unreadMessages = new Map();
-
-// CORS 配置
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://mingshuo.website', 'https://www.mingshuo.website'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-app.use(express.json());
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID || '1920738',

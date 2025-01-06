@@ -19,7 +19,17 @@
     "PUSHER_APP_ID": "1920738",
     "PUSHER_KEY": "4b522f1169d2c59a5253",
     "PUSHER_SECRET": "8b7948135891378f5fb0",
-    "PUSHER_CLUSTER": "ap1",
-    "NODE_ENV": "production"
-  }
+    "PUSHER_CLUSTER": "ap1"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "http://localhost:3000" },
+        { "key": "Access-Control-Allow-Methods", "value": "*" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" }
+      ]
+    }
+  ]
 } 

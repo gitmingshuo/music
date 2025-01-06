@@ -126,15 +126,24 @@ function Messages() {
     initializeConversations();
   }, [user, fetchConversations]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (content = message) => {
+    console.log('Message content:', content);
+    console.log('Current chat state:', {
+      currentChat,
+      user,
+      selectedUser
+    });
+    
+    const messageText = String(content || '').trim();
+    
     console.log('Attempting to send message:', {
-      hasMessage: !!message.trim(),
+      hasMessage: !!messageText,
       selectedUser,
       currentChat,
       currentUserId: user?.id
     });
 
-    if (!message.trim() || !selectedUser || !user || sending) {
+    if (!messageText || !selectedUser || !user || sending) {
       console.error('Send message validation failed');
       return;
     }
@@ -142,26 +151,23 @@ function Messages() {
     try {
       setSending(true);
       
-      // 构造消息数据
       const messageData = {
         type: 'chat',
         message: {
           id: Date.now().toString(),
           senderId: user.id,
           receiverId: selectedUser.id,
-          content: message.trim(),
+          content: messageText,
           timestamp: new Date().toISOString()
         }
       };
 
-      // 直接使用 wsService 发送消息
       const result = await wsService.sendMessage(messageData);
       
       if (result.success) {
         console.log('Message sent successfully');
         setMessage('');
         
-        // 滚动到底部
         setTimeout(() => {
           if (messagesListRef.current) {
             messagesListRef.current.scrollTop = messagesListRef.current.scrollHeight;
@@ -180,7 +186,7 @@ function Messages() {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !sending) {
       e.preventDefault();
-      handleSendMessage();
+      handleSendMessage(message);
     }
   };
 
@@ -371,7 +377,7 @@ function Messages() {
                 disabled={sending}
               />
               <button 
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage(message)}
                 disabled={sending || !message.trim()}
               >
                 {sending ? '发送中...' : '发送'}

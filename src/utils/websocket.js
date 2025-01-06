@@ -62,17 +62,25 @@ class WebSocketService {
   }
 
   async sendMessage(messageData) {
-    console.log('Attempting to send message:', messageData);
+    const url = `${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`;
+    console.log('Sending message to:', url);
+    console.log('Message data:', messageData);
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(messageData)
+        credentials: 'include',
+        body: JSON.stringify({
+          type: 'chat',
+          message: messageData.message
+        })
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
         throw new Error(`Failed to send message: ${response.status}`);
       }
 
