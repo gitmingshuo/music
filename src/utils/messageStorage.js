@@ -4,28 +4,60 @@ import {
   getConversationMessages, 
   getUserConversations as getDBConversations,
   updateConversation,
-  listenToMessages
+  listenToMessages,
+  getDB
 } from './db';
 import { wsService } from './websocket';
+import { apiRequest, API_ENDPOINTS } from '../config/api';
 
-// 保存新消息
-export const saveMessage = async (senderId, receiverId, content) => {
-  const timestamp = new Date().toISOString();
-  const messageId = Date.now().toString();
+// 添加消息格式验证函数
+export const validateMessage = (message) => {
+  const requiredFields = ['id', 'senderId', 'receiverId', 'content', 'timestamp'];
+  const missingFields = requiredFields.filter(field => !message[field]);
   
-  const newMessage = {
-    id: messageId,
-    senderId,
-    receiverId,
-    content,
-    timestamp
-  };
+  if (missingFields.length > 0) {
+    console.error('Invalid message format - Missing fields:', missingFields);
+    return false;
+  }
+  
+  return true;
+};
 
-  // 本地存储
-  await saveMessageToDB(newMessage);
-  await updateConversations(senderId, receiverId, content, timestamp);
+// 修改保存消息函数
+export const saveMessage = async (senderId, receiverId, content) => {
+  try {
+    const message = {
+      id: Date.now().toString(),
+      senderId,
+      receiverId,
+      content,
+      timestamp: new Date().toISOString()
+    };
 
-  return newMessage; // 确保返回新消息对象
+    console.log('Saving new message:', message);
+    
+    // 验证消息格式
+    if (!validateMessage(message)) {
+      throw new Error('Invalid message format');
+    }
+
+    // 保存到 IndexedDB
+    const db = await getDB();
+    if (!db) {
+      throw new Error('Failed to connect to database');
+    }
+
+    await db.add('messages', message);
+    console.log('Message saved to IndexedDB:', message);
+    
+    // 更新会话信息
+    await updateConversations(senderId, receiverId, content, message.timestamp);
+    
+    return message;
+  } catch (error) {
+    console.error('Error in saveMessage:', error);
+    throw error;
+  }
 };
 
 // 更新会话信息
@@ -53,8 +85,20 @@ const updateConversations = async (senderId, receiverId, lastMessage, timestamp)
 
 // 获取用户消息
 export const getUserMessages = async (userId1, userId2) => {
-  const messages = await getConversationMessages(userId1, userId2);
-  return messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  try {
+    const messages = await getConversationMessages(userId1, userId2);
+    console.log('Retrieved messages from storage:', messages);
+    
+    // 确保消息按时间排序
+    const sortedMessages = messages.sort((a, b) => 
+      new Date(a.timestamp) - new Date(b.timestamp)
+    );
+    
+    return sortedMessages;
+  } catch (error) {
+    console.error('Error getting user messages:', error);
+    return [];
+  }
 };
 
 // 获取用户的所有会话
@@ -79,13 +123,23 @@ export const searchUser = (username) => {
 
 // 标记消息为已读
 export const markMessagesAsRead = async (userId, otherUserId) => {
-  const conversation = {
-    id: `${userId}-${otherUserId}`,
-    userId,
-    otherUserId,
-    unreadCount: 0
-  };
-  await updateConversation(conversation);
+  try {
+    await apiRequest(`${API_ENDPOINTS.MARK_READ}`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, otherUserId })
+    });
+    
+    // 更新本地存储
+    const conversation = {
+      id: `${userId}-${otherUserId}`,
+      userId,
+      otherUserId,
+      unreadCount: 0
+    };
+    await updateConversation(conversation);
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+  }
 };
 
 // 初始化消息监听器

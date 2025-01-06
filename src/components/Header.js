@@ -23,16 +23,15 @@ function Header() {
       if (!user) return;
       
       try {
+        console.log('Fetching unread count for user:', user.id);
         const data = await apiRequest(
           `${API_ENDPOINTS.UNREAD_COUNT}?userId=${user.id}`
         );
-        setUnreadCount(data.count);
+        console.log('Unread count response:', data);
+        setUnreadCount(data.count || 0);
       } catch (error) {
         console.error('获取未读消息数量失败:', error);
-        if (intervalId) {
-          clearInterval(intervalId);
-          intervalId = null;
-        }
+        setUnreadCount(0); // 出错时显示0
       }
     };
 

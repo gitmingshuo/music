@@ -13,25 +13,41 @@ class WebSocketService {
   }
 
   connect(userId) {
+    console.log('Connecting WebSocket for user:', userId);
     if (this.currentUserId === userId && this.channel) {
+      console.log('Already connected for user:', userId);
       return;
     }
 
     this.disconnect();
     this.currentUserId = userId;
+    
     this.channel = this.pusher.subscribe(`chat-${userId}`);
     
-    this.channel.bind('new-message', (message) => {
-      console.log('WebSocket received message:', message);
-      this.messageCallbacks.forEach(callback => callback(message));
+    this.channel.bind('new-message', (data) => {
+      console.log('WebSocket received message:', data);
+      this.messageCallbacks.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error('Error in message callback:', error);
+        }
+      });
     });
 
-    this.pusher.connection.bind('connected', () => {
-      console.log('Connected to Pusher');
-    });
+    console.log('WebSocket connected for user:', userId);
   }
 
-  sendMessage(messageData) {
+  onMessage(callback) {
+    console.log('Adding message callback');
+    this.messageCallbacks.add(callback);
+    return () => {
+      console.log('Removing message callback');
+      this.messageCallbacks.delete(callback);
+    };
+  }
+
+  async sendMessage(messageData) {
     console.log('Sending message:', messageData);
     return fetch(`${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`, {
       method: 'POST',
@@ -47,17 +63,14 @@ class WebSocketService {
     });
   }
 
-  onMessage(callback) {
-    this.messageCallbacks.add(callback);
-    return () => this.messageCallbacks.delete(callback);
-  }
-
   disconnect() {
     if (this.channel && this.currentUserId) {
+      console.log('Disconnecting WebSocket for user:', this.currentUserId);
       this.channel.unbind_all();
       this.pusher.unsubscribe(`chat-${this.currentUserId}`);
       this.currentUserId = null;
       this.channel = null;
+      this.messageCallbacks.clear();
     }
   }
 }

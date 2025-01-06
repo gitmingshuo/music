@@ -23,7 +23,8 @@ function Messages() {
     searchUsers,
     loadChatMessages,
     currentMessages,
-    loading
+    loading,
+    currentChat,
   } = useMessage();
   const navigate = useNavigate();
 
@@ -56,15 +57,34 @@ function Messages() {
     }
   }, [selectedUser, user.id]);
 
+  useEffect(() => {
+    if (currentMessages?.length > 0) {
+      console.log('Messages updated:', {
+        count: currentMessages.length,
+        messages: currentMessages
+      });
+      scrollToBottom();
+    }
+  }, [currentMessages]);
+
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedUser || !user || sending) return;
+    console.log('Sending message - Validation:', {
+      hasMessage: !!message.trim(),
+      selectedUser,
+      currentChat,
+      currentUserId: user?.id
+    });
+
+    if (!message.trim() || !selectedUser || !user || sending) {
+      console.error('Send message validation failed');
+      return;
+    }
     
     try {
       setSending(true);
       const success = await sendMessage(selectedUser.id, message);
       if (success) {
         setMessage('');
-        loadChatMessages(selectedUser.id);
       } else {
         console.error('消息发送失败');
       }
@@ -105,11 +125,19 @@ function Messages() {
   };
 
   const handleSelectConversation = (conv) => {
-    if (!conv?.user || !user) return;
+    console.log('Selecting conversation:', {
+      conversation: conv,
+      currentUser: user?.id,
+      selectedUserId: conv?.user?.id
+    });
+
+    if (!conv?.user || !user) {
+      console.error('Invalid conversation selection:', { conv, user });
+      return;
+    }
     
     setSelectedUser(conv.user);
     loadChatMessages(conv.user.id);
-    setIsFollowed(isFollowing(user.id, conv.user.id));
   };
 
   const handleFollow = () => {
@@ -199,19 +227,22 @@ function Messages() {
             </div>
             
             <div className="messages-list">
-              {currentMessages && currentMessages.map((msg) => (
-                msg && user && (
+              {currentMessages && currentMessages.map((msg) => {
+                console.log('Rendering message:', msg);
+                return msg && user && (
                   <div 
-                    key={msg.id}
+                    key={msg.id || Date.now()}
                     className={`message ${msg.senderId === user.id ? 'sent' : 'received'}`}
                   >
-                    <div className="message-content">{msg.content}</div>
+                    <div className="message-content">
+                      {msg.content || msg.message?.content}
+                    </div>
                     <div className="message-time">
                       {new Date(msg.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
-                )
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 

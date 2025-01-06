@@ -3,9 +3,12 @@ const Pusher = require('pusher');
 const cors = require('cors');
 const app = express();
 
+// 添加一个简单的内存存储来跟踪未读消息
+const unreadMessages = new Map();
+
 // CORS 配置
 app.use(cors({
-  origin: '*',  // 允许所有来源
+  origin: ['http://localhost:3000', 'https://mingshuo.website'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -21,7 +24,26 @@ const pusher = new Pusher({
   useTLS: true
 });
 
-// 发送消息路由
+// 添加未读消息计数路由
+app.get('/api/messages/unread-count', (req, res) => {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // 从 Map 中获取未读消息数量，如果不存在则返回 0
+    const count = unreadMessages.get(userId) || 0;
+    console.log('Unread count for user', userId, ':', count);
+    
+    res.json({ count });
+  } catch (error) {
+    console.error('Error getting unread count:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 修改发送消息路由，更新未读消息计数
 app.post('/api/send-message', async (req, res) => {
   try {
     const { type, message } = req.body;
@@ -30,6 +52,10 @@ app.post('/api/send-message', async (req, res) => {
     if (!message || !message.senderId || !message.receiverId || !message.content) {
       throw new Error('Invalid message format');
     }
+
+    // 更新接收者的未读消息计数
+    const currentCount = unreadMessages.get(message.receiverId) || 0;
+    unreadMessages.set(message.receiverId, currentCount + 1);
 
     await Promise.all([
       pusher.trigger(
@@ -47,6 +73,24 @@ app.post('/api/send-message', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 添加标记消息已读的路由
+app.post('/api/messages/mark-read', (req, res) => {
+  try {
+    const { userId, otherUserId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // 重置用户的未读消息计数
+    unreadMessages.set(userId, 0);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
     res.status(500).json({ error: error.message });
   }
 });

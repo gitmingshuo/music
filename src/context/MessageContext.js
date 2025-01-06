@@ -28,65 +28,65 @@ export function MessageProvider({ children }) {
   // 初始化 WebSocket 连接
   useEffect(() => {
     if (user) {
+      console.log('Initializing WebSocket for user:', user.id);
       wsService.connect(user.id);
-      return () => wsService.disconnect();
-    }
-  }, [user]);
-
-  // 实时更新消息和会话
-  useEffect(() => {
-    if (!user) return;
-
-    const handleNewMessage = async (message) => {
-      console.log('Received new message:', message);
       
-      try {
-        console.log('Saving message to local DB...');
-        const savedMessage = await saveMessage(
-          message.senderId,
-          message.receiverId,
-          message.content
-        );
-        console.log('Message saved:', savedMessage);
+      const unsubscribe = wsService.onMessage(async (data) => {
+        console.log('WebSocket message received in context:', data);
+        
+        try {
+          const message = data.type === 'chat' ? data.message : data;
+          console.log('Processing received message:', message);
 
-        // 使用函数式更新确保获取最新的 currentChat 值
-        setCurrentMessages(prevMessages => {
-          const isRelevantMessage = currentChat && 
-            (message.senderId === currentChat || message.receiverId === currentChat);
-          
-          console.log('Message relevance check:', {
-            currentChat,
-            senderId: message.senderId,
-            receiverId: message.receiverId,
-            isRelevant: isRelevantMessage
+          // 立即更新消息列表
+          setCurrentMessages(prevMessages => {
+            // 检查消息是否相关
+            const isRelevantMessage = 
+              currentChat && 
+              ((message.senderId === currentChat && message.receiverId === user.id) ||
+               (message.receiverId === currentChat && message.senderId === user.id));
+
+            console.log('Message relevance check:', {
+              isRelevantMessage,
+              currentChat,
+              senderId: message.senderId,
+              receiverId: message.receiverId,
+              userId: user.id
+            });
+
+            if (!isRelevantMessage) {
+              return prevMessages;
+            }
+
+            // 检查消息是否已存在
+            if (prevMessages.some(msg => msg.id === message.id)) {
+              return prevMessages;
+            }
+
+            return [...prevMessages, message];
           });
 
-          if (!isRelevantMessage) {
-            console.log('Message not relevant to current chat');
-            return prevMessages;
-          }
+          // 保存到本地存储
+          await saveMessage(
+            message.senderId,
+            message.receiverId,
+            message.content
+          );
 
-          const messageExists = prevMessages.some(msg => msg.id === savedMessage.id);
-          if (messageExists) {
-            console.log('Message already exists in current chat');
-            return prevMessages;
-          }
+          // 更新会话列表
+          await fetchConversations();
+        } catch (error) {
+          console.error('Error processing received message:', error);
+        }
+      });
 
-          console.log('Adding new message to chat');
-          return [...prevMessages, savedMessage];
-        });
-
-        await fetchConversations();
-      } catch (error) {
-        console.error('Error handling new message:', error);
-      }
-    };
-
-    const unsubscribe = initMessageListener(handleNewMessage);
-    fetchConversations();
-
-    return () => unsubscribe();
-  }, [user, currentChat]);
+      return () => {
+        console.log('Cleaning up WebSocket connection');
+        unsubscribe();
+        wsService.disconnect();
+      };
+    }
+  }, [user, currentChat]); // 添加 currentChat 作为依赖
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -117,18 +117,34 @@ export function MessageProvider({ children }) {
       });
       console.log('Set new currentChat:', otherUserId);
       
-      const messages = await getUserMessages(user.id, otherUserId);
-      console.log('Loaded messages:', messages);
+      // 获取历史消息
+      const historicalMessages = await getUserMessages(user.id, otherUserId);
+      console.log('Loaded historical messages:', historicalMessages);
+      
+      // 获取当前消息列表中与该聊天相关的新消息
+      const relevantNewMessages = currentMessages.filter(msg => 
+        (msg.senderId === user.id && msg.receiverId === otherUserId) ||
+        (msg.senderId === otherUserId && msg.receiverId === user.id)
+      );
+      console.log('Relevant new messages:', relevantNewMessages);
+
+      // 合并历史消息和新消息，并按时间排序
+      const allMessages = [...historicalMessages, ...relevantNewMessages]
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      
+      // 去重
+      const uniqueMessages = allMessages.filter((msg, index, self) =>
+        index === self.findIndex(m => m.id === msg.id)
+      );
+
+      console.log('Final merged messages:', uniqueMessages);
       
       // 使用函数式更新确保最新状态
-      setCurrentMessages(prevMessages => {
-        console.log('Updating messages:', { prevMessages, newMessages: messages });
-        return messages;
-      });
+      setCurrentMessages(uniqueMessages);
       
       await markMessagesAsRead(user.id, otherUserId);
       await fetchConversations();
-      return messages;
+      return uniqueMessages;
     } catch (error) {
       console.error('Error loading chat messages:', error);
       return [];
@@ -152,6 +168,7 @@ export function MessageProvider({ children }) {
     try {
       setLoading(true);
       
+      // 创建消息对象
       const messageData = {
         type: 'chat',
         message: {
@@ -165,7 +182,7 @@ export function MessageProvider({ children }) {
 
       console.log('Sending message data:', messageData);
 
-      // 先保存到本地
+      // 先保存到本地并立即更新UI
       const savedMessage = await saveMessage(
         user.id,
         receiverId,
@@ -173,14 +190,12 @@ export function MessageProvider({ children }) {
       );
       console.log('Message saved locally:', savedMessage);
 
+      // 立即更新当前消息列表
+      setCurrentMessages(prevMessages => [...prevMessages, savedMessage]);
+
       // 发送到服务器
       await wsService.sendMessage(messageData);
       console.log('Message sent to server');
-
-      // 更新当前聊天消息列表
-      if (currentChat === receiverId) {
-        setCurrentMessages(prevMessages => [...prevMessages, savedMessage]);
-      }
 
       // 更新会话列表
       await fetchConversations();
@@ -192,6 +207,45 @@ export function MessageProvider({ children }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('Current messages updated:', currentMessages);
+  }, [currentMessages]);
+
+  // 监控消息状态变化
+  useEffect(() => {
+    console.log('Current messages state:', {
+      currentChat,
+      messagesCount: currentMessages.length,
+      messages: currentMessages
+    });
+  }, [currentMessages, currentChat]);
+
+  // 监控 WebSocket 连接状态
+  useEffect(() => {
+    if (user) {
+      console.log('WebSocket connection status:', {
+        userId: user.id,
+        currentChat,
+        isConnected: wsService.channel !== null,
+        channelName: wsService.channel ? `chat-${user.id}` : null
+      });
+    }
+  }, [user, currentChat]);
+
+  // 监控消息列表变化
+  useEffect(() => {
+    console.log('Messages state updated:', {
+      currentChat,
+      messagesCount: currentMessages.length,
+      messages: currentMessages
+    });
+  }, [currentMessages, currentChat]);
+
+  // 监控发送状态
+  useEffect(() => {
+    console.log('Loading state changed:', loading);
+  }, [loading]);
 
   return (
     <MessageContext.Provider
