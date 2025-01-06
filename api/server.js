@@ -8,7 +8,7 @@ const unreadMessages = new Map();
 
 // CORS 配置
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://mingshuo.website'],
+  origin: ['http://localhost:3000', 'https://mingshuo.website', 'https://www.mingshuo.website'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true

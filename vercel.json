@@ -19,6 +19,7 @@
     "PUSHER_APP_ID": "1920738",
     "PUSHER_KEY": "4b522f1169d2c59a5253",
     "PUSHER_SECRET": "8b7948135891378f5fb0",
-    "PUSHER_CLUSTER": "ap1"
+    "PUSHER_CLUSTER": "ap1",
+    "NODE_ENV": "production"
   }
 } 

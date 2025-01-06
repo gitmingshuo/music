@@ -1,14 +1,14 @@
 {
   "short_name": "将の音乐",
-  "name": "将の音乐 - 一个简约的音乐播放器",
+  "name": "将の音乐",
   "icons": [
     {
-      "src": "tubiao.png",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "src": "/tubiao.png",
+      "sizes": "64x64",
       "type": "image/png"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"
