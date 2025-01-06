@@ -17,6 +17,7 @@ export function MessageProvider({ children }) {
   const [conversations, setConversations] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [currentMessages, setCurrentMessages] = useState([]);
+  const [allMessages, setAllMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
@@ -38,33 +39,26 @@ export function MessageProvider({ children }) {
           const message = data.type === 'chat' ? data.message : data;
           console.log('Processing received message:', message);
 
-          // 立即更新消息列表
-          setCurrentMessages(prevMessages => {
-            // 检查消息是否相关
-            const isRelevantMessage = 
-              currentChat && 
-              ((message.senderId === currentChat && message.receiverId === user.id) ||
-               (message.receiverId === currentChat && message.senderId === user.id));
-
-            console.log('Message relevance check:', {
-              isRelevantMessage,
-              currentChat,
-              senderId: message.senderId,
-              receiverId: message.receiverId,
-              userId: user.id
-            });
-
-            if (!isRelevantMessage) {
-              return prevMessages;
-            }
-
-            // 检查消息是否已存在
+          // 更新所有消息列表
+          setAllMessages(prevMessages => {
             if (prevMessages.some(msg => msg.id === message.id)) {
               return prevMessages;
             }
-
             return [...prevMessages, message];
           });
+
+          // 如果是当前聊天的消息，也更新当前消息列表
+          if (currentChat && 
+              (message.senderId === currentChat || message.receiverId === currentChat)) {
+            setCurrentMessages(prevMessages => {
+              if (prevMessages.some(msg => msg.id === message.id)) {
+                return prevMessages;
+              }
+              return [...prevMessages, message].sort((a, b) => 
+                new Date(a.timestamp) - new Date(b.timestamp)
+              );
+            });
+          }
 
           // 保存到本地存储
           await saveMessage(
@@ -86,7 +80,7 @@ export function MessageProvider({ children }) {
         wsService.disconnect();
       };
     }
-  }, [user, currentChat]); // 添加 currentChat 作为依赖
+  }, [user, currentChat]);
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -110,41 +104,36 @@ export function MessageProvider({ children }) {
     
     try {
       setLoading(true);
-      // 使用 await 确保 currentChat 更新完成
-      await new Promise(resolve => {
-        setCurrentChat(otherUserId);
-        resolve();
-      });
-      console.log('Set new currentChat:', otherUserId);
+      setCurrentChat(otherUserId);
       
       // 获取历史消息
       const historicalMessages = await getUserMessages(user.id, otherUserId);
       console.log('Loaded historical messages:', historicalMessages);
       
-      // 获取当前消息列表中与该聊天相关的新消息
-      const relevantNewMessages = currentMessages.filter(msg => 
+      // 从所有消息中筛选出相关消息
+      const relevantMessages = allMessages.filter(msg => 
         (msg.senderId === user.id && msg.receiverId === otherUserId) ||
         (msg.senderId === otherUserId && msg.receiverId === user.id)
       );
-      console.log('Relevant new messages:', relevantNewMessages);
+      console.log('Relevant messages from memory:', relevantMessages);
 
-      // 合并历史消息和新消息，并按时间排序
-      const allMessages = [...historicalMessages, ...relevantNewMessages]
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      
-      // 去重
-      const uniqueMessages = allMessages.filter((msg, index, self) =>
-        index === self.findIndex(m => m.id === msg.id)
+      // 合并消息并去重
+      const mergedMessages = [...historicalMessages, ...relevantMessages];
+      const uniqueMessages = Array.from(new Map(
+        mergedMessages.map(msg => [msg.id, msg])
+      ).values());
+
+      // 按时间排序
+      const sortedMessages = uniqueMessages.sort(
+        (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
       );
 
-      console.log('Final merged messages:', uniqueMessages);
-      
-      // 使用函数式更新确保最新状态
-      setCurrentMessages(uniqueMessages);
+      console.log('Final sorted messages:', sortedMessages);
+      setCurrentMessages(sortedMessages);
       
       await markMessagesAsRead(user.id, otherUserId);
       await fetchConversations();
-      return uniqueMessages;
+      return sortedMessages;
     } catch (error) {
       console.error('Error loading chat messages:', error);
       return [];
@@ -155,20 +144,11 @@ export function MessageProvider({ children }) {
 
   const sendMessage = async (receiverId, content) => {
     console.log('MessageContext sendMessage:', { receiverId, content });
-    if (!user || !receiverId || !content || loading) {
-      console.log('Send message preconditions not met:', {
-        hasUser: !!user,
-        hasReceiverId: !!receiverId,
-        hasContent: !!content,
-        isLoading: loading
-      });
-      return false;
-    }
+    if (!user || !receiverId || !content || loading) return false;
     
     try {
       setLoading(true);
       
-      // 创建消息对象
       const messageData = {
         type: 'chat',
         message: {
@@ -180,28 +160,29 @@ export function MessageProvider({ children }) {
         }
       };
 
-      console.log('Sending message data:', messageData);
-
-      // 先保存到本地并立即更新UI
+      // 保存到本地
       const savedMessage = await saveMessage(
         user.id,
         receiverId,
         content
       );
-      console.log('Message saved locally:', savedMessage);
 
-      // 立即更新当前消息列表
-      setCurrentMessages(prevMessages => [...prevMessages, savedMessage]);
+      // 更新所有消息列表
+      setAllMessages(prev => [...prev, savedMessage]);
+
+      // 如果是当前聊天，更新当前消息列表
+      if (currentChat === receiverId) {
+        setCurrentMessages(prev => [...prev, savedMessage].sort(
+          (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+        ));
+      }
 
       // 发送到服务器
       await wsService.sendMessage(messageData);
-      console.log('Message sent to server');
-
-      // 更新会话列表
       await fetchConversations();
       return true;
     } catch (error) {
-      console.error('Error in send message flow:', error);
+      console.error('Error sending message:', error);
       return false;
     } finally {
       setLoading(false);
