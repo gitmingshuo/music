@@ -30,17 +30,37 @@ function Messages() {
 
   const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (smooth = true) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: smooth ? 'smooth' : 'auto',
+        block: 'end'
+      });
+    }
+  };
+
+  const scrollToOptimalPosition = () => {
+    const messagesList = document.querySelector('.messages-list');
+    if (messagesList) {
+      messagesList.scrollTop = messagesList.scrollHeight;
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [currentMessages]);
+    if (currentMessages?.length > 0) {
+      console.log('Messages updated:', {
+        count: currentMessages.length,
+        messages: currentMessages
+      });
+      if (currentMessages[currentMessages.length - 1]?.senderId === user?.id) {
+        scrollToBottom(true);
+      }
+    }
+  }, [currentMessages, user?.id]);
 
   useEffect(() => {
     if (selectedUser) {
-      scrollToBottom();
+      // 不再自动滚动
     }
   }, [selectedUser]);
 
@@ -58,14 +78,17 @@ function Messages() {
   }, [selectedUser, user.id]);
 
   useEffect(() => {
-    if (currentMessages?.length > 0) {
-      console.log('Messages updated:', {
-        count: currentMessages.length,
-        messages: currentMessages
-      });
-      scrollToBottom();
+    const adjustScroll = () => {
+      const messagesList = document.querySelector('.messages-list');
+      if (messagesList) {
+        messagesList.scrollTop = messagesList.scrollHeight * 0.2;
+      }
+    };
+
+    if (selectedUser) {
+      setTimeout(adjustScroll, 100);
     }
-  }, [currentMessages]);
+  }, [selectedUser]);
 
   const handleSendMessage = async () => {
     console.log('Sending message - Validation:', {
@@ -85,6 +108,12 @@ function Messages() {
       const success = await sendMessage(selectedUser.id, message);
       if (success) {
         setMessage('');
+        setTimeout(() => {
+          const messagesList = document.querySelector('.messages-list');
+          if (messagesList) {
+            messagesList.scrollTop = messagesList.scrollHeight;
+          }
+        }, 100);
       } else {
         console.error('消息发送失败');
       }
@@ -138,6 +167,8 @@ function Messages() {
     
     setSelectedUser(conv.user);
     loadChatMessages(conv.user.id);
+    
+    setTimeout(scrollToOptimalPosition, 100);
   };
 
   const handleFollow = () => {
@@ -200,7 +231,7 @@ function Messages() {
                       <span className="unread-count">{conv.unreadCount}</span>
                     )}
                   </div>
-                  <span className="last-message">
+                  <span className="last-message" title={conv.lastMessage}>
                     {conv.lastMessage || '暂无消息'}
                   </span>
                 </div>
@@ -217,12 +248,6 @@ function Messages() {
             <div className="chat-header">
               <div className="chat-user-info">
                 <h3>{selectedUser.username}</h3>
-                <button 
-                  className={`follow-btn ${isFollowed ? 'following' : ''}`}
-                  onClick={handleFollow}
-                >
-                  {isFollowed ? '已关注' : '关注'}
-                </button>
               </div>
             </div>
             

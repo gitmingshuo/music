@@ -65,12 +65,27 @@ export async function getConversationMessages(userId1, userId2) {
 }
 
 // 更新会话
-export async function updateConversation(conversation) {
-  const db = await getDB();
-  const tx = db.transaction('conversations', 'readwrite');
-  await tx.store.put(conversation);
-  await tx.done;
-}
+export const updateConversation = async (conversation) => {
+  try {
+    const db = await initDB();
+    const existingConv = await db.get('conversations', conversation.id);
+    
+    const updatedConv = {
+      ...existingConv,
+      ...conversation,
+      lastMessage: conversation.lastMessage || existingConv?.lastMessage,
+      timestamp: conversation.timestamp || existingConv?.timestamp,
+      unreadCount: conversation.unreadCount ?? existingConv?.unreadCount ?? 0
+    };
+
+    await db.put('conversations', updatedConv);
+    console.log('Conversation updated:', updatedConv);
+    return updatedConv;
+  } catch (error) {
+    console.error('Error updating conversation:', error);
+    throw error;
+  }
+};
 
 // 获取用户的所有会话
 export async function getUserConversations(userId) {

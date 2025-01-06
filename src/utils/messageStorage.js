@@ -61,26 +61,37 @@ export const saveMessage = async (senderId, receiverId, content) => {
 };
 
 // 更新会话信息
-const updateConversations = async (senderId, receiverId, lastMessage, timestamp) => {
-  // 更新发送者的会话
-  await updateConversation({
-    id: `${senderId}-${receiverId}`,
-    userId: senderId,
-    otherUserId: receiverId,
-    lastMessage,
-    timestamp,
-    unreadCount: 0
-  });
+const updateConversations = async (senderId, receiverId, content, timestamp) => {
+  try {
+    // 更新发送者的会话
+    await updateConversation({
+      id: `${senderId}-${receiverId}`,
+      userId: senderId,
+      otherUserId: receiverId,
+      lastMessage: content, // 使用消息内容作为最后一条消息
+      timestamp,
+      unreadCount: 0
+    });
 
-  // 更新接收者的会话
-  await updateConversation({
-    id: `${receiverId}-${senderId}`,
-    userId: receiverId,
-    otherUserId: senderId,
-    lastMessage,
-    timestamp,
-    unreadCount: 1
-  });
+    // 更新接收者的会话
+    await updateConversation({
+      id: `${receiverId}-${senderId}`,
+      userId: receiverId,
+      otherUserId: senderId,
+      lastMessage: content, // 使用消息内容作为最后一条消息
+      timestamp,
+      unreadCount: 1
+    });
+
+    console.log('Conversations updated with last message:', {
+      content,
+      timestamp,
+      senderId,
+      receiverId
+    });
+  } catch (error) {
+    console.error('Error updating conversations:', error);
+  }
 };
 
 // 获取用户消息
@@ -105,13 +116,17 @@ export const getUserMessages = async (userId1, userId2) => {
 export const getUserConversations = async (userId) => {
   try {
     const conversations = await getDBConversations(userId);
-    return conversations.map(conv => ({
+    const conversationsWithUsers = conversations.map(conv => ({
       ...conv,
-      user: findUserById(conv.otherUserId)
+      user: findUserById(conv.otherUserId),
+      lastMessage: conv.lastMessage || '暂无消息' // 确保有默认值
     }));
+
+    console.log('Retrieved conversations:', conversationsWithUsers);
+    return conversationsWithUsers;
   } catch (error) {
     console.error('Error getting conversations:', error);
-    return []; // 返回空数组而不是抛出错误
+    return [];
   }
 };
 
