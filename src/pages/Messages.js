@@ -5,11 +5,13 @@ import { isFollowing, followUser, unfollowUser } from '../utils/userStorage';
 import './Messages.css';
 import { useNavigate } from 'react-router-dom';
 import EmojiPicker from '../components/EmojiPicker';
+import { wsService } from '../utils/websocket';
+import { updateConversation as dbUpdateConversation } from '../utils/db';
 
 function Messages() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState('');
-  const [newMessageUsername, setNewMessageUsername] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [isFollowed, setIsFollowed] = useState(false);
@@ -19,7 +21,7 @@ function Messages() {
   const { user } = useAuth();
   const { 
     conversations, 
-    sendMessage, 
+    sendMessage,
     fetchConversations,
     searchUsers,
     loadChatMessages,
@@ -125,7 +127,7 @@ function Messages() {
   }, [user, fetchConversations]);
 
   const handleSendMessage = async () => {
-    console.log('Sending message - Validation:', {
+    console.log('Attempting to send message:', {
       hasMessage: !!message.trim(),
       selectedUser,
       currentChat,
@@ -139,34 +141,58 @@ function Messages() {
     
     try {
       setSending(true);
-      const success = await sendMessage(selectedUser.id, message);
-      if (success) {
+      
+      // 构造消息数据
+      const messageData = {
+        type: 'chat',
+        message: {
+          id: Date.now().toString(),
+          senderId: user.id,
+          receiverId: selectedUser.id,
+          content: message.trim(),
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      // 直接使用 wsService 发送消息
+      const result = await wsService.sendMessage(messageData);
+      
+      if (result.success) {
+        console.log('Message sent successfully');
         setMessage('');
+        
+        // 滚动到底部
         setTimeout(() => {
-          const messagesList = document.querySelector('.messages-list');
-          if (messagesList) {
-            messagesList.scrollTop = messagesList.scrollHeight;
+          if (messagesListRef.current) {
+            messagesListRef.current.scrollTop = messagesListRef.current.scrollHeight;
           }
         }, 100);
       } else {
-        console.error('消息发送失败');
+        console.error('Failed to send message');
       }
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error);
     } finally {
       setSending(false);
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !sending) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   const handleNewMessage = async () => {
-    if (!user || !newMessageUsername.trim()) {
+    if (!searchInput.trim() || !user) {
       setSearchError('请输入用户名');
       return;
     }
-
+    
     try {
-      setSearchError('');
       setLoading(true);
-      
-      const foundUser = await searchUsers(newMessageUsername);
+      const foundUser = await searchUsers(searchInput);
       
       if (!foundUser) {
         setSearchError('未找到该用户');
@@ -178,13 +204,14 @@ function Messages() {
         return;
       }
 
-      const existingConv = conversations?.find(
-        conv => conv.user?.id === foundUser.id
-      );
+      // 创建或获取会话
+      const conversationId = [user.id, foundUser.id].sort().join('-');
+      const existingConv = conversations?.find(conv => conv.id === conversationId);
 
       if (!existingConv) {
+        // 创建新会话
         const newConv = {
-          id: `${user.id}-${foundUser.id}`,
+          id: conversationId,
           userId: user.id,
           otherUserId: foundUser.id,
           user: foundUser,
@@ -193,23 +220,17 @@ function Messages() {
           unreadCount: 0
         };
         
-        try {
-          await updateConversation(newConv);
-          await fetchConversations();
-        } catch (error) {
-          console.error('Error creating new conversation:', error);
-          setSearchError('创建会话失败，请稍后重试');
-          return;
-        }
+        await dbUpdateConversation(newConv);
+        await fetchConversations();
       }
 
       setSelectedUser(foundUser);
-      setShowNewMessage(false);
-      setNewMessageUsername('');
-      loadChatMessages(foundUser.id);
+      setSearchInput('');
+      setSearchError('');
+      await loadChatMessages(foundUser.id);
     } catch (error) {
-      console.error('查找用户失败:', error);
-      setSearchError('查找用户失败，请稍后重试');
+      console.error('创建会话失败:', error);
+      setSearchError('创建会话失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -272,12 +293,14 @@ function Messages() {
           <div className="new-message-form">
             <input
               type="text"
-              value={newMessageUsername}
-              onChange={(e) => setNewMessageUsername(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder="输入用户名..."
             />
             <button onClick={handleNewMessage}>查找</button>
-            {searchError && <div className="error-message">{searchError}</div>}
+            {searchError && (
+              <div className="search-error">{searchError}</div>
+            )}
           </div>
         )}
 
@@ -344,7 +367,7 @@ function Messages() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="输入消息..."
-                onKeyPress={(e) => e.key === 'Enter' && !sending && handleSendMessage()}
+                onKeyPress={handleKeyPress}
                 disabled={sending}
               />
               <button 

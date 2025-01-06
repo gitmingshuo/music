@@ -7,7 +7,8 @@ class WebSocketService {
     this.pusher = new Pusher('4b522f1169d2c59a5253', {
       cluster: 'ap1',
       encrypted: true,
-      forceTLS: true
+      forceTLS: true,
+      timeout: 20000
     });
     this.channel = null;
     this.messageCallbacks = new Set();
@@ -23,30 +24,32 @@ class WebSocketService {
     this.disconnect();
     this.currentUserId = userId;
     
-    const channelName = `chat-${userId}`;
-    console.log('Subscribing to channel:', channelName);
-    this.channel = this.pusher.subscribe(channelName);
-    
-    this.channel.bind('new-message', (data) => {
-      console.log('WebSocket received message:', data);
-      this.messageCallbacks.forEach(callback => {
-        try {
-          callback(data);
-        } catch (error) {
-          console.error('Error in message callback:', error);
-        }
+    try {
+      this.channel = this.pusher.subscribe(`chat-${userId}`);
+      
+      this.channel.bind('pusher:subscription_succeeded', () => {
+        console.log('Successfully subscribed to channel');
       });
-    });
 
-    this.channel.bind('pusher:subscription_succeeded', () => {
-      console.log('Successfully subscribed to channel:', channelName);
-    });
+      this.channel.bind('pusher:subscription_error', (error) => {
+        console.error('Subscription error:', error);
+      });
+      
+      this.channel.bind('new-message', (data) => {
+        console.log('WebSocket received message:', data);
+        this.messageCallbacks.forEach(callback => {
+          try {
+            callback(data);
+          } catch (error) {
+            console.error('Error in message callback:', error);
+          }
+        });
+      });
 
-    this.channel.bind('pusher:subscription_error', (error) => {
-      console.error('Failed to subscribe to channel:', error);
-    });
-
-    console.log('WebSocket connected for user:', userId);
+      console.log('WebSocket connected for user:', userId);
+    } catch (error) {
+      console.error('Error connecting to WebSocket:', error);
+    }
   }
 
   onMessage(callback) {
@@ -59,19 +62,27 @@ class WebSocketService {
   }
 
   async sendMessage(messageData) {
-    console.log('Sending message:', messageData);
-    return fetch(`${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(messageData)
-    }).then(response => {
+    console.log('Attempting to send message:', messageData);
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageData)
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to send message: ${response.status}`);
       }
-      return response.json();
-    });
+
+      const result = await response.json();
+      console.log('Message sent successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
   }
 
   disconnect() {

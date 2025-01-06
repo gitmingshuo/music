@@ -17,12 +17,11 @@ app.use(cors({
 app.use(express.json());
 
 const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID || '1920738',
-  key: process.env.PUSHER_KEY || '4b522f1169d2c59a5253',
-  secret: process.env.PUSHER_SECRET || '8b7948135891378f5fb0',
-  cluster: process.env.PUSHER_CLUSTER || 'ap1',
-  useTLS: true,
-  encrypted: true
+  appId: '1920738',
+  key: '4b522f1169d2c59a5253',
+  secret: '8b7948135891378f5fb0',
+  cluster: 'ap1',
+  useTLS: true
 });
 
 // 添加未读消息计数路由
@@ -54,20 +53,33 @@ app.post('/api/send-message', async (req, res) => {
       throw new Error('Invalid message format');
     }
 
-    // 更新接收者的未读消息计数
+    // 只更新接收者的未读消息计数
     const currentCount = unreadMessages.get(message.receiverId) || 0;
     unreadMessages.set(message.receiverId, currentCount + 1);
-
-    // 分别触发发送者和接收者的频道
-    await Promise.all([
-      pusher.trigger(`chat-${message.receiverId}`, 'new-message', message),
-      pusher.trigger(`chat-${message.senderId}`, 'new-message', message)
-    ]);
-    
-    console.log('Message sent successfully to channels:', {
-      receiver: `chat-${message.receiverId}`,
-      sender: `chat-${message.senderId}`
+    console.log('Updated unread count for receiver:', {
+      receiverId: message.receiverId,
+      count: currentCount + 1
     });
+
+    // 使用 Promise.all 同时触发两个通道的消息
+    await Promise.all([
+      // 发送给接收者的消息包含未读标记
+      pusher.trigger(`chat-${message.receiverId}`, 'new-message', {
+        type: 'chat',
+        message: {
+          ...message,
+          unread: true
+        }
+      }),
+      // 发送给发送者的消息不包含未读标记
+      pusher.trigger(`chat-${message.senderId}`, 'new-message', {
+        type: 'chat',
+        message: {
+          ...message,
+          unread: false
+        }
+      })
+    ]);
     
     res.json({ success: true });
   } catch (error) {
@@ -76,7 +88,7 @@ app.post('/api/send-message', async (req, res) => {
   }
 });
 
-// 添加标记消息已读的路由
+// 修改标记消息已读的路由
 app.post('/api/messages/mark-read', (req, res) => {
   try {
     const { userId, otherUserId } = req.body;
@@ -85,7 +97,13 @@ app.post('/api/messages/mark-read', (req, res) => {
     }
 
     // 重置用户的未读消息计数
-    unreadMessages.set(userId, 0);
+    const conversationId = [userId, otherUserId].sort().join('-');
+    const userUnreadMessages = unreadMessages.get(userId) || 0;
+    
+    if (userUnreadMessages > 0) {
+      unreadMessages.set(userId, 0);
+      console.log('Reset unread count for user:', userId);
+    }
     
     res.json({ success: true });
   } catch (error) {
