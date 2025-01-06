@@ -5,7 +5,8 @@ import {
   getUserConversations as getDBConversations,
   updateConversation,
   listenToMessages,
-  getDB
+  getDB,
+  initDB
 } from './db';
 import { wsService } from './websocket';
 import { apiRequest, API_ENDPOINTS } from '../config/api';
@@ -112,15 +113,45 @@ export const getUserMessages = async (userId1, userId2) => {
   }
 };
 
-// 获取用户的所有会话
+// 修改 saveConversationsToDB 函数
+export const saveConversationsToDB = async (conversations) => {
+  try {
+    const db = await getDB();
+    if (!db) {
+      throw new Error('Failed to connect to database');
+    }
+    
+    await Promise.all(
+      conversations.map(async (conv) => {
+        await db.put('conversations', conv);
+      })
+    );
+  } catch (error) {
+    console.error('Error saving conversations:', error);
+  }
+};
+
+// 修改 getUserConversations 函数
 export const getUserConversations = async (userId) => {
   try {
-    const conversations = await getDBConversations(userId);
-    const conversationsWithUsers = conversations.map(conv => ({
-      ...conv,
-      user: findUserById(conv.otherUserId),
-      lastMessage: conv.lastMessage || '暂无消息' // 确保有默认值
-    }));
+    const db = await getDB();
+    if (!db) {
+      throw new Error('Failed to connect to database');
+    }
+    
+    const conversations = await db.getAllFromIndex('conversations', 'userId', userId);
+    
+    // 获取每个会话对应的用户信息
+    const conversationsWithUsers = await Promise.all(
+      conversations.map(async (conv) => {
+        const otherUser = await findUserById(conv.otherUserId);
+        return {
+          ...conv,
+          user: otherUser,
+          lastMessage: conv.lastMessage || '暂无消息'
+        };
+      })
+    );
 
     console.log('Retrieved conversations:', conversationsWithUsers);
     return conversationsWithUsers;
@@ -130,10 +161,45 @@ export const getUserConversations = async (userId) => {
   }
 };
 
-// 搜索用户
-export const searchUser = (username) => {
-  const users = getStorageUsers();
-  return users.find(user => user.username.toLowerCase() === username.toLowerCase());
+// 修改搜索用户函数
+export const searchUser = async (username) => {
+  try {
+    // 先从本地存储中查找
+    const localUsers = getStorageUsers();
+    const localUser = localUsers.find(
+      user => user.username.toLowerCase() === username.toLowerCase()
+    );
+    
+    if (localUser) {
+      return localUser;
+    }
+
+    // 如果本地没有，尝试从服务器获取
+    const response = await apiRequest(`${API_ENDPOINTS.SEARCH_USER}?username=${username}`);
+    if (response.user) {
+      // 将新用户添加到本地存储
+      await addUserToStorage(response.user);
+      return response.user;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error searching user:', error);
+    return null;
+  }
+};
+
+// 添加新用户到本地存储
+const addUserToStorage = async (user) => {
+  try {
+    const db = await getDB();
+    if (!db) {
+      throw new Error('Failed to connect to database');
+    }
+    await db.put('users', user);
+  } catch (error) {
+    console.error('Error adding user to storage:', error);
+  }
 };
 
 // 标记消息为已读

@@ -14,6 +14,7 @@ function Messages() {
   const [searchError, setSearchError] = useState('');
   const [isFollowed, setIsFollowed] = useState(false);
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   const { user } = useAuth();
   const { 
@@ -23,8 +24,8 @@ function Messages() {
     searchUsers,
     loadChatMessages,
     currentMessages,
-    loading,
     currentChat,
+    updateConversation,
   } = useMessage();
   const navigate = useNavigate();
 
@@ -90,6 +91,20 @@ function Messages() {
     }
   }, [selectedUser]);
 
+  useEffect(() => {
+    const initializeConversations = async () => {
+      if (user) {
+        try {
+          await fetchConversations();
+        } catch (error) {
+          console.error('Failed to load conversations:', error);
+        }
+      }
+    };
+
+    initializeConversations();
+  }, [user, fetchConversations]);
+
   const handleSendMessage = async () => {
     console.log('Sending message - Validation:', {
       hasMessage: !!message.trim(),
@@ -130,6 +145,8 @@ function Messages() {
 
     try {
       setSearchError('');
+      setLoading(true);
+      
       const foundUser = await searchUsers(newMessageUsername);
       
       if (!foundUser) {
@@ -142,14 +159,40 @@ function Messages() {
         return;
       }
 
+      const existingConv = conversations?.find(
+        conv => conv.user?.id === foundUser.id
+      );
+
+      if (!existingConv) {
+        const newConv = {
+          id: `${user.id}-${foundUser.id}`,
+          userId: user.id,
+          otherUserId: foundUser.id,
+          user: foundUser,
+          lastMessage: '',
+          timestamp: new Date().toISOString(),
+          unreadCount: 0
+        };
+        
+        try {
+          await updateConversation(newConv);
+          await fetchConversations();
+        } catch (error) {
+          console.error('Error creating new conversation:', error);
+          setSearchError('创建会话失败，请稍后重试');
+          return;
+        }
+      }
+
       setSelectedUser(foundUser);
       setShowNewMessage(false);
       setNewMessageUsername('');
       loadChatMessages(foundUser.id);
-      setIsFollowed(isFollowing(user.id, foundUser.id));
     } catch (error) {
       console.error('查找用户失败:', error);
       setSearchError('查找用户失败，请稍后重试');
+    } finally {
+      setLoading(false);
     }
   };
 

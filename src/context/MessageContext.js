@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { 
   getUserConversations, 
@@ -6,7 +6,8 @@ import {
   searchUser,
   getUserMessages,
   markMessagesAsRead,
-  initMessageListener
+  initMessageListener,
+  saveConversationsToDB
 } from '../utils/messageStorage';
 import { wsService } from '../utils/websocket';
 import { sendNotification } from '../utils/pushNotifications';
@@ -82,18 +83,16 @@ export function MessageProvider({ children }) {
     }
   }, [user, currentChat]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!user) return;
+    
     try {
-      setLoading(true);
-      const userConversations = await getUserConversations(user.id);
-      setConversations(userConversations);
+      const convs = await getUserConversations(user.id);
+      setConversations(convs);
     } catch (error) {
-      console.error('获取会话列表失败:', error);
-    } finally {
-      setLoading(false);
+      console.error('Failed to fetch conversations:', error);
     }
-  };
+  }, [user]);
 
   const loadChatMessages = async (otherUserId) => {
     console.log('Loading chat messages for:', otherUserId);
@@ -228,6 +227,16 @@ export function MessageProvider({ children }) {
     console.log('Loading state changed:', loading);
   }, [loading]);
 
+  const updateConversation = async (conversation) => {
+    try {
+      await saveConversationsToDB([conversation]);
+      await fetchConversations();
+    } catch (error) {
+      console.error('Error updating conversation:', error);
+      throw error;
+    }
+  };
+
   return (
     <MessageContext.Provider
       value={{
@@ -239,7 +248,8 @@ export function MessageProvider({ children }) {
         sendMessage,
         searchUsers: searchUser,
         loadChatMessages,
-        fetchConversations
+        fetchConversations,
+        updateConversation
       }}
     >
       {children}
