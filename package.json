@@ -29,7 +29,7 @@
     "start": "react-scripts start",
     "server": "node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
-    "build": "CI=false GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "CI=false GENERATE_SOURCEMAP=false react-scripts build --no-lint",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

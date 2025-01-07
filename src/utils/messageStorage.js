@@ -2,7 +2,8 @@ import {
   saveMessageToDB, 
   getConversationMessages, 
   getDBConversations,
-  updateConversation as dbUpdateConversation
+  updateConversation as dbUpdateConversation,
+  openDB
 } from './db';
 import { wsService } from './websocket';
 import { apiRequest, API_ENDPOINTS } from '../config/api';

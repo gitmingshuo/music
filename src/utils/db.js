@@ -1,28 +1,25 @@
-import { openDB } from 'idb';
+import { openDB as idbOpenDB } from 'idb';
 
-const DB_NAME = 'ChatDB';
+const DB_NAME = 'chatDB';
 const DB_VERSION = 1;
 
-async function initDB() {
-  const db = await openDB(DB_NAME, DB_VERSION, {
+export const openDB = async () => {
+  return idbOpenDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
+      // 创建消息存储
       if (!db.objectStoreNames.contains('messages')) {
-        const messageStore = db.createObjectStore('messages', { keyPath: 'id' });
-        messageStore.createIndex('conversationId', 'conversationId');
-        messageStore.createIndex('timestamp', 'timestamp');
+        db.createObjectStore('messages', { keyPath: 'timestamp' });
       }
-      
+      // 创建会话存储
       if (!db.objectStoreNames.contains('conversations')) {
-        const conversationStore = db.createObjectStore('conversations', { keyPath: 'id' });
-        conversationStore.createIndex('userId', 'userId');
+        db.createObjectStore('conversations', { keyPath: 'id' });
       }
     },
   });
-  return db;
-}
+};
 
 export async function getDB() {
-  return await initDB();
+  return await openDB();
 }
 
 export async function saveMessageToDB(message) {

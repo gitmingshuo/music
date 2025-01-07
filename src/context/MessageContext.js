@@ -11,6 +11,7 @@ import {
 } from '../utils/messageStorage';
 import { wsService } from '../utils/websocket';
 import { sendNotification } from '../utils/pushNotifications';
+import { openDB } from '../utils/db';
 
 const MessageContext = createContext();
 
