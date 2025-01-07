@@ -1,5 +1,5 @@
 import Pusher from 'pusher-js';
-import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { API_BASE_URL, API_ENDPOINTS, PUSHER_CONFIG } from '../config/api';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const WS_URL = isDevelopment 
@@ -9,11 +9,10 @@ const WS_URL = isDevelopment
 class WebSocketService {
   constructor() {
     this.currentUserId = null;
-    this.pusher = new Pusher('4b522f1169d2c59a5253', {
-      cluster: 'ap1',
-      encrypted: true,
-      forceTLS: true,
-      timeout: 20000
+    this.pusher = new Pusher(PUSHER_CONFIG.key, {
+      ...PUSHER_CONFIG,
+      timeout: 20000,
+      enabledTransports: ['ws', 'wss']
     });
     this.channel = null;
     this.messageCallbacks = new Set();
@@ -31,6 +30,8 @@ class WebSocketService {
 
   connect(userId) {
     console.log('Connecting WebSocket for user:', userId);
+    console.log('Pusher state:', this.pusher.connection.state);
+    
     if (this.currentUserId === userId && this.channel) {
       console.log('Already connected for user:', userId);
       return;
@@ -48,6 +49,7 @@ class WebSocketService {
 
       this.channel.bind('pusher:subscription_error', (error) => {
         console.error('Subscription error:', error);
+        this.handleReconnect();
       });
       
       this.channel.bind('new-message', (data) => {
@@ -77,11 +79,14 @@ class WebSocketService {
   }
 
   async sendMessage(messageData) {
-    const url = `${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`;
+    const url = isDevelopment 
+      ? `${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`
+      : API_ENDPOINTS.SEND_MESSAGE;
+      
     console.log('Sending message to:', url);
     console.log('Message data:', messageData);
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEND_MESSAGE}`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -106,6 +111,18 @@ class WebSocketService {
 
       const result = await response.json();
       console.log('Message sent successfully:', result);
+      
+      this.messageCallbacks.forEach(callback => {
+        try {
+          callback({
+            type: 'chat',
+            message: messageData.message
+          });
+        } catch (error) {
+          console.error('Error in message callback:', error);
+        }
+      });
+      
       return result;
     } catch (error) {
       console.error('Error sending message:', error);

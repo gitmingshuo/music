@@ -4,10 +4,21 @@ export const API_BASE_URL = isDevelopment
   ? 'http://localhost:3001'
   : '';
 
+export const WS_URL = isDevelopment
+  ? 'ws://localhost:3001'
+  : `wss://${window.location.host}`;
+
 export const API_ENDPOINTS = {
   UNREAD_COUNT: '/api/messages/unread-count',
   SEND_MESSAGE: '/api/send-message',
   MARK_READ: '/api/messages/mark-read'
+};
+
+export const PUSHER_CONFIG = {
+  key: '4b522f1169d2c59a5253',
+  cluster: 'ap1',
+  encrypted: true,
+  forceTLS: true
 };
 
 export const apiRequest = async (endpoint, options = {}) => {

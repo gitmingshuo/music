@@ -112,6 +112,10 @@ export function MessageProvider({ children }) {
         const message = data.type === 'chat' ? data.message : data;
         console.log('Received message:', message);
 
+        // 检查是否是自己发送的消息
+        const isSelfMessage = message.senderId === user.id;
+        console.log('Is self message:', isSelfMessage);
+
         // 保存接收到的消息
         await handleReceivedMessage(message);
 
@@ -123,6 +127,7 @@ export function MessageProvider({ children }) {
             if (prevMessages.some(msg => msg.id === message.id)) {
               return prevMessages;
             }
+            console.log('Adding message to chat:', message);
             return [...prevMessages, message].sort((a, b) => 
               new Date(a.timestamp) - new Date(b.timestamp)
             );
@@ -130,7 +135,7 @@ export function MessageProvider({ children }) {
         }
 
         // 更新会话列表
-        await fetchConversations();
+        await fetchConversations(true);
       } catch (error) {
         console.error('Error processing received message:', error);
       }
@@ -141,7 +146,7 @@ export function MessageProvider({ children }) {
       unsubscribe();
       wsService.disconnect();
     };
-  }, [user, currentChat]); // 添加 currentChat 作为依赖
+  }, [user, currentChat]);
 
   // 定期刷新会话列表
   useEffect(() => {

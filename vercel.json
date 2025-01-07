@@ -13,14 +13,10 @@
   ],
   "routes": [
     {
-      "src": "/service-worker.js",
-      "headers": {
-        "Content-Type": "application/javascript",
-        "Service-Worker-Allowed": "/"
-      },
-      "dest": "/service-worker.js"
+      "src": "/ws",
+      "dest": "api/websocket.js"
     },
-    { 
+    {
       "src": "/api/send-message",
       "methods": ["POST", "OPTIONS"],
       "dest": "/api/send-message.js",
@@ -29,6 +25,26 @@
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    {
+      "src": "/api/messages/mark-read",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/messages/mark-read.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    {
+      "src": "/pusher/(.*)",
+      "dest": "https://sockjs.pusher.com/$1",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "*"
       }
     },
     { 
@@ -127,17 +143,6 @@
       "dest": "/static/music/$1.mp3",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/api/messages/mark-read",
-      "methods": ["POST", "OPTIONS"],
-      "dest": "/api/messages/mark-read.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true"
       }
     }
   ],
