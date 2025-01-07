@@ -1,7 +1,14 @@
 {
   "version": 2,
   "builds": [
-    { "src": "package.json", "use": "@vercel/static-build" },
+    { 
+      "src": "package.json", 
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "build",
+        "zeroConfig": true
+      }
+    },
     { "src": "api/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
@@ -10,11 +17,12 @@
       "headers": {
         "Content-Type": "application/javascript",
         "Service-Worker-Allowed": "/"
-      }
+      },
+      "dest": "/service-worker.js"
     },
     { 
-      "src": "/api/messages/unread-count",
-      "dest": "/api/messages/unread-count.js",
+      "src": "/api/(.*)", 
+      "dest": "/api/$1",
       "headers": {
         "Access-Control-Allow-Origin": "https://www.mingshuo.website",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -22,24 +30,55 @@
         "Access-Control-Allow-Credentials": "true"
       }
     },
+    { "src": "^/static/(.*)", "dest": "/static/$1" },
+    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "^/manifest.json", "dest": "/manifest.json" },
+    { "src": "^/tubiao.png", "dest": "/tubiao.png" },
     { 
-      "src": "/api/send-message",
-      "dest": "/api/send-message.js",
+      "src": "^/(.*)\\.(js|css|map|json|ico)$", 
+      "dest": "/$1.$2"
+    },
+    {
+      "src": "^/(albums|search|favorites|messages|playlist|login|home)",
+      "headers": { "Cache-Control": "no-cache" },
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "headers": { "Cache-Control": "no-cache" },
+      "dest": "/index.html"
+    },
+    { "src": "^/static/music/(.*)", "dest": "/static/music/$1" },
+    { "src": "^/static/lyrics/(.*)", "dest": "/static/lyrics/$1" },
+    { "src": "^/static/media/(.*)", "dest": "/static/media/$1" },
+    { 
+      "src": "^/static/media/(.+)\\.(jpg|jpeg|png|gif)$", 
+      "dest": "/static/media/$1.$2",
       "headers": {
-        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true"
+        "Cache-Control": "public, max-age=31536000, immutable"
       }
     },
-    { "src": "/static/css/(.*)", "dest": "static/css/$1" },
-    { "src": "/static/js/(.*)", "dest": "static/js/$1" },
-    { "src": "/static/media/(.*)", "dest": "static/media/$1" },
-    { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/tubiao.png", "dest": "/tubiao.png" },
-    { "src": "/(albums|search|favorites|messages|playlist)/.*", "dest": "index.html" },
-    { "src": "/(login|home)", "dest": "index.html" },
-    { "src": "/(.*)", "dest": "index.html" }
+    { 
+      "src": "^/static/music/(.+)\\.mp3$", 
+      "dest": "/static/music/$1.mp3",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    { 
+      "src": "^/static/lyrics/(.+)\\.json$", 
+      "dest": "/static/lyrics/$1.json",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    { 
+      "src": "^/static/media/(11月的萧邦|12新作|jay|七里香|周杰伦的床边故事)\\.jpg$",
+      "dest": "/static/media/$1.jpg",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
   ],
   "env": {
     "PUSHER_APP_ID": "1920738",
