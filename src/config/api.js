@@ -22,8 +22,12 @@ export const apiRequest = async (endpoint, options = {}) => {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || '请求失败');
+      try {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || '请求失败');
+      } catch (parseError) {
+        throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+      }
     }
 
     return response.json();
