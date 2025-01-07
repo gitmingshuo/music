@@ -4,8 +4,11 @@
     <base href="/" />
     <meta charset="utf-8" />
     <link rel="icon" href="/tubiao.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
       name="description"
       content="将の音乐 - 一个简约的音乐播放器"
@@ -17,6 +20,12 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        console.error('Error: ' + msg + '\nurl: ' + url + '\nline: ' + line);
+        return false;
+      };
+    </script>
     <script src="https://js.pusher.com/beams/1.0/push-notifications-cdn.js"></script>
     <script>
       if ('serviceWorker' in navigator) {

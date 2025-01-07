@@ -76,8 +76,17 @@
     },
     {
       "src": "/(.*)",
-      "headers": { "Cache-Control": "no-cache" },
-      "dest": "/index.html"
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Content-Security-Policy": "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval' ws: wss:;"
+      }
     },
     { "src": "^/static/music/(.*)", "dest": "/static/music/$1" },
     { "src": "^/static/lyrics/(.*)", "dest": "/static/lyrics/$1" },
