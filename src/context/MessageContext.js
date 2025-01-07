@@ -50,30 +50,38 @@ export function MessageProvider({ children }) {
   };
 
   // 加载聊天消息
-  const loadChatMessages = async (otherUserId) => {
-    if (!user || !otherUserId) return [];
+  const loadChatMessages = async (chatId) => {
+    if (!user || !chatId) return;
     
     try {
       setLoading(true);
-      setCurrentChat(otherUserId);
       
-      const messages = await getUserMessages(user.id, otherUserId);
+      // 获取消息记录
+      const messages = await getUserMessages(user.id, chatId);
+      setCurrentMessages(messages);
       
-      if (messages && messages.length > 0) {
-        setCurrentMessages(messages);
-      } else {
-        setCurrentMessages([]);
+      // 标记消息为已读
+      try {
+        await fetch('/api/messages/mark-read', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            chatId
+          })
+        });
+      } catch (markError) {
+        // 即使标记已读失败，也不影响消息显示
+        console.warn('Error marking messages as read:', markError);
       }
-      
-      // 标记消息为已读并等待完成
-      await markMessagesAsRead(user.id, otherUserId);
-      // 强制更新会话列表以刷新未读数
-      await fetchConversations(true);
       
       return messages;
     } catch (error) {
       console.error('Error loading messages:', error);
-      return [];
+      // 即使加载失败，也保留现有消息
+      return currentMessages;
     } finally {
       setLoading(false);
     }
@@ -149,7 +157,6 @@ export function MessageProvider({ children }) {
     
     try {
       setLoading(true);
-      console.log('Sending message:', { receiverId, content });
       
       // 创建新消息对象
       const newMessage = {
@@ -158,6 +165,14 @@ export function MessageProvider({ children }) {
         content,
         timestamp: Date.now()
       };
+      
+      // 保存到本地存储
+      try {
+        const db = await openDB();
+        await db.add('messages', newMessage);
+      } catch (storageError) {
+        console.warn('Error saving message locally:', storageError);
+      }
       
       // 立即更新本地消息列表
       if (currentChat === receiverId) {

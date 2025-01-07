@@ -176,3 +176,20 @@ export const searchUser = async (username) => {
     throw error;
   }
 };
+
+export const getMessages = async (userId, chatId) => {
+  try {
+    // 从 IndexedDB 获取消息
+    const db = await openDB();
+    const messages = await db.getAll('messages');
+    
+    // 过滤出相关的消息
+    return messages.filter(msg => 
+      (msg.senderId === userId && msg.receiverId === chatId) ||
+      (msg.senderId === chatId && msg.receiverId === userId)
+    ).sort((a, b) => a.timestamp - b.timestamp);
+  } catch (error) {
+    console.error('Error getting messages:', error);
+    return [];
+  }
+};
