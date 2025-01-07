@@ -149,28 +149,33 @@ export function MessageProvider({ children }) {
     
     try {
       setLoading(true);
+      console.log('Sending message:', { receiverId, content }); // 添加日志
       
-      // 先保存到本地存储
-      const savedMessage = await saveMessage(user.id, receiverId, content);
-      console.log('Message saved locally:', savedMessage);
-      
-      // 立即更新当前消息列表
-      if (currentChat === receiverId) {
-        setCurrentMessages(prevMessages => [...prevMessages, savedMessage]);
-      }
-
-      // 构造消息数据
       const messageData = {
         type: 'chat',
-        message: savedMessage
+        message: {
+          senderId: user.id,
+          receiverId,
+          content,
+          timestamp: Date.now()
+        }
       };
 
       // 发送到服务器
-      const result = await wsService.sendMessage(messageData);
-      
-      // 更新会话列表
-      await fetchConversations();
-      
+      const response = await fetch('/api/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(messageData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Network error' }));
+        throw new Error(error.error || 'Failed to send message');
+      }
+
+      const result = await response.json();
       return result.success;
     } catch (error) {
       console.error('Error sending message:', error);

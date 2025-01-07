@@ -21,6 +21,17 @@
       "dest": "/service-worker.js"
     },
     { 
+      "src": "/api/send-message",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/send-message.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    { 
       "src": "/api/(.*)", 
       "dest": "/api/$1",
       "headers": {
@@ -91,17 +102,6 @@
       "dest": "/static/music/$1.mp3",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    { 
-      "src": "/api/send-message",
-      "methods": ["POST", "OPTIONS"],
-      "dest": "/api/send-message.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true"
       }
     },
     { 
