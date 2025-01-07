@@ -47,7 +47,9 @@ export const saveMessage = async (senderId, receiverId, content) => {
 // 获取用户消息
 export const getUserMessages = async (userId1, userId2) => {
   try {
+    console.log('Getting messages for users:', userId1, userId2);
     const messages = await getConversationMessages(userId1, userId2);
+    console.log('Retrieved messages:', messages);
     return messages;
   } catch (error) {
     console.error('Error getting user messages:', error);

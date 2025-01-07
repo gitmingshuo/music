@@ -9,6 +9,7 @@ import {
   initMessageListener,
   handleReceivedMessage
 } from '../utils/messageStorage';
+import { saveMessageToDB, updateConversation } from '../utils/db';
 import { wsService } from '../utils/websocket';
 import { sendNotification } from '../utils/pushNotifications';
 import { openDB } from '../utils/db';
@@ -56,9 +57,11 @@ export function MessageProvider({ children }) {
     
     try {
       setLoading(true);
+      setCurrentChat(chatId);
       
       // 获取消息记录
       const messages = await getUserMessages(user.id, chatId);
+      console.log('Loaded messages:', messages);
       setCurrentMessages(messages);
       
       // 标记消息为已读
@@ -73,20 +76,29 @@ export function MessageProvider({ children }) {
             chatId
           })
         });
+        await fetchConversations(true);
       } catch (markError) {
-        // 即使标记已读失败，也不影响消息显示
         console.warn('Error marking messages as read:', markError);
       }
       
       return messages;
     } catch (error) {
       console.error('Error loading messages:', error);
-      // 即使加载失败，也保留现有消息
       return currentMessages;
     } finally {
       setLoading(false);
     }
   };
+
+  // 添加消息监听器
+  useEffect(() => {
+    if (user && currentChat) {
+      const loadInitialMessages = async () => {
+        await loadChatMessages(currentChat);
+      };
+      loadInitialMessages();
+    }
+  }, [user, currentChat]);
 
   // WebSocket 连接和消息处理
   useEffect(() => {
@@ -164,20 +176,36 @@ export function MessageProvider({ children }) {
         senderId: user.id,
         receiverId,
         content,
-        timestamp: Date.now()
+        timestamp: new Date().toISOString(),
+        id: Date.now().toString(),
+        conversationId: [user.id, receiverId].sort().join('-')
       };
       
       // 保存到本地存储
       try {
-        const db = await openDB();
-        await db.add('messages', newMessage);
+        await saveMessageToDB(newMessage);
+        console.log('Message saved to local DB:', newMessage);
+        
+        // 立即更新当前消息列表
+        if (currentChat === receiverId) {
+          setCurrentMessages(prev => [...prev, newMessage]);
+        }
+        
+        // 立即更新会话列表
+        const conversation = {
+          id: newMessage.conversationId,
+          userId: user.id,
+          otherUserId: receiverId,
+          lastMessage: content,
+          timestamp: newMessage.timestamp,
+          unreadCount: 0
+        };
+        await updateConversation(conversation);
+        
+        // 强制刷新会话列表
+        await fetchConversations(true);
       } catch (storageError) {
         console.warn('Error saving message locally:', storageError);
-      }
-      
-      // 立即更新本地消息列表
-      if (currentChat === receiverId) {
-        setCurrentMessages(prev => [...prev, newMessage]);
       }
       
       const messageData = {
@@ -200,13 +228,15 @@ export function MessageProvider({ children }) {
         if (currentChat === receiverId) {
           setCurrentMessages(prev => prev.filter(msg => msg.timestamp !== newMessage.timestamp));
         }
+        // 发送失败时也要更新会话列表
+        await fetchConversations(true);
         throw new Error(error.error || 'Failed to send message');
       }
 
       const result = await response.json();
       
-      // 发送成功后更新会话列表
-      await fetchConversations();
+      // 发送成功后再次确保会话列表是最新的
+      await fetchConversations(true);
       
       return result.success;
     } catch (error) {

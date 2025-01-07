@@ -1,18 +1,30 @@
 import { openDB as idbOpenDB } from 'idb';
 
 const DB_NAME = 'chatDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const openDB = async () => {
   return idbOpenDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       // 创建消息存储
       if (!db.objectStoreNames.contains('messages')) {
-        db.createObjectStore('messages', { keyPath: 'timestamp' });
+        const messagesStore = db.createObjectStore('messages', { 
+          keyPath: 'timestamp' 
+        });
+        // 添加会话ID索引
+        messagesStore.createIndex('conversationId', 'conversationId');
+        // 添加发送者和接收者的复合索引
+        messagesStore.createIndex('participants', ['senderId', 'receiverId']);
       }
+      
       // 创建会话存储
       if (!db.objectStoreNames.contains('conversations')) {
-        db.createObjectStore('conversations', { keyPath: 'id' });
+        const conversationsStore = db.createObjectStore('conversations', { 
+          keyPath: 'id' 
+        });
+        // 添加用户ID索引
+        conversationsStore.createIndex('userId', 'userId');
+        conversationsStore.createIndex('timestamp', 'timestamp');
       }
     },
   });
@@ -46,7 +58,15 @@ export async function getConversationMessages(userId1, userId2) {
   const conversationId = [userId1, userId2].sort().join('-');
   
   try {
-    const messages = await db.getAllFromIndex('messages', 'conversationId', conversationId);
+    // 使用 getAll 获取所有消息，然后在内存中过滤
+    const allMessages = await db.getAll('messages');
+    console.log('All messages from DB:', allMessages);
+    const messages = allMessages.filter(msg => {
+      const msgConvId = [msg.senderId, msg.receiverId].sort().join('-');
+      console.log('Comparing:', msgConvId, conversationId);
+      return msgConvId === conversationId;
+    });
+    console.log('Filtered messages:', messages);
     return messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   } catch (error) {
     console.error('Error getting conversation messages:', error);
