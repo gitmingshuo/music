@@ -35,8 +35,8 @@
     { "src": "/static/css/(.*)", "dest": "static/css/$1" },
     { "src": "/static/js/(.*)", "dest": "static/js/$1" },
     { "src": "/static/media/(.*)", "dest": "static/media/$1" },
-    { "src": "/manifest.json", "dest": "manifest.json" },
-    { "src": "/tubiao.png", "dest": "tubiao.png" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/tubiao.png", "dest": "/tubiao.png" },
     { "src": "/(albums|search|favorites|messages|playlist)/.*", "dest": "index.html" },
     { "src": "/(login|home)", "dest": "index.html" },
     { "src": "/(.*)", "dest": "index.html" }
