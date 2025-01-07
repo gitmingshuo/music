@@ -149,16 +149,24 @@ export function MessageProvider({ children }) {
     
     try {
       setLoading(true);
-      console.log('Sending message:', { receiverId, content }); // 添加日志
+      console.log('Sending message:', { receiverId, content });
+      
+      // 创建新消息对象
+      const newMessage = {
+        senderId: user.id,
+        receiverId,
+        content,
+        timestamp: Date.now()
+      };
+      
+      // 立即更新本地消息列表
+      if (currentChat === receiverId) {
+        setCurrentMessages(prev => [...prev, newMessage]);
+      }
       
       const messageData = {
         type: 'chat',
-        message: {
-          senderId: user.id,
-          receiverId,
-          content,
-          timestamp: Date.now()
-        }
+        message: newMessage
       };
 
       // 发送到服务器
@@ -172,10 +180,18 @@ export function MessageProvider({ children }) {
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Network error' }));
+        // 发送失败时从消息列表中移除
+        if (currentChat === receiverId) {
+          setCurrentMessages(prev => prev.filter(msg => msg.timestamp !== newMessage.timestamp));
+        }
         throw new Error(error.error || 'Failed to send message');
       }
 
       const result = await response.json();
+      
+      // 发送成功后更新会话列表
+      await fetchConversations();
+      
       return result.success;
     } catch (error) {
       console.error('Error sending message:', error);
