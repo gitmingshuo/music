@@ -9,7 +9,7 @@ export const albums = [
     {
       name: '最伟大的作品',
       year: '2022',
-      cover: '/static/media/最伟大的作品.jpg',
+      cover: 'static/media/最伟大的作品.jpg',
       songs: ['最伟大的作品', '不爱我就拉倒', '等你下课', '粉色海洋', '说好不哭', 'mojito', '倒影', '红颜如霜', '错过的烟火', '最伟大的作品（钢琴版）']
     },
     {
@@ -112,7 +112,7 @@ function Home() {
   const bannerData = [
     {
       id: 1,
-      image: '/static/media/jay.jpg',
+      image: 'static/media/jay.jpg',
       title: 'Jay',
       album: 'Jay'
     },
