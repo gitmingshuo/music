@@ -39,6 +39,7 @@ export async function saveMessageToDB(message) {
   const conversationId = [message.senderId, message.receiverId].sort().join('-');
   
   try {
+    console.log('Saving message to DB:', message);
     const messageToSave = {
       ...message,
       conversationId,
@@ -46,6 +47,7 @@ export async function saveMessageToDB(message) {
     };
     
     await db.put('messages', messageToSave);
+    console.log('Message saved successfully');
     return messageToSave;
   } catch (error) {
     console.error('Error saving message to DB:', error);

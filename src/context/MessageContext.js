@@ -171,25 +171,26 @@ export function MessageProvider({ children }) {
     try {
       setLoading(true);
       
+      // 生成唯一的消息ID
+      const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       // 创建新消息对象
       const newMessage = {
+        id: messageId,
         senderId: user.id,
         receiverId,
         content,
         timestamp: new Date().toISOString(),
-        id: Date.now().toString(),
         conversationId: [user.id, receiverId].sort().join('-')
       };
+
+      // 立即更新UI
+      setCurrentMessages(prev => [...prev, newMessage]);
       
       // 保存到本地存储
       try {
         await saveMessageToDB(newMessage);
         console.log('Message saved to local DB:', newMessage);
-        
-        // 立即更新当前消息列表
-        if (currentChat === receiverId) {
-          setCurrentMessages(prev => [...prev, newMessage]);
-        }
         
         // 立即更新会话列表
         const conversation = {
@@ -201,11 +202,12 @@ export function MessageProvider({ children }) {
           unreadCount: 0
         };
         await updateConversation(conversation);
-        
-        // 强制刷新会话列表
         await fetchConversations(true);
       } catch (storageError) {
-        console.warn('Error saving message locally:', storageError);
+        console.error('Error saving message locally:', storageError);
+        // 如果保存失败，从UI中移除消息
+        setCurrentMessages(prev => prev.filter(msg => msg.id !== messageId));
+        throw storageError;
       }
       
       const messageData = {

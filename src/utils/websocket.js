@@ -1,6 +1,11 @@
 import Pusher from 'pusher-js';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+const WS_URL = isDevelopment 
+  ? 'ws://localhost:3001'
+  : `wss://${window.location.host}`;
+
 class WebSocketService {
   constructor() {
     this.currentUserId = null;
@@ -12,6 +17,16 @@ class WebSocketService {
     });
     this.channel = null;
     this.messageCallbacks = new Set();
+    this.retryCount = 0;
+    this.maxRetries = 3;
+  }
+
+  handleReconnect() {
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      console.log(`Attempting to reconnect (${this.retryCount}/${this.maxRetries})`);
+      setTimeout(() => this.connect(this.currentUserId), 1000 * this.retryCount);
+    }
   }
 
   connect(userId) {
@@ -81,7 +96,12 @@ class WebSocketService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Server response:', errorText);
-        throw new Error(`Failed to send message: ${response.status}`);
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.error || `Failed to send message: ${response.status}`);
+        } catch (parseError) {
+          throw new Error(`Failed to send message: ${response.status}`);
+        }
       }
 
       const result = await response.json();
@@ -89,6 +109,9 @@ class WebSocketService {
       return result;
     } catch (error) {
       console.error('Error sending message:', error);
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        this.handleReconnect();
+      }
       throw error;
     }
   }
