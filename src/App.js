@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { MusicProvider } from './context/MusicContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MessageProvider } from './context/MessageContext';
+import { API_BASE_URL } from './config/api';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import { ThemeProvider } from './context/ThemeContext';
@@ -99,6 +100,11 @@ function AppContent() {
 }
 
 function App() {
+  useEffect(() => {
+    console.log('App mounted, environment:', process.env.NODE_ENV);
+    console.log('API URL:', API_BASE_URL);
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>
