@@ -13,8 +13,8 @@
       }
     },
     { 
-      "src": "/api/(.*)", 
-      "dest": "/api/$1",
+      "src": "/api/messages/unread-count",
+      "dest": "/api/messages/unread-count.js",
       "headers": {
         "Access-Control-Allow-Origin": "https://www.mingshuo.website",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -22,9 +22,24 @@
         "Access-Control-Allow-Credentials": "true"
       }
     },
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/(.+\\.[a-z]+)$", "dest": "/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { 
+      "src": "/api/send-message",
+      "dest": "/api/send-message.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    { "src": "/static/css/(.*)", "dest": "static/css/$1" },
+    { "src": "/static/js/(.*)", "dest": "static/js/$1" },
+    { "src": "/static/media/(.*)", "dest": "static/media/$1" },
+    { "src": "/manifest.json", "dest": "manifest.json" },
+    { "src": "/tubiao.png", "dest": "tubiao.png" },
+    { "src": "/(albums|search|favorites|messages|playlist)/.*", "dest": "index.html" },
+    { "src": "/(login|home)", "dest": "index.html" },
+    { "src": "/(.*)", "dest": "index.html" }
   ],
   "env": {
     "PUSHER_APP_ID": "1920738",
