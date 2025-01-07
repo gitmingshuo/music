@@ -78,6 +78,56 @@
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       }
+    },
+    { 
+      "src": "^/static/media/(我很忙|叶惠美|依然范特西|周杰伦的床边故事|最伟大的作品|jay|jaybg|jaychou|jaychou2|11月的萧邦|12新作|七里香)\\.jpg$",
+      "dest": "/static/media/$1.jpg",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    { 
+      "src": "^/static/music/(不爱我就拉倒|错过的烟火|倒影|等你下课|粉色海洋|还在流浪|红颜如霜|说好不哭|我是如此相信|最伟大的作品|Intro|mojito)\\.mp3$",
+      "dest": "/static/music/$1.mp3",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    { 
+      "src": "/api/send-message",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/send-message.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://www.mingshuo.website",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    { 
+      "src": "/api/send-notification",
+      "dest": "/api/send-notification.js"
+    },
+    { 
+      "src": "/api/server",
+      "dest": "/api/server.js"
+    },
+    { "src": "^/static/lyrics/(.*)\\.json$", "dest": "/static/lyrics/$1.json" },
+    { "src": "/tubiao.png", "dest": "/tubiao.png" },
+    { "src": "/(.*)", "dest": "/index.html" },
+    { 
+      "src": "^/static/media/(魔杰座|跨时代|惊叹号|哎呦不错哦)\\.jpg$",
+      "dest": "/static/media/$1.jpg",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "^/static/music/(最伟大的作品|红颜如霜|倒影)\\.mp3$",
+      "dest": "/static/music/$1.mp3",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
     }
   ],
   "env": {

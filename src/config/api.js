@@ -2,7 +2,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const API_BASE_URL = isDevelopment
   ? 'http://localhost:3001'
-  : 'https://www.mingshuo.website';
+  : '';
 
 export const API_ENDPOINTS = {
   UNREAD_COUNT: '/api/messages/unread-count',
@@ -11,28 +11,24 @@ export const API_ENDPOINTS = {
 };
 
 export const apiRequest = async (endpoint, options = {}) => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const defaultOptions = {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  };
-
   try {
-    console.log('Making API request to:', url, options);
-    const response = await fetch(url, { 
-      ...defaultOptions, 
-      ...options 
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      credentials: 'include'
     });
-    
+
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      const error = await response.json().catch(() => ({ message: 'Network error' }));
+      throw new Error(error.message || '请求失败');
     }
-    
+
     return response.json();
   } catch (error) {
-    console.error('API request error:', error);
+    console.error('API 请求错误:', error);
     throw error;
   }
 }; 
