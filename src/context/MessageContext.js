@@ -176,7 +176,7 @@ export function MessageProvider({ children }) {
     try {
       setLoading(true);
       
-      // 生成唯一的消息ID
+      // 生成唯一的消息IDjjj‘
       const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       // 创建新消息对象。。2
