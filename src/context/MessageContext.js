@@ -179,7 +179,7 @@ export function MessageProvider({ children }) {
       // 生成唯一的消息ID
       const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      // 创建新消息对象。。
+      // 创建新消息对象。。2
       const newMessage = {
         id: messageId,
         senderId: user.id,
