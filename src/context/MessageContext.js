@@ -207,12 +207,8 @@ export function MessageProvider({ children }) {
           unreadCount: 0
         };
         await updateConversation(conversation);
-        await fetchConversations(true);
       } catch (storageError) {
         console.error('Error saving message locally:', storageError);
-        // 如果保存失败，从UI中移除消息
-        setCurrentMessages(prev => prev.filter(msg => msg.id !== messageId));
-        throw storageError;
       }
       
       const messageData = {
@@ -220,32 +216,35 @@ export function MessageProvider({ children }) {
         message: newMessage
       };
 
+      // 使用完整的URL
+      const apiUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3001/api/send-message'
+        : '/api/send-message';
+
       // 发送到服务器
-      const response = await fetch('/api/send-message', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(messageData)
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Network error' }));
-        // 发送失败时从消息列表中移除
-        if (currentChat === receiverId) {
-          setCurrentMessages(prev => prev.filter(msg => msg.timestamp !== newMessage.timestamp));
-        }
-        // 发送失败时也要更新会话列表
-        await fetchConversations(true);
-        throw new Error(error.error || 'Failed to send message');
+        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+        console.error('Server response:', errorData);
+        throw new Error(errorData.error || 'Failed to send message');
       }
 
       const result = await response.json();
+      console.log('Message sent successfully:', result);
       
-      // 发送成功后再次确保会话列表是最新的
+      // 更新会话列表
       await fetchConversations(true);
       
-      return result.success;
+      return true;
     } catch (error) {
       console.error('Error sending message:', error);
       return false;

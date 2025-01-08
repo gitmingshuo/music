@@ -129,24 +129,22 @@ function Messages() {
   }, [user, fetchConversations]);
 
   const handleSendMessage = async (content) => {
-    if (!content.trim()) return;
+    if (!content.trim() || sending) return;
     
     try {
+      setSending(true);
       const success = await sendMessage(currentChat, content);
+      
       if (success) {
-        setInputMessage('');
-        // 立即更新UI
-        setMessages(prev => [...prev, {
-          senderId: user.id,
-          receiverId: currentChat,
-          content,
-          timestamp: new Date().toISOString()
-        }]);
+        setMessage(''); // 清空输入框
+      } else {
+        throw new Error('Failed to send message');
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      // 显示错误提示
       alert('发送消息失败，请重试');
+    } finally {
+      setSending(false);
     }
   };
 
