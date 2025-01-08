@@ -126,60 +126,25 @@ function Messages() {
     initializeConversations();
   }, [user, fetchConversations]);
 
-  const handleSendMessage = async (content = message) => {
-    console.log('Message content:', content);
-    console.log('Current chat state:', {
-      currentChat,
-      user,
-      selectedUser
-    });
-    
-    const messageText = String(content || '').trim();
-    
-    console.log('Attempting to send message:', {
-      hasMessage: !!messageText,
-      selectedUser,
-      currentChat,
-      currentUserId: user?.id
-    });
-
-    if (!messageText || !selectedUser || !user || sending) {
-      console.error('Send message validation failed');
-      return;
-    }
+  const handleSendMessage = async (content) => {
+    if (!content.trim()) return;
     
     try {
-      setSending(true);
-      
-      const messageData = {
-        type: 'chat',
-        message: {
-          id: Date.now().toString(),
+      const success = await sendMessage(currentChat, content);
+      if (success) {
+        setInputMessage('');
+        // 立即更新UI
+        setMessages(prev => [...prev, {
           senderId: user.id,
-          receiverId: selectedUser.id,
-          content: messageText,
+          receiverId: currentChat,
+          content,
           timestamp: new Date().toISOString()
-        }
-      };
-
-      const result = await wsService.sendMessage(messageData);
-      
-      if (result.success) {
-        console.log('Message sent successfully');
-        setMessage('');
-        
-        setTimeout(() => {
-          if (messagesListRef.current) {
-            messagesListRef.current.scrollTop = messagesListRef.current.scrollHeight;
-          }
-        }, 100);
-      } else {
-        console.error('Failed to send message');
+        }]);
       }
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
-    } finally {
-      setSending(false);
+      console.error('Failed to send message:', error);
+      // 显示错误提示
+      alert('发送消息失败，请重试');
     }
   };
 

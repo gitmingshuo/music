@@ -123,4 +123,17 @@ wss.on('connection', (ws, req) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// 添加错误处理
+server.on('error', (error) => {
+  console.error('Server error:', error);
+});
+
+// 优雅关闭
+process.on('SIGTERM', () => {
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 }); 

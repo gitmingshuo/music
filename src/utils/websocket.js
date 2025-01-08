@@ -12,7 +12,8 @@ class WebSocketService {
     this.pusher = new Pusher(PUSHER_CONFIG.key, {
       ...PUSHER_CONFIG,
       timeout: 20000,
-      enabledTransports: ['ws', 'wss']
+      enabledTransports: ['ws', 'wss'],
+      forceTLS: true
     });
     this.channel = null;
     this.messageCallbacks = new Set();
@@ -20,13 +21,13 @@ class WebSocketService {
     this.maxRetries = 3;
   }
 
-  handleReconnect() {
+  handleConnectionError = (error) => {
+    console.error('WebSocket connection error:', error);
     if (this.retryCount < this.maxRetries) {
       this.retryCount++;
-      console.log(`Attempting to reconnect (${this.retryCount}/${this.maxRetries})`);
       setTimeout(() => this.connect(this.currentUserId), 1000 * this.retryCount);
     }
-  }
+  };
 
   connect(userId) {
     console.log('Connecting WebSocket for user:', userId);
