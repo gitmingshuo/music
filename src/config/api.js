@@ -1,7 +1,7 @@
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const API_BASE_URL = isDevelopment
-  ? 'http://localhost:3001'
+  ? 'https://www.mingshuo.website'
   : '';
 
 export const WS_URL = isDevelopment
@@ -20,6 +20,10 @@ export const PUSHER_CONFIG = {
   encrypted: true,
   forceTLS: true
 };
+
+export const STATIC_URL = isDevelopment
+  ? ''
+  : 'https://www.mingshuo.website';
 
 export const apiRequest = async (endpoint, options = {}) => {
   try {
