@@ -25,6 +25,7 @@ import Messages from './pages/Messages';
 
 import './styles/themes.css';
 import './App.css';
+import './styles/mobile.css';
 
 // 错误边界组件
 class ErrorBoundary extends React.Component {
