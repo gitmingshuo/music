@@ -133,4 +133,22 @@
   position: absolute;
   visibility: hidden;
   pointer-events: none;
+}
+
+@media screen and (max-width: 768px) {
+  .playlist-menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    transform: none;
+    border-radius: 16px 16px 0 0;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .menu-item {
+    padding: 16px;
+  }
 } 

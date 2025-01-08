@@ -76,6 +76,7 @@ body {
   body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
+    overflow-x: hidden;
   }
   
   html {
@@ -86,5 +87,44 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+  }
+
+  /* 修改主容器样式 */
+  .main-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* 修改内容区域样式 */
+  .main-content {
+    position: relative;
+    height: auto;
+    min-width: 800px;
+    overflow: visible;
+    padding: 20px;
+  }
+
+  /* 网格布局样式 */
+  .albums-list,
+  .playlists-grid,
+  .songs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    width: 100%;
+  }
+
+  /* 滚动条样式 */
+  .main-container::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .main-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+  }
+
+  .main-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
   }
 }
