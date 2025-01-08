@@ -11,12 +11,14 @@ import { updateConversation as dbUpdateConversation } from '../utils/db';
 function Messages() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [isFollowed, setIsFollowed] = useState(false);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([]);
   
   const { user } = useAuth();
   const { 
