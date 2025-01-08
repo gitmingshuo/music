@@ -177,12 +177,63 @@
 
   /* Header 组件适配 */
   .header {
-    padding: 10px;
-    height: 50px;
+    padding: 8px;
+    height: 44px;
   }
 
   .header-left {
-    gap: 8px;
+    margin-left: 36px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* 导航按钮样式优化 */
+  .nav-buttons {
+    display: flex;
+    gap: 6px;
+  }
+
+  .nav-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+
+  .nav-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 导航菜单按钮 */
+  .nav-toggle {
+    width: 28px;
+    height: 28px;
+    padding: 6px;
+  }
+
+  .nav-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 隐藏搜索框 */
+  .search-box {
+    display: none;
+  }
+
+  /* 调整右侧布局 */
+  .header-right {
+    margin-left: auto;
   }
 
   .search-box {
@@ -197,10 +248,6 @@
   .user-menu {
     right: 10px;
     width: 200px;
-  }
-
-  .nav-buttons {
-    display: none;
   }
 
   /* Album Detail 适配 */
@@ -406,6 +453,189 @@
 
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* 导航按钮 */
+  .nav-toggle {
+    display: block; /* 在移动端显示导航按钮 */
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    padding: 8px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+  }
+
+  /* 侧边导航栏 */
+  .side-nav {
+    display: none; /* 默认隐藏导航栏 */
+  }
+
+  .side-nav.active {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--nav-bg);
+    z-index: 1000;
+    overflow-y: auto;
+    transform: none;
+  }
+
+  /* 遮罩层 */
+  .nav-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .nav-overlay.active {
+    display: block;
+  }
+
+  /* 调整主容器位置，为导航按钮留出空间 */
+  .header-left {
+    margin-left: 40px;
+  }
+
+  /* 在移动端隐藏头部搜索框，因为搜索页面有专门的搜索框 */
+  .header .search-box {
+    display: none;
+  }
+
+  /* 搜索页面样式适配 */
+  .search-container {
+    padding: 10px;
+  }
+
+  .search-box-container {
+    padding: 10px;
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 100;
+  }
+
+  .search-box-container .search-box {
+    width: 100%;
+    margin: 0;
+  }
+
+  .search-box-container input {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    padding: 0 40px;
+  }
+
+  .search-categories {
+    padding: 10px 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .search-category {
+    display: inline-block;
+    padding: 8px 16px;
+    margin-right: 8px;
+    font-size: 14px;
+  }
+
+  .search-results {
+    padding: 10px;
+  }
+
+  .result-section {
+    margin-bottom: 20px;
+  }
+
+  .result-section h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  /* 网格布局适配 */
+  .albums-grid,
+  .songs-grid,
+  .playlists-grid,
+  .search-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 10px;
+    width: 100%;
+  }
+
+  /* 专辑卡片适配 */
+  .album-card,
+  .song-card,
+  .playlist-card {
+    width: 100%;
+  }
+
+  .album-card img,
+  .song-card img,
+  .playlist-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  /* 移除固定最小宽度，允许内容自适应 */
+  .main-content {
+    min-width: unset;
+    width: 100%;
+  }
+
+  /* 确保容器可以水平滚动 */
+  .content-wrapper {
+    overflow-x: hidden;
+  }
+
+  /* 歌曲列表项样式调整 */
+  .favorite-item,
+  .song-item {
+    padding: 6px 10px;
+    height: 48px; /* 减小高度 */
+  }
+
+  /* 歌曲信息区域 */
+  .song-info {
+    gap: 4px;
+  }
+
+  /* 歌曲标题 */
+  .song-title {
+    font-size: 14px;
+  }
+
+  /* 歌手名称 */
+  .artist-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* 歌曲时长 */
+  .song-duration {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* 歌曲封面图片 */
+  .song-cover {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
   }
 }
 

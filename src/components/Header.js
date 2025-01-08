@@ -2,12 +2,12 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaArrowLeft, FaArrowRight, FaSearch, FaEnvelope } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaSearch, FaEnvelope, FaBars } from 'react-icons/fa';
 import UserSettings from './UserSettings';
 import './Header.css';
 import { API_ENDPOINTS, apiRequest } from '../config/api';
 
-function Header() {
+function Header({ onNavToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -15,6 +15,7 @@ function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     let intervalId;
@@ -55,8 +56,22 @@ function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <header className="header">
+      {isMobile && (
+        <button className="nav-toggle" onClick={onNavToggle}>
+          <FaBars size={24} />
+        </button>
+      )}
       <div className="header-left">
         <div className="nav-buttons">
           <button 

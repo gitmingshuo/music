@@ -56,6 +56,7 @@ class ErrorBoundary extends React.Component {
 // 创建一个新的组件来使用 useAuth
 function AppContent() {
   const { user } = useAuth();
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -69,6 +70,10 @@ function AppContent() {
     }
   }, [user]);
 
+  const handleNavToggle = () => {
+    setIsNavOpen(!isNavOpen);
+  };
+
   return (
     <Routes>
       <Route path="/login" element={
@@ -79,9 +84,12 @@ function AppContent() {
       <Route path="/*" element={
         <PrivateRoute>
           <div className="app">
-            <SideNav />
+            <SideNav 
+              isOpen={isNavOpen} 
+              onClose={() => setIsNavOpen(false)} 
+            />
             <div className="main-container">
-              <Header />
+              <Header onNavToggle={handleNavToggle} />
               <div className="content-wrapper">
                 <div className="main-content">
                   <Routes>
