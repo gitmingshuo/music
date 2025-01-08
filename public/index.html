@@ -20,6 +20,21 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <div id="loading" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    ">
+      正在加载...
+    </div>
     <script>
       window.onerror = function(msg, url, line, col, error) {
         console.error('Error: ' + msg + '\nurl: ' + url + '\nline: ' + line);
@@ -37,6 +52,11 @@
             console.error('Service Worker registration failed:', err);
           });
       }
+    </script>
+    <script>
+      window.addEventListener('load', function() {
+        document.getElementById('loading').style.display = 'none';
+      });
     </script>
   </body>
 </html>

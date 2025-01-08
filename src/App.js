@@ -103,6 +103,26 @@ function App() {
   useEffect(() => {
     console.log('App mounted, environment:', process.env.NODE_ENV);
     console.log('API URL:', API_BASE_URL);
+
+    // 添加全局错误处理
+    window.onerror = function(msg, url, line, col, error) {
+      // 创建错误提示元素
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 9999;
+        font-size: 14px;
+      `;
+      errorDiv.textContent = `错误: ${msg}\n文件: ${url}\n行号: ${line}`;
+      document.body.appendChild(errorDiv);
+    };
   }, []);
 
   return (
