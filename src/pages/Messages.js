@@ -19,6 +19,7 @@ function Messages() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [showChat, setShowChat] = useState(false);
   
   const { user } = useAuth();
   const { 
@@ -214,22 +215,21 @@ function Messages() {
     }
   };
 
-  const handleSelectConversation = (conv) => {
-    console.log('Selecting conversation:', {
-      conversation: conv,
-      currentUser: user?.id,
-      selectedUserId: conv?.user?.id
-    });
-
-    if (!conv?.user || !user) {
-      console.error('Invalid conversation selection:', { conv, user });
-      return;
-    }
-    
+  const handleSelectConversation = async (conv) => {
     setSelectedUser(conv.user);
-    loadChatMessages(conv.user.id);
-    
-    setTimeout(scrollToOptimalPosition, 100);
+    setShowChat(true);
+    await loadChatMessages(conv.id);
+    setTimeout(() => {
+      messagesListRef.current?.scrollTo({
+        top: messagesListRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
+  };
+
+  const handleBack = () => {
+    setShowChat(false);
+    setSelectedUser(null);
   };
 
   const handleFollow = () => {
@@ -304,14 +304,12 @@ function Messages() {
         </div>
       </div>
 
-      <div className="chat-area">
-        {loading && <div className="loading-indicator">加载中...</div>}
-        {selectedUser ? (
+      <div className={`chat-view ${showChat ? 'active' : ''}`}>
+        {selectedUser && (
           <>
             <div className="chat-header">
-              <div className="chat-user-info">
-                <h3>{selectedUser.username}</h3>
-              </div>
+              <button onClick={handleBack}>返回</button>
+              <span>{selectedUser.username}</span>
             </div>
             
             <div className="messages-list" ref={messagesListRef}>
@@ -349,10 +347,6 @@ function Messages() {
               </button>
             </div>
           </>
-        ) : (
-          <div className="no-chat-selected">
-            选择一个联系人开始聊天
-          </div>
         )}
       </div>
     </div>
