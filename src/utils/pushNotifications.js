@@ -1,16 +1,28 @@
 import * as PusherPushNotifications from "@pusher/push-notifications-web";
 
-const beamsClient = new PusherPushNotifications.Client({
-  instanceId: '7489c2ed-669a-4c48-8f69-933dbef714a2',
-});
-
 export const initPushNotifications = async (userId) => {
   try {
+    // 检查是否支持推送通知
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      console.warn('This browser does not support push notifications');
+      return;
+    }
+
+    // 检查是否有 Pusher Beams
+    if (!window.PusherPushNotifications) {
+      console.warn('Pusher Beams not available');
+      return;
+    }
+
+    // 初始化 Pusher Beams
+    const beamsClient = new window.PusherPushNotifications.Client({
+      instanceId: process.env.PUSHER_APP_ID,
+    });
+
     await beamsClient.start();
-    await beamsClient.addDeviceInterest(`user-${userId}`);
-    console.log('Successfully registered and subscribed!');
+    await beamsClient.setUserId(userId);
   } catch (error) {
-    console.error('Could not register with Beams:', error);
+    console.warn('Push notification initialization failed:', error);
   }
 };
 

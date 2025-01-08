@@ -41,7 +41,17 @@
         return false;
       };
     </script>
-    <script src="https://js.pusher.com/beams/1.0/push-notifications-cdn.js"></script>
+    <script>
+      // 检查浏览器是否支持 Web Push
+      if ('Notification' in window && 'serviceWorker' in navigator) {
+        const script = document.createElement('script');
+        script.src = 'https://js.pusher.com/beams/1.0/push-notifications-cdn.js';
+        script.onerror = function() {
+          console.warn('Pusher Beams failed to load');
+        };
+        document.body.appendChild(script);
+      }
+    </script>
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')

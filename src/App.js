@@ -58,7 +58,13 @@ function AppContent() {
 
   useEffect(() => {
     if (user) {
-      initPushNotifications(user.id);
+      try {
+        initPushNotifications(user.id).catch(error => {
+          console.warn('Push notifications not available:', error);
+        });
+      } catch (error) {
+        console.warn('Push notifications setup failed:', error);
+      }
     }
   }, [user]);
 
