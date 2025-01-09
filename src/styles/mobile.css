@@ -27,19 +27,21 @@
     width: 100%;
   }
 
+  /* 内容包装器样式 */
   .content-wrapper {
     position: relative;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
 
+  /* 主要内容区域 */
   .main-content {
     position: relative;
-    min-width: 800px; /* 保持水平滚动的最小宽度 */
+    min-width: 800px;
     padding-bottom: 70px;
   }
 
-  /* 滚动条样式 */
+  /* 滚动条样式定制 */
   .main-container::-webkit-scrollbar {
     height: 6px;
     width: 6px;
@@ -54,36 +56,41 @@
     background: rgba(0, 0, 0, 0.1);
   }
 
-  /* 消息页面滚动调整 */
+  /* 消息页面移动端适配 */
   .messages-container {
-    flex-direction: column;
-    height: calc(100vh - 120px); /* 减去头部和底部导航的高度 */
+    position: relative;
+    height: calc(100vh - 120px);
+    overflow: hidden;
   }
 
-  /* 会话列表 */
+  /* 会话列表容器 */
   .conversations-list {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    transform: translateX(0);
     transition: transform 0.3s ease;
+    background: var(--bg-primary);
+    z-index: 1;
   }
 
-  /* 聊天视图 */
+  /* 聊天视图容器 */
   .chat-view {
     width: 100%;
-    height: 100vh; /* 使用视口高度 */
+    height: 100vh;
     position: fixed;
     top: 0;
     left: 100%;
     transition: transform 0.3s ease;
     background: var(--bg-primary);
-    z-index: 1001; /* 确保在导航按钮之上 */
+    z-index: 1001;
     display: flex;
     flex-direction: column;
   }
 
-  /* 当聊天视图激活时 */
+  /* 聊天视图激活状态 */
   .chat-view.active {
     transform: translateX(-100%);
   }
@@ -97,7 +104,7 @@
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     position: relative;
-    z-index: 1002; /* 确保在其他元素之上 */
+    z-index: 1002;
   }
 
   /* 返回按钮样式 */
@@ -115,13 +122,13 @@
     min-width: 36px;
   }
 
-  /* 聊天标题 */
+  /* 聊天标题样式 */
   .chat-header span {
     flex: 1;
     text-align: center;
     font-size: 16px;
     font-weight: 500;
-    margin-right: 36px; /* 为了保持标题居中 */
+    margin-right: 36px;
   }
 
   /* 消息列表区域 */
@@ -129,10 +136,10 @@
     flex: 1;
     overflow-y: auto;
     padding: 10px;
-    margin-bottom: 60px; /* 为输入框留出空间 */
+    margin-bottom: 60px;
   }
 
-  /* 输入框区域 */
+  /* 输入框区域样式 */
   .message-input {
     position: fixed;
     bottom: 0;
@@ -146,6 +153,7 @@
     gap: 8px;
   }
 
+  /* 输入框样式 */
   .message-input input {
     flex: 1;
     height: 36px;
@@ -156,6 +164,7 @@
     color: #fff;
   }
 
+  /* 发送按钮样式 */
   .message-input button {
     width: 36px;
     height: 36px;
@@ -525,14 +534,14 @@
     top: 0;
     left: 0;
     width: 280px;
-    height: 100vh;
+    height: 100vh; /* 100% 视口高度 */
     background: var(--nav-bg);
     z-index: 1000;
     overflow-y: auto;
-    transform: none;
+    transform: none; /* 重置任何变换效果 */
   }
 
-  /* 遮罩层 */
+  /* 导航遮罩层 - 用于点击关闭导航 */
   .nav-overlay {
     display: none;
     position: fixed;
@@ -540,7 +549,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
     z-index: 999;
   }
 
@@ -550,7 +559,7 @@
 
   /* 调整主容器位置，为导航按钮留出空间 */
   .header-left {
-    margin-left: 40px;
+    margin-left: 40px; /* 避免与导航按钮重叠 */
   }
 
   /* 在移动端隐藏头部搜索框，因为搜索页面有专门的搜索框 */
@@ -563,12 +572,13 @@
     padding: 10px;
   }
 
+  /* 搜索框容器 - 固定在顶部 */
   .search-box-container {
     padding: 10px;
     position: sticky;
     top: 0;
     background: var(--bg-primary);
-    z-index: 100;
+    z-index: 100; /* 确保搜索框始终可见 */
   }
 
   .search-box-container .search-box {
@@ -579,17 +589,19 @@
   .search-box-container input {
     width: 100%;
     height: 40px;
-    font-size: 16px;
+    font-size: 16px; /* 避免iOS自动放大输入框 */
     padding: 0 40px;
   }
 
+  /* 搜索分类横向滚动容器 */
   .search-categories {
     padding: 10px 0;
     overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
+    white-space: nowrap; /* 防止换行 */
+    -webkit-overflow-scrolling: touch; /* iOS流畅滚动 */
   }
 
+  /* 搜索分类按钮 */
   .search-category {
     display: inline-block;
     padding: 8px 16px;
@@ -610,30 +622,31 @@
     margin-bottom: 10px;
   }
 
-  /* 网格布局适配 */
+  /* 网格布局适配 - 自适应列数 */
   .albums-grid,
   .songs-grid,
   .playlists-grid,
   .search-results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* 响应式网格布局 */
     gap: 15px;
     padding: 10px;
     width: 100%;
   }
 
-  /* 专辑卡片适配 */
+  /* 卡片组件通用样式 */
   .album-card,
   .song-card,
   .playlist-card {
     width: 100%;
   }
 
+  /* 卡片图片样式 */
   .album-card img,
   .song-card img,
   .playlist-card img {
     width: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 1; /* 保持正方形比例 */
     object-fit: cover;
   }
 
@@ -652,54 +665,103 @@
   .favorite-item,
   .song-item {
     padding: 6px 10px;
-    height: 48px; /* 减小高度 */
+    height: 48px; /* 减小高度以适应移动端 */
   }
 
-  /* 歌曲信息区域 */
+  /* 歌曲信息区域布局 */
   .song-info {
-    gap: 4px;
+    gap: 4px; /* 紧凑的信息间距 */
   }
 
-  /* 歌曲标题 */
+  /* 歌曲标题文本样式 */
   .song-title {
     font-size: 14px;
   }
 
-  /* 歌手名称 */
+  /* 歌手名称文本样式 */
   .artist-name {
     font-size: 12px;
     color: var(--text-secondary);
   }
 
-  /* 歌曲时长 */
+  /* 歌曲时长文本样式 */
   .song-duration {
     font-size: 12px;
     color: var(--text-secondary);
   }
 
-  /* 歌曲封面图片 */
+  /* 歌曲封面缩略图样式 */
   .song-cover {
     width: 36px;
     height: 36px;
     border-radius: 4px;
   }
-}
 
-/* 适配刘海屏 */
-@supports (padding: max(0px)) {
-  .header {
-    padding-top: max(10px, env(safe-area-inset-top));
+  /* 适配刘海屏的安全区域 */
+  @supports (padding: max(0px)) {
+    .header {
+      padding-top: max(10px, env(safe-area-inset-top)); /* 适配顶部刘海 */
+    }
+
+    .player-container {
+      padding-bottom: max(10px, env(safe-area-inset-bottom)); /* 适配底部安全区域 */
+    }
+
+    .sidenav {
+      padding-bottom: env(safe-area-inset-bottom); /* 适配底部安全区域 */
+    }
+
+    .modal-content {
+      max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); /* 适配全屏模态框 */
+    }
   }
 
-  .player-container {
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  /* 移动端会话列表 */
+  .conversations-list {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    background: var(--bg-primary);
+    z-index: 1;
   }
 
-  .sidenav {
-    padding-bottom: env(safe-area-inset-bottom);
+  /* 移动端聊天区域 */
+  .chat-area {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    transition: transform 0.3s ease;
+    z-index: 2;
   }
 
-  .modal-content {
-    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  /* 显示聊天区域时的状态 */
+  .messages-container.show-chat {
+    .conversations-list {
+      transform: translateX(-100%);
+    }
+
+    .chat-area {
+      transform: translateX(-100%);
+    }
+  }
+
+  /* 移动端返回按钮 - 仅在移动端显示 */
+  .mobile-back-btn {
+    display: block;
+  }
+
+  /* 移动端聊天头部样式 */
+  .chat-header {
+    padding: 10px 16px;
+    height: 50px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
   }
 } 

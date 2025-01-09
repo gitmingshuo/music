@@ -5,51 +5,62 @@ import { isFollowing, followUser, unfollowUser } from '../utils/userStorage';
 import './Messages.css';
 import { useNavigate } from 'react-router-dom';
 import EmojiPicker from '../components/EmojiPicker';
-import { wsService } from '../utils/websocket';
 import { updateConversation as dbUpdateConversation } from '../utils/db';
 
+// 移动端消息组件 - 实现类似微信的双层消息界面
+// 包含会话列表页和聊天详情页，通过滑动切换视图
 function Messages() {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [message, setMessage] = useState('');
-  const [inputMessage, setInputMessage] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [showNewMessage, setShowNewMessage] = useState(false);
-  const [searchError, setSearchError] = useState('');
-  const [isFollowed, setIsFollowed] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [showChat, setShowChat] = useState(false);
+  // ===== 状态管理 =====
+  // 用户相关状态
+  const [selectedUser, setSelectedUser] = useState(null); // 当前选中的聊天对象
+  const [message, setMessage] = useState(''); // 当前输入框的消息内容
+  const [inputMessage, setInputMessage] = useState(''); // 临时存储的消息内容
+  const [searchInput, setSearchInput] = useState(''); // 搜索用户的输入内容
   
-  const { user } = useAuth();
+  // UI 状态控制
+  const [showNewMessage, setShowNewMessage] = useState(false); // 控制新建消息对话框的显示
+  const [searchError, setSearchError] = useState(''); // 搜索用户时的错误信息
+  const [isFollowed, setIsFollowed] = useState(false); // 当前选中用户的关注状态
+  const [sending, setSending] = useState(false); // 消息发送状态，防止重复发送
+  const [loading, setLoading] = useState(false); // 加载状态，用于显示加载指示器
+  const [messages, setMessages] = useState([]); // 当前会话的消息列表
+  
+  // 移动端视图控制
+  const [showChat, setShowChat] = useState(false); // 控制聊天详情页的显示/隐藏，用于实现滑动切换效果
+
+  // ===== Hooks 和 Context =====
+  const { user } = useAuth(); // 当前登录用户信息
   const { 
-    conversations, 
-    sendMessage,
-    fetchConversations,
-    searchUsers,
-    loadChatMessages,
-    currentMessages,
-    currentChat,
-    updateConversation,
+    conversations, // 所有会话列表
+    sendMessage, // 发送消息方法
+    fetchConversations, // 获取会话列表方法
+    searchUsers, // 搜索用户方法
+    loadChatMessages, // 加载特定会话消息方法
+    currentMessages, // 当前会话的消息
+    currentChat, // 当前会话信息
+    updateConversation, // 更新会话方法
   } = useMessage();
   const navigate = useNavigate();
 
-  const messagesEndRef = useRef(null);
-  const messagesListRef = useRef(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  // ===== DOM 引用和滚动控制 =====
+  const messagesEndRef = useRef(null); // 用于自动滚动到最新消息
+  const messagesListRef = useRef(null); // 消息列表容器的引用
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true); // 是否应该自动滚动到底部
 
+  // 检查消息列表是否接近底部，用于智能控制自动滚动
   const isNearBottom = () => {
     const container = messagesListRef.current;
     if (!container) return false;
-    
-    const threshold = 150;
+    const threshold = 150; // 距离底部的阈值，小于这个值就认为"接近底部"
     return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
   };
 
+  // 处理滚动事件
   const handleScroll = () => {
     setShouldAutoScroll(isNearBottom());
   };
 
+  // 滚动到底部
   const scrollToBottom = () => {
     if (shouldAutoScroll && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ 
@@ -59,7 +70,9 @@ function Messages() {
     }
   };
 
+  // ===== 滚动行为控制 =====
   useEffect(() => {
+    // 添加滚动监听器，用于控制是否自动滚动
     const messagesList = messagesListRef.current;
     if (messagesList) {
       messagesList.addEventListener('scroll', handleScroll);
@@ -67,16 +80,19 @@ function Messages() {
     }
   }, []);
 
+  // 监听消息更新，自动滚动到底部
   useEffect(() => {
     scrollToBottom();
   }, [currentMessages, shouldAutoScroll]);
 
+  // 监听新消息，如果是自己发送的则自动滚动到底部
   useEffect(() => {
     if (currentMessages?.length > 0) {
       console.log('Messages updated:', {
         count: currentMessages.length,
         messages: currentMessages
       });
+      // 只有当新消息是自己发送的才自动滚动
       if (currentMessages[currentMessages.length - 1]?.senderId === user?.id) {
         scrollToBottom();
       }
@@ -96,12 +112,15 @@ function Messages() {
     }
   }, [user, navigate]);
 
+  // 监听用户关注状态
   useEffect(() => {
     if (selectedUser) {
       setIsFollowed(isFollowing(user.id, selectedUser.id));
     }
   }, [selectedUser, user.id]);
 
+  // ===== 消息列表初始化 =====
+  // 调整消息列表滚动位置
   useEffect(() => {
     const adjustScroll = () => {
       const messagesList = document.querySelector('.messages-list');
@@ -115,6 +134,7 @@ function Messages() {
     }
   }, [selectedUser]);
 
+  // 初始化加载会话列表
   useEffect(() => {
     const initializeConversations = async () => {
       if (user) {
@@ -129,8 +149,10 @@ function Messages() {
     initializeConversations();
   }, [user, fetchConversations]);
 
+  // ===== 消息处理 =====
+  // 发送消息的处理函数
   const handleSendMessage = async (content) => {
-    if (!content.trim() || sending) return;
+    if (!content.trim() || sending) return; // 防止发送空消息或重复发送
     
     try {
       setSending(true);
@@ -149,6 +171,8 @@ function Messages() {
     }
   };
 
+  // ===== 消息输入处理 =====
+  // 处理回车发送消息
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !sending) {
       e.preventDefault();
@@ -156,7 +180,10 @@ function Messages() {
     }
   };
 
+  // ===== 新建会话处理 =====
+  // 处理新建消息对话
   const handleNewMessage = async () => {
+    // 输入验证
     if (!searchInput.trim() || !user) {
       setSearchError('请输入用户名');
       return;
@@ -166,6 +193,7 @@ function Messages() {
       setLoading(true);
       const foundUser = await searchUsers(searchInput);
       
+      // 用户验证
       if (!foundUser) {
         setSearchError('未找到该用户');
         return;
@@ -180,8 +208,8 @@ function Messages() {
       const conversationId = [user.id, foundUser.id].sort().join('-');
       const existingConv = conversations?.find(conv => conv.id === conversationId);
 
+      // 如果会话不存在则创建新会话
       if (!existingConv) {
-        // 创建新会话
         const newConv = {
           id: conversationId,
           userId: user.id,
@@ -196,6 +224,7 @@ function Messages() {
         await fetchConversations();
       }
 
+      // 重置状态并加载消息
       setSelectedUser(foundUser);
       setSearchInput('');
       setSearchError('');
@@ -215,30 +244,27 @@ function Messages() {
     }
   };
 
+  // ===== 移动端视图切换处理 =====
+  // 处理选择会话，切换到聊天详情页
   const handleSelectConversation = async (conv) => {
-    console.log('Selecting conversation:', {
-      conversation: conv,
-      currentUser: user?.id,
-      selectedUserId: conv?.user?.id
-    });
-
-    if (!conv?.user || !user) {
-      console.error('Invalid conversation selection:', { conv, user });
-      return;
-    }
-    
     setSelectedUser(conv.user);
-    setShowChat(true);
     loadChatMessages(conv.user.id);
     
-    setTimeout(scrollToOptimalPosition, 100);
+    // 在移动端时才切换显示状态
+    if (window.innerWidth <= 768) {
+      setShowChat(true);
+      document.querySelector('.messages-container').classList.add('show-chat');
+    }
   };
 
+  // 处理返回按钮点击，返回会话列表页
   const handleBack = () => {
     setShowChat(false);
-    setSelectedUser(null);
+    document.querySelector('.messages-container').classList.remove('show-chat');
   };
 
+  // ===== 用户关系处理 =====
+  // 处理关注/取消关注用户
   const handleFollow = () => {
     if (!selectedUser || !user) return;
     
@@ -250,19 +276,20 @@ function Messages() {
     setIsFollowed(!isFollowed);
   };
 
+  // ===== 表情处理 =====
+  // 处理表情选择
   const handleEmojiSelect = (emoji) => {
     setMessage(prev => prev + emoji);
   };
 
+  // JSX 渲染
   return (
     <div className="messages-container">
+      {/* 左侧会话列表 - 桌面端始终显示 */}
       <div className="conversations-list">
         <div className="conversations-header">
           <h2>消息</h2>
-          <button 
-            className="new-message-btn"
-            onClick={() => setShowNewMessage(true)}
-          >
+          <button className="new-message-btn" onClick={() => setShowNewMessage(true)}>
             新建消息
           </button>
         </div>
@@ -282,7 +309,6 @@ function Messages() {
           </div>
         )}
 
-        {loading && <div className="loading-indicator">加载中...</div>}
         <div className="conversations">
           {conversations?.map((conv) => (
             conv?.user && (
@@ -311,12 +337,11 @@ function Messages() {
         </div>
       </div>
 
+      {/* 右侧聊天区域 - 桌面端 */}
       <div className="chat-area">
-        {loading && <div className="loading-indicator">加载中...</div>}
         {selectedUser ? (
           <>
             <div className="chat-header">
-              <button className="mobile-back-btn" onClick={handleBack}>返回</button>
               <div className="chat-user-info">
                 <h3>{selectedUser.username}</h3>
               </div>
