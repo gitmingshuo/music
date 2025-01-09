@@ -216,15 +216,22 @@ function Messages() {
   };
 
   const handleSelectConversation = async (conv) => {
+    console.log('Selecting conversation:', {
+      conversation: conv,
+      currentUser: user?.id,
+      selectedUserId: conv?.user?.id
+    });
+
+    if (!conv?.user || !user) {
+      console.error('Invalid conversation selection:', { conv, user });
+      return;
+    }
+    
     setSelectedUser(conv.user);
     setShowChat(true);
-    await loadChatMessages(conv.id);
-    setTimeout(() => {
-      messagesListRef.current?.scrollTo({
-        top: messagesListRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }, 100);
+    loadChatMessages(conv.user.id);
+    
+    setTimeout(scrollToOptimalPosition, 100);
   };
 
   const handleBack = () => {
@@ -304,12 +311,15 @@ function Messages() {
         </div>
       </div>
 
-      <div className={`chat-view ${showChat ? 'active' : ''}`}>
-        {selectedUser && (
+      <div className="chat-area">
+        {loading && <div className="loading-indicator">加载中...</div>}
+        {selectedUser ? (
           <>
             <div className="chat-header">
-              <button onClick={handleBack}>返回</button>
-              <span>{selectedUser.username}</span>
+              <button className="mobile-back-btn" onClick={handleBack}>返回</button>
+              <div className="chat-user-info">
+                <h3>{selectedUser.username}</h3>
+              </div>
             </div>
             
             <div className="messages-list" ref={messagesListRef}>
@@ -347,6 +357,10 @@ function Messages() {
               </button>
             </div>
           </>
+        ) : (
+          <div className="no-chat-selected">
+            选择一个联系人开始聊天
+          </div>
         )}
       </div>
     </div>
