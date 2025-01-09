@@ -282,6 +282,9 @@ function Messages() {
     setMessage(prev => prev + emoji);
   };
 
+  // 添加一个判断是否为移动端的变量
+  const isMobile = window.innerWidth <= 768;
+
   // JSX 渲染
   return (
     <div className="messages-container">
@@ -342,9 +345,19 @@ function Messages() {
         {selectedUser ? (
           <>
             <div className="chat-header">
-              <div className="chat-user-info">
-                <h3>{selectedUser.username}</h3>
-              </div>
+              {isMobile ? (
+                // 移动端显示返回按钮和居中标题
+                <>
+                  <button className="back-btn" onClick={handleBack}>返回</button>
+                  <span className="chat-title">{selectedUser.username}</span>
+                  <div className="header-right"></div>
+                </>
+              ) : (
+                // 桌面端只显示用户信息
+                <div className="chat-user-info">
+                  <h3>{selectedUser.username}</h3>
+                </div>
+              )}
             </div>
             
             <div className="messages-list" ref={messagesListRef}>
